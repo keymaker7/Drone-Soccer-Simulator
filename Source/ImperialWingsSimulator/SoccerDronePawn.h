@@ -30,6 +30,7 @@ public:
     virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
     virtual void UnPossessed() override;
     virtual void OnConstruction(const FTransform& Transform) override;
+    bool VerifyDetailedAirframe() const;
 
     UFUNCTION(BlueprintCallable, Category="Drone|Autonomy")
     void SetAutonomousTarget(const FVector& WorldPosition);
@@ -207,6 +208,12 @@ private:
 
     UPROPERTY()
     TObjectPtr<UInstancedStaticMeshComponent> CageRods;
+    UPROPERTY() TObjectPtr<UInstancedStaticMeshComponent> CageJoints;
+    UPROPERTY() TObjectPtr<UInstancedStaticMeshComponent> MetalHardware;
+    UPROPERTY() TObjectPtr<UInstancedStaticMeshComponent> MotorVents;
+    UPROPERTY() TObjectPtr<UInstancedStaticMeshComponent> PowerWires;
+    UPROPERTY() TObjectPtr<UInstancedStaticMeshComponent> GroundWires;
+    UPROPERTY() TObjectPtr<UInstancedStaticMeshComponent> CageClips;
 
     UPROPERTY()
     TObjectPtr<UInstancedStaticMeshComponent> TeamLedElements;

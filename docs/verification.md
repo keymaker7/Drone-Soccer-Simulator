@@ -163,3 +163,27 @@ Windows PnP의 상위 장치까지 확인했다. `0416:8258`은 **Archon M1 PRO 
 - 기존 실제RadioProfile을 새 패키지Saved/Config에 복사했다. 기존 파일은 덮어쓰지 않았고 새 보정 데이터나 USB 자동 활성화를 만들지 않았다.
 - 자율훈련 브리지 백그라운드 시작 명령은 자동 승인 검토에서 blocked by policy로 거부됐다. 추가 사유는 제공되지 않았으며 다른 명령으로 재시도하지 않았다. 따라서 이번 최종 빌드는 자율 연결이나 실제 USB비행 검증 결과를 포함하지 않는다.
 - 모터 고장·실제 파괴·하단 띠 탈락 득점 판정·공격수 승계는 여전히 후속 구현이다. 프로젝트 전체 계획의 완료나 GitHub 최종 반영으로 보고하지 않는다.
+
+
+## v0.6.0 다른 PC용 포터블 배포·기체 모델 — 2026-10-26
+
+Shipping build/cook/stage/package/archive 성공. 최종 배포 입력SHA-256은 `6ad24fa79cf3e75c6ae2235c51ce0283fc286e5065ad81d76af89f2ab1371a3c`(78개)다. 빌드 당시 부모커밋은85e5f99이며 최신 기체 변경이 적용된 작업 트리에서 컴파일했다. 배포 소스의 입력 지문으로 실행 파일과 내용을 대응시킨다.
+
+- 최종 빌드: `Saved/portable-model-build.log`, ExitCode0.
+- 배포 ZIP 실제 압축 해제 후 한글·공백 경로와 분리된 새 사용자 데이터에서15개 검사 전부 통과: `Saved/Verification/portable-final-extracted/result.json`.
+- 자식 프로세스의 PATH에서 개발용 Python·Git·Unreal 경로와 관련 환경변수를 제거했다. 네이티브 실행기의 상대 경로, 독립 APF의 실제10대 protocol2 HTTP 응답·원본 소스해시·유한 수명 종료를 확인했다.
+- 빈 사용자 데이터에서 시작은키보드/USB비활성, 임의 보정 생성 없음, 진단 파일 저장을 확인했다. 별도 QA 데이터에만 기존 실물Boxer 프로필을 복사하여 실제 장치와의 일치·최저 스로틀 활성화·실제 값 저장/재로딩·검사 종료 시 비활성을 확인했다. 배포 ZIP에 해당 프로필은 없다.
+- 새42셀 기체의80접합점·720봉 조각·29체결부·48모터 슬롯·배선/클램프,역할/방향LED 수,무충돌 메시와0.9kg 질량을 실제10대에서 확인했다: `Saved/Verification/role-layout-20261026-133951-145/result.json`.
+- 기하학4개 검사 통과: 닫힌 구면 위상,오각12/육각30,외경40cm,최대 이상 구면 개구부131.856cm²,중심 대칭.
+- 최종 모델의30/60/120FPS 물리 시나리오 통과: `Saved/Verification/runtime-20261026-133958-374/results.json`. 호버 오차0.522/0.341/0.273cm,바닥/벽·네트 접촉과 실제 득점 확인.
+- 최종 모델의20/30/60/120/240FPS ANGLE10대 자세 검사 통과: `Saved/Verification/angle-20261026-134007-196/results.json`. 명시적 비USB 입력/고도 보상 fixture이며 실물 비행 성적이 아니다.
+- Shipping 엔진은 개발용 `-FPS` 지정 처리가 제외돼 초기 반복 검사에서 계산 간격이 같았다. 해당 초기 결과를 서로 다른 FPS 검증으로 사용하지 않는다. 명시적 smoke 시나리오에서만 간격을 설정하고 실제 Tick 최소/최대값이요청값과 일치하는지 검사한 위 결과로 대체했다.
+- 화질3단계 풀 검사: `Saved/Verification/presentation-20261026-133307-772`. 모터·조종기 코드와 무관한 모델 변경 전 동일 표시효과의 수명/상한 검사다.
+- 최종 모델 실제1600×1000 GPU 렌더를 시각 검토: `docs/images/airframe-v06.png`. 첫 사용 조종기 모달도 포터블 Shipping 렌더에서 확인했다(`Saved/Verification/portable-first-use.png`,모델 변경 전 동일 설정UI).
+- 실제 APF HTTP10개,번들 원본 검증5개,비행기록 판정5개 수학 검사 통과. 번들 손상·잘못된출처/경로탈출·누락 라이선스를 거부한다.
+
+최종 실행 ZIP `ImperialWings-Windows-v0.6.0-r2.zip`:372,189,778bytes, SHA-256 `0b79c05dda4b7b85ce776a11b383ec917a9df4b39b584e229b8aa2dfbbd71296`.
+
+실제 다른 물리PC·새HID드라이버·미설치VC상태에서의 설치 대화상자·모든GPU에서 실행한 결과는 아니다. 해당 조합과 완전한 USB이륙/착륙·케이블 분리·입력 지연은 추가 현장 검증 대상이다. 재배포 ZIP은 VC x64 설치 파일을 포함하며 Python/Git/Unreal 설치를 요구하지 않는다. 사용자별 보정·화질·진단/비행 기록은 `%LOCALAPPDATA%/ImperialWingsSimulator/Saved`에 저장한다.
+
+앞선 R7(v0.5.0,소스7a20a652)실물 USB기록에서는 이륙 연속7.145초·호버2.336초를 관측했지만 포커스 상실과 이후 AUTO전환으로 착륙/DISARM 연속 검증은 실패했다. 이 기록을 v0.6의 USB비행 완료로 재사용하지 않는다. 파일은 로컬 `Saved/FlightLogs`에만 보관한다.

@@ -106,7 +106,7 @@ ASoccerDronePawn::ASoccerDronePawn()
         UStaticMeshComponent* Rotor=MakePart(FString::Printf(TEXT("RotorHub%d"),Index),Cylinder.Object,RotorPosition+FVector(0,0,2.5),FVector(1.6,1.6,.6),FRotator::ZeroRotator);
         DarkVisuals.Add(Rotor);
         auto* Pivot=CreateDefaultSubobject<USceneComponent>(*FString::Printf(TEXT("RotorPivot%d"),Index));Pivot->SetupAttachment(Body);Pivot->SetAbsolute(false,false,true);Pivot->SetRelativeScale3D(FVector::OneVector);Pivot->SetRelativeLocation((RotorPosition+FVector(0,0,2.5))*2.5);RotorPivots.Add(Pivot);
-        for(int32 Blade=0;Blade<3;++Blade){double A=Blade*2*PI/3;auto* P=MakePart(FString::Printf(TEXT("Blade%d_%d"),Index,Blade),Cube.Object,FVector::ZeroVector,FVector(5.2,1.1,.22),FRotator::ZeroRotator);P->SetupAttachment(Pivot);P->SetRelativeLocation(FVector(2.6*FMath::Cos(A),2.6*FMath::Sin(A),0));P->SetRelativeRotation(FRotator(9,Blade*120,0));PropellerBlades.Add(P);}
+        for(int32 Blade=0;Blade<3;++Blade){double A=Blade*2*PI/3;auto* P=MakePart(FString::Printf(TEXT("Blade%d_%d"),Index,Blade),Sphere.Object,FVector::ZeroVector,FVector(5.2,1.1,.22),FRotator::ZeroRotator);P->SetupAttachment(Pivot);P->SetRelativeLocation(FVector(2.6*FMath::Cos(A),2.6*FMath::Sin(A),0));P->SetRelativeRotation(FRotator(9,Blade*120,0));PropellerBlades.Add(P);}
     }
 
     const auto MakeInstances = [this](const TCHAR* Name, UStaticMesh* Mesh)
@@ -125,6 +125,12 @@ ASoccerDronePawn::ASoccerDronePawn()
         return Instances;
     };
     CageRods = MakeInstances(TEXT("Class40Exoskeleton"), Cylinder.Object);
+    CageJoints=MakeInstances(TEXT("RoundedCageJoints"),Sphere.Object);
+    MetalHardware=MakeInstances(TEXT("AirframeFasteners"),Cylinder.Object);
+    MotorVents=MakeInstances(TEXT("MotorCoolingSlots"),Cube.Object);
+    PowerWires=MakeInstances(TEXT("RedPowerHarness"),Cylinder.Object);
+    GroundWires=MakeInstances(TEXT("BlackMotorHarness"),Cylinder.Object);
+    CageClips=MakeInstances(TEXT("FiveEquatorClamps"),Cube.Object);
     TeamLedElements = MakeInstances(TEXT("TeamLedRing"), Cube.Object);
     RoleLedElements = MakeInstances(TEXT("PositionLedRing"), Cube.Object);
     EquatorFrame=MakeInstances(TEXT("CarbonEquatorFrame"),Cube.Object);
@@ -250,9 +256,80 @@ void ASoccerDronePawn::BuildCageVisuals()
         auto P=[&](double A){return (Center*FMath::Cos(.22)+(U*FMath::Cos(A)+V*FMath::Sin(A))*FMath::Sin(.22))*RodCenterRadiusCm;};
         for(int32 S=0;S<32;++S)AddRod(P(S*2*PI/32),P((S+1)*2*PI/32));
     }
+    // Authored original geodesic topology: 12 pentagons + 30 hexagons. Curved
+    // edges and rounded junctions replace the previous overlapping latitude hoops.
+    // Retain the old closed cage as a load-error fallback, never an invisible body.
+    FString GeometryText;TSharedPtr<FJsonObject> Geometry;
+    const TArray<TSharedPtr<FJsonValue>>* NodesJson=nullptr;const TArray<TSharedPtr<FJsonValue>>* EdgesJson=nullptr;
+    CageJoints->ClearInstances();
+    if(FFileHelper::LoadFileToString(GeometryText,*FPaths::Combine(FPaths::ProjectContentDir(),TEXT("Data/cage-geodesic.json")))&&
+       FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(GeometryText),Geometry)&&Geometry.IsValid()&&
+       Geometry->TryGetArrayField(TEXT("nodes"),NodesJson)&&NodesJson&&NodesJson->Num()==80&&
+       Geometry->TryGetArrayField(TEXT("edges"),EdgesJson)&&EdgesJson&&EdgesJson->Num()==120)
+    {
+        TArray<FVector> Nodes;bool Valid=true;
+        for(const auto& Value:*NodesJson)
+        {
+            const TArray<TSharedPtr<FJsonValue>>* V=nullptr;
+            if(!Value->TryGetArray(V)||!V||V->Num()!=3){Valid=false;break;}
+            const FVector P((*V)[0]->AsNumber(),(*V)[1]->AsNumber(),(*V)[2]->AsNumber());
+            if(P.ContainsNaN()||FMath::Abs(P.Size()-RodCenterRadiusCm)>.001){Valid=false;break;}Nodes.Add(P);
+        }
+        TArray<TPair<int32,int32>> Edges;
+        for(const auto& Value:*EdgesJson)
+        {
+            const TArray<TSharedPtr<FJsonValue>>* E=nullptr;
+            if(!Value->TryGetArray(E)||!E||E->Num()!=2){Valid=false;break;}
+            const int32 A=(*E)[0]->AsNumber(),B=(*E)[1]->AsNumber();
+            if(!Nodes.IsValidIndex(A)||!Nodes.IsValidIndex(B)||A==B){Valid=false;break;}Edges.Emplace(A,B);
+        }
+        if(Valid)
+        {
+            Rods.Reset();TArray<FTransform> Joints;
+            for(const auto& Edge:Edges)for(int32 S=0;S<6;++S)
+                AddRod(FMath::Lerp(Nodes[Edge.Key],Nodes[Edge.Value],S/6.).GetSafeNormal()*RodCenterRadiusCm,
+                       FMath::Lerp(Nodes[Edge.Key],Nodes[Edge.Value],(S+1)/6.).GetSafeNormal()*RodCenterRadiusCm);
+            for(const FVector& P:Nodes)Joints.Emplace(FQuat::Identity,P,FVector(.0066));
+            CageJoints->AddInstances(Joints,false,false,false);
+        }
+    }
     CageRods->ClearInstances();
     CageRods->AddInstances(Rods, false, false, false);
     TArray<FTransform> Equator;for(int32 I=0;I<72;++I){double A=I*2*PI/72;Equator.Emplace(FRotator(0,FMath::RadiansToDegrees(A)+90,0),FVector(19.1*FMath::Cos(A),19.1*FMath::Sin(A),0),FVector(.018,.006,.015));}EquatorFrame->ClearInstances();EquatorFrame->AddInstances(Equator,false,false,false);
+    // Decorative hardware and harnesses, all instanced and without collision.
+    // Their dimensions are visual assumptions, not production STRIKER measurements.
+    TArray<FTransform> Hardware,Vents,RedWires,BlackWires,Clamps;
+    const auto Wire=[](TArray<FTransform>& Into,const FVector& A,const FVector& B,double Diameter)
+    {const FVector D=B-A;Into.Emplace(FRotationMatrix::MakeFromZ(D).ToQuat(),(A+B)*.5,FVector(Diameter/100,Diameter/100,D.Size()/100));};
+    for(int32 I=0;I<5;++I)
+    {
+        const double A=I*2*PI/5;const FVector P(19*FMath::Cos(A),19*FMath::Sin(A),0);
+        Clamps.Emplace(FRotator(0,FMath::RadiansToDegrees(A),0),P,FVector(.014,.016,.011));
+        Hardware.Emplace(FQuat::Identity,P+FVector(0,0,.7),FVector(.0035,.0035,.002));
+    }
+    for(int32 I=0;I<4;++I)
+    {
+        const FVector M((I<2?1:-1)*ArmLengthM*100,(I==0||I==3?-1:1)*ArmLengthM*100,0);
+        Hardware.Emplace(FQuat::Identity,M+FVector(0,0,2.9),FVector(.006,.006,.0035));
+        for(int32 J=0;J<12;++J)
+        {
+            const double A=J*2*PI/12;
+            Vents.Emplace(FRotator(0,FMath::RadiansToDegrees(A),0),M+FVector(2.23*FMath::Cos(A),2.23*FMath::Sin(A),.8),FVector(.001,.0038,.017));
+        }
+        for(int32 Bolt=0;Bolt<4;++Bolt)
+            Hardware.Emplace(FQuat::Identity,M+FVector(Bolt%2?.65:-.65,Bolt/2?.65:-.65,-.85),FVector(.0028,.0028,.002));
+        for(int32 Cable=0;Cable<3;++Cable)
+            Wire(BlackWires,M*.25+FVector(0,(Cable-1)*.23,1.2),M*.82+FVector(0,(Cable-1)*.23,1.2),.16);
+    }
+    for(int32 Sign:{-1,1})
+    {
+        const FVector Points[]={FVector(-4,Sign*2.4,-2.3),FVector(-6.5,Sign*2.4,-2.3),FVector(-7.2,Sign*2.4,-.5),FVector(-6.2,Sign*2.4,2.8),FVector(-2.5,Sign*2.4,3.6)};
+        for(int32 I=0;I<4;++I)Wire(Sign<0?RedWires:BlackWires,Points[I],Points[I+1],.25);
+    }
+    for(int32 X:{-1,1})for(int32 Y:{-1,1})Hardware.Emplace(FQuat::Identity,FVector(X*3.5,Y*2.0,4.0),FVector(.003,.003,.002));
+    for(auto* Component:{MetalHardware.Get(),MotorVents.Get(),PowerWires.Get(),GroundWires.Get(),CageClips.Get()})Component->ClearInstances();
+    MetalHardware->AddInstances(Hardware,false,false,false);MotorVents->AddInstances(Vents,false,false,false);
+    PowerWires->AddInstances(RedWires,false,false,false);GroundWires->AddInstances(BlackWires,false,false,false);CageClips->AddInstances(Clamps,false,false,false);
 
     const auto LedRing = [](int32 Count, double RadiusCm, double HeightCm, double ElementLengthCm)
     {
@@ -299,6 +376,16 @@ void ASoccerDronePawn::BeginPlay()
     AutonomousTarget = SpawnPosition;
     SetChaseView(bChaseView);
     ApplyVisualMaterials();
+}
+
+bool ASoccerDronePawn::VerifyDetailedAirframe() const
+{
+    for(const auto* Component:{CageRods.Get(),CageJoints.Get(),MetalHardware.Get(),MotorVents.Get(),PowerWires.Get(),GroundWires.Get(),CageClips.Get()})
+        if(!Component||Component->GetCollisionEnabled()!=ECollisionEnabled::NoCollision||Component->IsSimulatingPhysics())return false;
+    return CageRods->GetInstanceCount()==720&&CageJoints->GetInstanceCount()==80&&MetalHardware->GetInstanceCount()==29&&
+        MotorVents->GetInstanceCount()==48&&PowerWires->GetInstanceCount()==4&&GroundWires->GetInstanceCount()==16&&CageClips->GetInstanceCount()==5&&
+        TeamLedElements->GetInstanceCount()==96&&RoleLedElements->GetInstanceCount()==80&&FrontLedElements->GetInstanceCount()==12&&RearLedElements->GetInstanceCount()==24&&
+        FMath::Abs(Body->GetMass()-.9f)<.001f;
 }
 
 void ASoccerDronePawn::SetupPlayerInputComponent(UInputComponent* IC)
@@ -578,6 +665,13 @@ void ASoccerDronePawn::ApplyVisualMaterials()
         return Result;
     };
     CageRods->SetMaterial(0, Material(FLinearColor(0.65f, 0.67f, 0.63f), 0.0f));
+    CageJoints->SetMaterial(0,Material(FLinearColor(.54f,.56f,.53f),0));
+    CageClips->SetMaterial(0,Material(FLinearColor(.055f,.063f,.07f),0));
+    MotorVents->SetMaterial(0,Material(FLinearColor(.006f,.009f,.013f),0));
+    PowerWires->SetMaterial(0,Material(FLinearColor(.38f,.012f,.008f),0));
+    GroundWires->SetMaterial(0,Material(FLinearColor(.009f,.011f,.014f),0));
+    if(auto* Metal=LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Materials/M_Metal.M_Metal")))
+    {auto* M=UMaterialInstanceDynamic::Create(Metal,this);M->SetVectorParameterValue(TEXT("Color"),FLinearColor(.32f,.36f,.40f));M->SetScalarParameterValue(TEXT("Roughness"),.3f);M->SetScalarParameterValue(TEXT("Metallic"),.8f);MetalHardware->SetMaterial(0,M);}
     TeamLedElements->SetMaterial(0, Material(TeamColor, 8.0f));
     RoleLedElements->SetMaterial(0, Material(RoleColor, 8.0f));
     FrontLedElements->SetMaterial(0,Material(FLinearColor(.92f,.97f,1.f),6.f));
@@ -622,6 +716,7 @@ void ASoccerDronePawn::Tick(float Dt)
     CageCompression=FMath::FInterpTo(CageCompression,0,Dt,10);
     FVector VisualScale(1+CageCompression*.25);VisualScale[CageCompressionAxis]=1-CageCompression;
     CageRods->SetRelativeScale3D(VisualScale);TeamLedElements->SetRelativeScale3D(VisualScale);RoleLedElements->SetRelativeScale3D(VisualScale);
+    CageJoints->SetRelativeScale3D(VisualScale);
     if (bArmed && bRadioFlight)
     {
         auto* Radio = GetRadio();

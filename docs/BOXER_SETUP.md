@@ -79,3 +79,10 @@ R6 수동 비행은 모든 기체의 **ANGLE** 방식입니다. Roll/Pitch 스�
 구현: `Source/ImperialWingsSimulator/ImperialRadioSubsystem.{h,cpp}`, `RadioCalibration.{h,cpp}`, `SoccerDronePawn.cpp`, `ImperialHUD.cpp`.
 
 WinMM 입력은 Microsoft의 [joyGetPosEx](https://learn.microsoft.com/en-us/windows/win32/api/joystickapi/nf-joystickapi-joygetposex), [JOYCAPSW](https://learn.microsoft.com/en-us/windows/win32/api/joystickapi/ns-joystickapi-joycapsw), [joyGetNumDevs](https://learn.microsoft.com/en-us/windows/win32/api/joystickapi/nf-joystickapi-joygetnumdevs) 문서를 기준으로 구현했습니다.
+
+
+## v0.6 다른 PC용 배포
+
+실행 ZIP에는 보정값을 포함하지 않는다. 새 PC의 첫 실행에서는 조종기 화면이 열리고 NEXT DEVICE로 실제 장치를 고른 후 보정한다. 설정은 `%LOCALAPPDATA%\ImperialWingsSimulator\Saved\Config\RadioProfile.json`에 저장한다. 설치 폴더 이동·새 버전 압축 해제로 설정이 사라지지 않는다. `EXPORT DEVICE REPORT`는 같은 사용자 데이터의 `Diagnostics`에 실제 장치 목록을 저장한다.
+
+개발 PC와 분리한 한글·공백 경로 및 설치 Python/Git을 제외한 환경에서 첫 실행·실제 Boxer 저장값의 저장/재로딩·재시작 시 키보드/비활성 상태를 검사한다. 실제 다른 PC의 HID 드라이버·GPU·USB 케이블 조합은 해당 PC에서 추가로 확인해야 한다. WinMM이 노출하지 않는 조종기나 네 독립 아날로그 축이 없는 장치는 이 입력 경로로 사용할 수 없다.

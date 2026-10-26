@@ -156,13 +156,15 @@ void AImperialRoleRibbons::VerifyLayout()
         Drone->ResetDrone();
         const FVector Reset = Drone->GetActorLocation();
         const bool bReset = FVector::DistXY(Reset, Expected) < .1f && !Drone->IsArmed();
-        const bool bRow = bCentred && bPad && FVector::DistXY(Pad, Expected) < .1f && bPilot && bReset && Ribbons == (RoleIndex < 2 ? 4 : 0);
+        const bool bModel=Drone->VerifyDetailedAirframe();
+        const bool bRow = bCentred && bPad && FVector::DistXY(Pad, Expected) < .1f && bPilot && bReset && Ribbons == (RoleIndex < 2 ? 4 : 0)&&bModel;
         bOk &= bRow;
         auto Row = MakeShared<FJsonObject>();
         Row->SetNumberField(TEXT("aircraft"), I + 1);
         Row->SetStringField(TEXT("role"), ImperialSoccerLayout::RoleName(RoleIndex));
         Row->SetNumberField(TEXT("start_x_cm"), Reset.X); Row->SetNumberField(TEXT("start_y_cm"), Reset.Y);
         Row->SetNumberField(TEXT("ribbons"), Ribbons);
+        Row->SetBoolField(TEXT("detailed_airframe_noncollision_mass_preserved"),bModel);
         Row->SetBoolField(TEXT("ok"), bRow);
         Rows.Add(MakeShared<FJsonValueObject>(Row));
     }
