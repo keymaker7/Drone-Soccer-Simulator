@@ -1,5 +1,18 @@
 # Imperial Wings Drone Soccer Simulator
 
+<a id="windows-run"></a>
+<a id="first-flight"></a>
+<a id="controls"></a>
+<a id="boxer"></a>
+<a id="positions"></a>
+<a id="match"></a>
+<a id="graphics"></a>
+<a id="source-build"></a>
+<a id="sdacs"></a>
+<a id="troubleshooting"></a>
+<a id="saved-files"></a>
+<a id="verification"></a>
+
 ## Windows 실행파일 다운로드 — v0.6.0
 
 [Windows x64 실행용 ZIP](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/download/v0.6.0/ImperialWings-Windows-v0.6.0-r2.zip)을 **전체 압축 해제**한 뒤 `ImperialWingsLauncher.exe`를 실행합니다. Unreal Engine·Python·Git을 설치할 필요가 없습니다. GitHub의 Source code ZIP은 개발 소스이며 실행용 ZIP과 다릅니다.
@@ -132,3 +145,8 @@ R6 / v0.4.0에서는 **10대 전부 ANGLE**로 전환했습니다. 실제 Chaos�
 포터블 배포 실행기는 실제 MIT APF 소스·검증 해시를 포함한 독립 Windows 런타임을 사용합니다. 설치 Python/Git을 찾지 않으며 자동으로 선택한 localhost 포트를 사용하고 게임 종료 시 해당 프로세스를 종료합니다. 원본 작업 저장소를 수정하지 않습니다.
 
 [이전 v0.5.0 배포 기록](docs/releases/v0.5.0.md)은 당시의 별도 검증 기록입니다.
+
+
+[전체 기능 명세와 완료 기준](docs/simulator-feature-plan.md), [개발 순서·멀티플레이/피드백 계획](docs/development-roadmap.md), [식별 띠 장착 조사](docs/striker-tag-mounting.md)를 보존했습니다. 목록 등록은 기능 구현 완료를 뜻하지 않습니다. [이전 v0.5 상세 실행 안내](docs/legacy-v0.5-run-guide.md)는 별도 보관본입니다.
+
+![v0.6 기체의 실제 Unreal 렌더](docs/images/airframe-v06.png)
