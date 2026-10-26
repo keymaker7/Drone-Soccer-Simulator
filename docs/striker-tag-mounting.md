@@ -6,11 +6,13 @@
 
 | 근거 | 확인 내용 | 해석 범위 |
 |---|---|---|
-| [FIDA 제5차 개정 규정](https://fidasystem.com/rules.html), Class40 → 2. Drone Ball → Ball Marking and Color | Striker·Guide는 태그로 구분. Striker는 초록, Guide는 분홍. Striker 태그 탈락 이후 득점은 불인정 | 역할 표시와 득점 자격의 근거 |
+| [FIDA 제5차 개정 원문](https://dronesoccer.org/static/files/Rule-book-1.pdf), 인쇄9쪽 2-4/2-5 | Striker·Guide의 태그·역할색과 태그 탈락/식별 조건 | 역할 표시와 득점 자격의 근거. 웹 요약보다 원문 조건을 우선 확인 |
 | [FAI 2026 Sporting Code](https://fai.org/sites/default/files/document/file/SC4_volume_CIAM_F9_Drone_sports_2026.pdf), 인쇄 20쪽 B.1.6 | 주최자가 Striker 기체 아래에 매달리는 리본 또는 얇은 깃발을 요구할 수 있음 | 아래로 늘어뜨리는 형상 근거. FIDA의 의무·색상·개수 근거로 사용하지 않음 |
 | [FAI 2025 세계선수권 공식 기사·경기 사진](https://www.fai.org/news/intense-first-rounds-fai-world-drone-soccer-championship), 2025-11-16 | 구형 기체에 부착한 리본으로 Striker를 식별한다고 설명. 사진 설명은 빨간 팀 Striker의 빨간 리본을 명시 | 실제 대회 사용 사례. 초록·분홍 FIDA 역할색과 구분 |
 
 따라서 장착 형태는 **기체 아래에 식별 리본을 매달아 구별하는 방식**으로 이해할 수 있다. 기체를 둘러싼 팀 LED 링, 역할 LED와 구별해서 모델링한다. 이 자료만으로 리본의 정확한 고정점을 배터리 트레이나 특정 보호구 연결부로 단정할 수는 없다.
+
+추가 검토에서 웹 요약에 생략된 원문 조건을 확인했다. 사용자 요청의 엄격 태그 정책은 보존하되 공식 판정과 구분한다. 자세한 보완은 [자체 피드백·정밀 계획](simulator-plan-review.md)에 기록했다. 현재 게임의 고정부·득점 코드를 수정한 것은 아니다.
 
 ## 확인하지 못한 세부사항
 

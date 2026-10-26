@@ -149,4 +149,6 @@ R6 / v0.4.0에서는 **10대 전부 ANGLE**로 전환했습니다. 실제 Chaos�
 
 [전체 기능 명세와 완료 기준](docs/simulator-feature-plan.md), [개발 순서·멀티플레이/피드백 계획](docs/development-roadmap.md), [식별 띠 장착 조사](docs/striker-tag-mounting.md)를 보존했습니다. 목록 등록은 기능 구현 완료를 뜻하지 않습니다. [이전 v0.5 상세 실행 안내](docs/legacy-v0.5-run-guide.md)는 별도 보관본입니다.
 
+[28개 분야·326개 기능 명세](docs/simulator-feature-plan.md)와 [자체 피드백·정밀 실행 계획](docs/simulator-plan-review.md)을 추가 보완했습니다. 판정·시간·입력·네트워크의 개선 항목과 수치 검수 초안·인수 시나리오20개를 포함합니다. 계획 등록은 구현·시험 완료를 뜻하지 않습니다.
+
 ![v0.6 기체의 실제 Unreal 렌더](docs/images/airframe-v06.png)
