@@ -20,7 +20,9 @@ inline FVector StartPosition(int32 Team,int32 Role)
     // Left to right from either pilot area: Libero, Guide, Striker, Sweeper, Keeper.
     static const float LateralCm[] = {0.f, -125.f, -250.f, 125.f, 250.f};
     const float Y=LateralCm[FMath::Clamp(Role,0,4)];
-    return FVector(Team==0?-650.f:650.f,Team==0?Y:-Y,35.f);
+    // Five-centimetre clearance above the 20cm collision radius. The old 35cm
+    // pose dropped every fresh aircraft hard enough to consume guard integrity.
+    return FVector(Team==0?-650.f:650.f,Team==0?Y:-Y,25.f);
 }
 inline FVector PilotPosition(int32 Team,int32 Role)
 {

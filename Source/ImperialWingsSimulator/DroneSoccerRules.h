@@ -16,6 +16,11 @@ struct RuleProfileFIDA40
     static constexpr double ReadySeconds=10.0, SetSeconds=180.0, BreakSeconds=300.0;
 };
 enum class Phase { Practice, Ready, Playing, Break, Finished };
+struct GoalFrame
+{
+    Vec3 center{0,0,3},normal{1,0,0},side{0,1,0},up{0,0,1};
+};
+std::array<GoalFrame,2> NominalGoalFrames();
 
 class MatchRules
 {
@@ -26,6 +31,7 @@ public:
     void StartPractice();
     void SetActive(int id, bool active);
     void Update(const std::array<Vec3,10>& positions, double dt);
+    void Update(const std::array<Vec3,10>& positions,double dt,const std::array<GoalFrame,2>& goals);
     int Score(int team) const;
     bool IsOffside(int team) const;
     int Penalties(int team) const;
@@ -37,6 +43,7 @@ public:
 private:
     struct Transit { int direction=0; bool clear=true; };
     std::array<Vec3,10> previous{};
+    std::array<GoalFrame,2> previousGoals{};
     std::array<bool,10> active{};
     std::array<std::array<Transit,2>,10> transits{};
     std::array<int,2> scores{}, penalties{}, wins{};
@@ -46,7 +53,7 @@ private:
     double remaining=0;
     bool havePrevious=false;
     void AdvanceClock(double dt);
-    void ProcessMotion(int id, int attackingTeam, Vec3 from, Vec3 to);
+    void ProcessMotion(int id, int attackingTeam, Vec3 from, Vec3 to,bool bodyMoved=true);
     void ClearTransits();
 };
 }

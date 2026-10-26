@@ -244,3 +244,20 @@ Shipping build/cook/stage/package/archive 성공. 최종 배포 입력SHA-256은
 - `git diff --check` 통과. 최초 E작업 사본(v0.5 입력)에서 읽기 전용 `Launch.ps1 -Inspect -ManualOnly`의 기존 패키지 일치를 확인했으며, 이를 v0.6 패키지 검사로 재사용하지 않는다.
 - 최종 문서는 별도 작업 사본의 `f05aa66` 위에서 병합했다. 해당 소스 입력 지문은 `6ad24fa79cf3e75c6ae2235c51ce0283fc286e5065ad81d76af89f2ab1371a3c`, 버전0.6.0, 소스 입력 변경 없음이다. 이 작업에서 소스 코드·설정·콘텐츠·실행 패키지를 변경하지 않았다.
 - 모든 수치 기준은 검토용 목표, SC-01~20은 향후 인수 계획이다. 새 빌드·실물 비행·성능 측정·온라인 시험을 수행하지 않았다.
+
+## 2026-10-27 v0.7 실제 기자재·접촉·시점·자율 검증
+
+[배포·시험 결과](releases/v0.7.0.md), [수치 요약](verification/v0.7-summary.json), [실패에서 찾은 원인과 수정](autonomy-feedback-v07.md)을 추가했다. 이번에는 실제 코드를 변경하고 Editor/Shipping 빌드·실행·GPU 렌더를 수행했다. 최종 입력 지문은 `5634f0bd80e6dd09013841e3537d484eb90130160380679bebc4770192e8da4e`(108개)다.
+
+- 최종 Editor/Shipping 빌드: `Saved/v07-r3-shipping-build.log`, ExitCode0.
+- Shipping30/60/120FPS 가드·골대·6개 보기: `Saved/Verification/contact-view-20261026-182547-251`.
+- 최종10대 모델·시작점/패드/LOS·LED/띠: `Saved/Verification/role-layout-20261026-182558-030`.
+- Shipping20/30/60/120/240FPS10대 수동ANGLE: `Saved/Verification/angle-20261026-182546-313`.
+- Shipping30/60/120FPS 호버·바닥/벽/네트·득점: `Saved/Verification/runtime-20261026-182559-782`.
+- Shipping10대 실제APF/Chaos·귀환 중503·재연결 HOLD·착륙/DISARM: `Saved/Verification/autonomy-20261026-182546-413023`, 통과. 최소 간격1.098m,55.304초 시점 전체 착륙/DISARM.
+- Shipping 효과 풀3단계: `Saved/Verification/presentation-20261026-182601-812`, 상한·수명 종료 확인.
+- 실제 GPU 자율 렌더: `Saved/Verification/render-autonomy-20261026-182546-413023`. High1600×1000,1721표본,평균114.66FPS,p95프레임9.682ms. 짧은 개발 PC 측정이다.
+- 실제 ZIP 한글/공백 경로 새 압축 해제·개발 도구 PATH 제거12개: `Saved/Verification/portable-v07-r3-extracted`, 전부 통과. 실물Boxer가 분리되어 기존15개 중 실제 프로필/장치3개 검사를 이번 버전의 재검증으로 계산하지 않았다.
+- 규칙57·물리104·USB 보정 수학161·요청 순서16·실제 APF HTTP11·보호구 기하4·비행 기록 판정5개 통과. 제조사 실측 계수를 얻은 시험이 아니다.
+
+중간 시험에서는 실제 용접 골대 질량93.26kg,초기 낙하 마모,심판 기둥 가림,낮은 기체의 APF 경로,귀환 잔여 오차/과도하게 높은 DISARM을 발견했다. 해당 기록을 성공으로 재분류하지 않고 수정 후 위 최종 결과로 확인했다. 실제 조종기·다른 물리PC·정밀 연성체/파단·전체 심판·온라인 기능과 전체326개 기능은 미완료 범위로 유지한다.

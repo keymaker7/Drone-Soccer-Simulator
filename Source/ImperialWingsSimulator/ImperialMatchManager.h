@@ -7,6 +7,8 @@
 #include "GuidanceRequestWindow.h"
 #include "ImperialMatchManager.generated.h"
 class ASoccerDronePawn;
+class FJsonValue;
+class FJsonObject;
 enum class EImperialMode { Manual, Mission, Hold, Returning };
 UCLASS()
 class IMPERIALWINGSSIMULATOR_API AImperialMatchManager : public AActor
@@ -30,12 +32,14 @@ public:
     void ResetMatch();
     void StartMatch();
     bool IsArmingAllowed() const { return Rules.IsArmingAllowed(); }
+    bool IsAutonomyAllowed() const { return Rules.GetPhase()==drone_soccer::Phase::Practice; }
     FString GetMatchStatus() const;
     int32 GetSetWins(int32 Team) const { return Rules.SetWins(Team); }
     bool IsOffside(int32 Team) const { return Rules.IsOffside(Team); }
     void ToggleArmSelected();
     void ChangeView(int32 View);
     bool ExportTelemetry();
+    void RecordGuardImpact(ASoccerDronePawn* Drone,float DissipatedJ);
     void ToggleFlightRecording();
     bool IsRecordingFlight() const { return !FlightLogPath.IsEmpty(); }
     bool IsConnected() const { return bConnected; }
@@ -65,6 +69,18 @@ private:
     double Elapsed=0,LastResponse=-100;
     float ClosestSeparation=0,SmoothFPS=60;
     bool bConnected=false,bRequestPending=false,bSmoke=false,bSmokeDone=false,bDemo=false,bDemoStarted=false;
+    bool bContactSmoke=false,bViewSmoke=false,bSwarmSmoke=false;
+    float FixtureAge=0,FixtureGuardFirst=100,FixtureGuardSecond=100,FixtureGoalPeak=0;
+    int32 FixtureGoalHits=0;
+    bool bFixtureOk=true;
+    TArray<TSharedPtr<FJsonValue>> FixtureViewRows;
+    TSharedPtr<FJsonObject> ContactVerification;
+    float FixtureStableGoalPeak=0;
+    TArray<FVector> SwarmHoldPositions;
+    TArray<TSharedPtr<FJsonValue>> SwarmCheckpoints;
+    double SwarmStageStart=0,SwarmLastSample=-1;
+    float SwarmMinSeparation=100,SwarmMaxTilt=0,SwarmHoldDrift=0,SwarmMaxAltitude=0;
+    bool bSwarmFinite=true,bSwarmAirborne=false,bSwarmTimeoutHeld=false,bSwarmReconnectHeld=false;
     int32 SmokePhase=0;
     float SmokeMaxHeight=0,SmokeMinHeight=10000;
     float SmokeMinDt=1000,SmokeMaxDt=0;
@@ -96,6 +112,12 @@ private:
     FString GuidanceMode() const;
     void Log(const FString& Message);
     void UpdateScoring();
+    void HandleMatchPhaseTransition(drone_soccer::Phase Previous);
+    bool VerifyMatchAutonomyGates();
     void SmokeTick();
     void AngleSmokeTick();
+    void ContactSmokeTick(float Dt);
+    void ViewSmokeTick(float Dt);
+    void SwarmSmokeTick();
+    void SwarmCheckpoint(const FString& Event);
 };

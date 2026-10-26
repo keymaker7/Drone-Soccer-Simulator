@@ -6,6 +6,9 @@
 #include "ImperialPlayerController.h"
 #include "ImperialRadioSubsystem.h"
 #include "PrototypeArenaBuilder.h"
+#include "ImperialSuspendedGoal.h"
+#include "Components/SphereComponent.h"
+#include "Camera/PlayerCameraManager.h"
 #include "ImperialElasticNet.h"
 #include "ImperialSoccerLayout.h"
 #include "ImperialBuildInfo.h"
@@ -65,18 +68,22 @@ void AImperialMatchManager::BeginPlay()
     GuidanceUrl.RemoveFromEnd(TEXT("/"));
     bSmoke=FParse::Param(FCommandLine::Get(),TEXT("ImperialPhysicsSmoke"));
     bAngleSmoke=FParse::Param(FCommandLine::Get(),TEXT("ImperialAngleSmoke"));
+    bContactSmoke=FParse::Param(FCommandLine::Get(),TEXT("ImperialContactSmoke"));
+    bViewSmoke=FParse::Param(FCommandLine::Get(),TEXT("ImperialViewSmoke"));
+    bSwarmSmoke=FParse::Param(FCommandLine::Get(),TEXT("ImperialSwarmSmoke"));
     // Shipping ignores the engine's developer-only -FPS override. Configure only
     // these explicit non-USB verification scenarios, then report actual Tick dt.
     double FixtureFPS=0;
-    if((bSmoke||bAngleSmoke)&&FParse::Param(FCommandLine::Get(),TEXT("UseFixedTimeStep"))&&FParse::Value(FCommandLine::Get(),TEXT("FPS="),FixtureFPS)&&FixtureFPS>=20&&FixtureFPS<=240)
+    if((bSmoke||bAngleSmoke||bContactSmoke||bViewSmoke)&&FParse::Param(FCommandLine::Get(),TEXT("UseFixedTimeStep"))&&FParse::Value(FCommandLine::Get(),TEXT("FPS="),FixtureFPS)&&FixtureFPS>=20&&FixtureFPS<=240)
     {FApp::SetFixedDeltaTime(1./FixtureFPS);FApp::SetUseFixedTimeStep(true);}
     bDemo=FParse::Param(FCommandLine::Get(),TEXT("ImperialDemo"));
     FParse::Value(FCommandLine::Get(),TEXT("ImperialCapture="),CaptureFile);
     FParse::Value(FCommandLine::Get(),TEXT("ImperialCaptureTime="),CaptureAt);
     FParse::Value(FCommandLine::Get(),TEXT("ImperialResult="),SmokeResultFile);
-    int32 RequestedView=1;FParse::Value(FCommandLine::Get(),TEXT("ImperialView="),RequestedView);CameraView=FMath::Clamp(RequestedView,1,3);
+    int32 RequestedView=1;FParse::Value(FCommandLine::Get(),TEXT("ImperialView="),RequestedView);CameraView=FMath::Clamp(RequestedView,1,5);
     if(FParse::Param(FCommandLine::Get(),TEXT("ImperialShowcase")))CameraView=3;
     if(GEngine&&!bSmoke&&!bAngleSmoke)GEngine->SetMaxFPS(120);
+    if(bSwarmSmoke&&GEngine)GEngine->SetMaxFPS(60); // Real time: HTTP watchdog uses wall time.
     for(int32 I=0;I<10;++I)
     {
         const FVector Home=ImperialSoccerLayout::StartPosition(I<5?0:1,I%5);
@@ -118,25 +125,28 @@ void AImperialMatchManager::SelectDrone(int32 Id)
 void AImperialMatchManager::SelectNext(){SelectDrone((Selected+1)%FMath::Max(1,Drones.Num()));}
 FString AImperialMatchManager::GetModeName()const
 {
+    if(!IsAutonomyAllowed())return TEXT("LOS MANUAL MATCH");
     switch(Mode){case EImperialMode::Mission:return TEXT("SDACS AUTONOMOUS");case EImperialMode::Hold:return TEXT("POSITION HOLD");case EImperialMode::Returning:return TEXT("RETURNING");default:return TEXT("MANUAL TRAINING");}
 }
 void AImperialMatchManager::Log(const FString& Message){Notice=Message;Events.Add(Message);if(Events.Num()>40)Events.RemoveAt(0);}
 void AImperialMatchManager::LaunchSwarm()
 {
-    if(Rules.GetPhase()!=drone_soccer::Phase::Practice){Log(TEXT("Autonomous guidance is available in practice mode. Reset to practice first."));return;}
+    if(!IsAutonomyAllowed()){Log(TEXT("Autonomous guidance is available in practice mode. Reset to practice first."));return;}
     if(!bConnected){Log(TEXT("SDACS bridge offline. Run ImperialWings.cmd to start the local planner."));return;}
     AdvanceGuidanceCommand();Mode=EImperialMode::Mission;
-    for(auto& D:Drones){D->SetAutonomousEnabled(true);D->SetArmed(true);}
+    for(auto& D:Drones){D->SetEquipmentInspection(false);D->SetAutonomousEnabled(true);D->SetArmed(true);}
     Log(TEXT("Fleet autonomous: upstream SDACS APF targets, local Chaos motor forces."));
 }
 void AImperialMatchManager::HoldFleet()
 {
+    if(!IsAutonomyAllowed()){Log(TEXT("HOLD is a practice aid. Keep manual control during a match."));return;}
     AdvanceGuidanceCommand();Mode=EImperialMode::Hold;
     for(auto& D:Drones)if(D->IsArmed()){D->SetAutonomousEnabled(true);D->SetAutonomousTarget(D->GetActorLocation());}
     Log(TEXT("Fleet holding current positions. Physics and collision remain active."));
 }
 void AImperialMatchManager::ReturnFleet()
 {
+    if(!IsAutonomyAllowed()){Log(TEXT("RETURN is a practice aid. Land manually during a match."));return;}
     if(!bConnected){HoldFleet();Log(TEXT("SDACS offline: return unavailable. Holding locally; request RETURN after reconnect."));return;}
     AdvanceGuidanceCommand();Mode=EImperialMode::Returning;
     for(int32 I=0;I<Drones.Num();++I)if(Drones[I]->IsArmed()){Drones[I]->SetAutonomousEnabled(true);Drones[I]->SetAutonomousTarget(Drones[I]->GetActorLocation());}
@@ -155,10 +165,12 @@ void AImperialMatchManager::ResetMatch()
     // The next generation resets only this session's planner state. An unordered
     // separate /reset request could otherwise clear a newer mission.
     Events.Empty();Log(TEXT("Training reset. All aircraft disarmed; scores cleared."));
+    if(auto* Arena=Cast<APrototypeArenaBuilder>(UGameplayStatics::GetActorOfClass(GetWorld(),APrototypeArenaBuilder::StaticClass()))){Arena->ResetGoals();for(int32 I=0;I<2;++I)if(auto* Goal=Arena->GetGoal(I))Goal->SetCompetitionStable(false);}
 }
 void AImperialMatchManager::StartMatch()
 {
     ResetMatch();Rules.StartMatch();ChangeView(1);Log(TEXT("FIDA Class 40 LOS match: 10-second ready signal, then 3-minute sets. Manual control."));
+    if(auto* Arena=Cast<APrototypeArenaBuilder>(UGameplayStatics::GetActorOfClass(GetWorld(),APrototypeArenaBuilder::StaticClass())))for(int32 I=0;I<2;++I)if(auto* Goal=Arena->GetGoal(I))Goal->SetCompetitionStable(true);
 }
 FString AImperialMatchManager::GetMatchStatus() const
 {
@@ -171,11 +183,12 @@ FString AImperialMatchManager::GetMatchStatus() const
     default:return TEXT("PRACTICE / FIDA CLASS 40");
     }
 }
-void AImperialMatchManager::ChangeView(int32 View){CameraView=FMath::Clamp(View,1,3);if(auto* PC=Cast<AImperialPlayerController>(UGameplayStatics::GetPlayerController(this,0)))PC->SetView(CameraView);}
+void AImperialMatchManager::ChangeView(int32 View)
+{auto* PC=Cast<AImperialPlayerController>(UGameplayStatics::GetPlayerController(this,0));if(PC&&!PC->CanSetView(View)){Log(TEXT("Disarm manual aircraft before entering an audience/referee view."));return;}CameraView=FMath::Clamp(View,1,6);if(PC)PC->SetView(CameraView);}
 void AImperialMatchManager::Tick(float Dt)
 {
     Super::Tick(Dt);Elapsed+=Dt;SmoothFPS=FMath::Lerp(SmoothFPS,1.f/FMath::Max(.001f,Dt),.04f);
-    if((bSmoke||bAngleSmoke)&&Elapsed>.2){SmokeMinDt=FMath::Min(SmokeMinDt,Dt);SmokeMaxDt=FMath::Max(SmokeMaxDt,Dt);}
+    if((bSmoke||bAngleSmoke||bContactSmoke||bViewSmoke)&&Elapsed>.2){SmokeMinDt=FMath::Min(SmokeMinDt,Dt);SmokeMaxDt=FMath::Max(SmokeMaxDt,Dt);}
     for(int32 I=0;I<Drones.Num();++I){TArray<FVector> Sources;TArray<float> Thrusts;for(int32 J=0;J<Drones.Num();++J)if(J!=I&&Drones[J]->IsArmed()){Sources.Add(Drones[J]->GetActorLocation()/100.);Thrusts.Add(Drones[J]->GetTotalThrustNewtons());}Drones[I]->SetWakeSources(Sources,Thrusts);}
     ClosestSeparation=1000;Conflicts=0;
     for(int32 I=0;I<Drones.Num();++I)for(int32 J=I+1;J<Drones.Num();++J){float D=FVector::Distance(Drones[I]->GetActorLocation(),Drones[J]->GetActorLocation())/100.f;ClosestSeparation=FMath::Min(ClosestSeparation,D);if(D<.9f)++Conflicts;}
@@ -183,18 +196,21 @@ void AImperialMatchManager::Tick(float Dt)
     {
         bool Landed=true;
         for(int32 I=0;I<Drones.Num();++I)if(Drones[I]->IsArmed()){
-            if(FVector::Dist2D(Drones[I]->GetActorLocation(),Homes[I])<45&&Drones[I]->GetActorLocation().Z<65&&Drones[I]->GetFlightSpeed()<.6){Drones[I]->SetAutonomousEnabled(false);Drones[I]->SetArmed(false);}
+            if(FVector::Dist2D(Drones[I]->GetActorLocation(),Homes[I])<20&&Drones[I]->GetActorLocation().Z<28&&Drones[I]->GetFlightSpeed()<.2){Drones[I]->SetAutonomousEnabled(false);Drones[I]->SetArmed(false);}
             else{Landed=false;}
         }
         if(Landed){AdvanceGuidanceCommand();Mode=EImperialMode::Manual;Log(TEXT("Fleet landing complete. All motors disarmed."));}
     }
     const double WallNow=FPlatformTime::Seconds();
     if(GuidanceWindow.Expired(WallNow))CancelPendingGuidance();
-    if(!bRequestPending&&!bSmoke&&!bAngleSmoke&&(LastRequestWallTime==0||WallNow-LastRequestWallTime>=.1))RequestGuidance();
+    if(!bRequestPending&&!bSmoke&&!bAngleSmoke&&!bContactSmoke&&!bViewSmoke&&(LastRequestWallTime==0||WallNow-LastRequestWallTime>=.1))RequestGuidance();
     if(bDemo&&!bDemoStarted&&bConnected&&Elapsed>2){bDemoStarted=true;LaunchSwarm();}
     if(bConnected&&WallNow-LastResponse>2){bConnected=false;if(Mode==EImperialMode::Mission||Mode==EImperialMode::Returning)HoldFleet();Log(TEXT("SDACS timeout. Local hold; reconnect does not resume mission or return."));}
     UpdateScoring();if(bSmoke&&!bSmokeDone)SmokeTick();
     if(bAngleSmoke&&!bSmokeDone)AngleSmokeTick();
+    if(bContactSmoke&&!bSmokeDone)ContactSmokeTick(Dt);
+    if(bViewSmoke&&!bSmokeDone)ViewSmokeTick(Dt);
+    if(bSwarmSmoke&&!bSmokeDone)SwarmSmokeTick();
     if(IsRecordingFlight()&&WallNow-LastFlightRecord>=.05){RecordFlightSample(TEXT("sample"));LastFlightRecord=WallNow;}
     if(!CaptureFile.IsEmpty()&&Elapsed>CaptureAt&&!bCaptureRequested){bCaptureRequested=true;FScreenshotRequest::RequestScreenshot(CaptureFile,true,false);}
     if(bCaptureRequested&&Elapsed>CaptureAt+1&&FPaths::FileExists(CaptureFile))FPlatformMisc::RequestExit(false);
@@ -248,17 +264,52 @@ void AImperialMatchManager::OnGuidance(FHttpRequestPtr Request,FHttpResponsePtr 
     for(auto T:*Targets){if(!T.IsValid()||T->Type!=EJson::Object)return;auto D=T->AsObject();double Number=0;if(!D.IsValid()||!D->TryGetNumberField(TEXT("id"),Number)||!FMath::IsFinite(Number)||Number<0||Number>=Drones.Num()||Number!=FMath::FloorToDouble(Number))return;const int32 Id=static_cast<int32>(Number);if(Seen.Contains(Id))return;FVector V;if(!ReadVector(D,TEXT("target_m"),V)||FMath::Abs(V.X)>7.8||FMath::Abs(V.Y)>3.3||V.Z<.24||V.Z>4.3)return;Goals[Id]=V*100;Seen.Add(Id);}
     bool WasConnected=bConnected;bConnected=true;LastResponse=FPlatformTime::Seconds();O->TryGetStringField(TEXT("source_commit"),SourceCommit);
     if(!WasConnected)Log(TEXT("SDACS upstream APF connected. Session and command verified."));
-    if(Mode==EImperialMode::Mission||Mode==EImperialMode::Returning)for(int32 I=0;I<Drones.Num();++I)if(Drones[I]->IsAutonomousEnabled())Drones[I]->SetAutonomousTarget(Goals[I]);
+    if(IsAutonomyAllowed()&&(Mode==EImperialMode::Mission||Mode==EImperialMode::Returning))for(int32 I=0;I<Drones.Num();++I)if(Drones[I]->IsAutonomousEnabled())Drones[I]->SetAutonomousTarget(Goals[I]);
 }
 void AImperialMatchManager::UpdateScoring()
 {
     std::array<drone_soccer::Vec3,10> Poses;
     for(int32 I=0;I<Drones.Num();++I){FVector P=Drones[I]->GetActorLocation()/100.;Poses[I]={P.X,P.Y,P.Z};}
     const int Before=Rules.Score(0)+Rules.Score(1);const auto Phase=Rules.GetPhase();
-    Rules.Update(Poses,GetWorld()->GetDeltaSeconds());
+    auto Frames=drone_soccer::NominalGoalFrames();
+    if(auto* Arena=Cast<APrototypeArenaBuilder>(UGameplayStatics::GetActorOfClass(GetWorld(),APrototypeArenaBuilder::StaticClass())))
+        for(int32 I=0;I<2;++I)if(const auto* Goal=Arena->GetGoal(I))
+        {const FVector C=Goal->GetCentre()/100.;const FQuat Q=Goal->GetRingRotation();const FVector N=Q.GetAxisX(),S=Q.GetAxisY(),U=Q.GetAxisZ();Frames[I].center={C.X,C.Y,C.Z};Frames[I].normal={N.X,N.Y,N.Z};Frames[I].side={S.X,S.Y,S.Z};Frames[I].up={U.X,U.Y,U.Z};}
+    Rules.Update(Poses,GetWorld()->GetDeltaSeconds(),Frames);
     if(Rules.Score(0)+Rules.Score(1)>Before)Log(FString::Printf(TEXT("GOAL! Blue %d : %d Red. Scoring team must all retreat."),Rules.Score(0),Rules.Score(1)));
     if(auto* Arena=Cast<APrototypeArenaBuilder>(UGameplayStatics::GetActorOfClass(GetWorld(),APrototypeArenaBuilder::StaticClass()))){Arena->SetGoalSignal(1,Rules.IsOffside(0));Arena->SetGoalSignal(0,Rules.IsOffside(1));}
-    if(Phase==drone_soccer::Phase::Playing&&Rules.GetPhase()!=Phase)ReturnFleet();
+    HandleMatchPhaseTransition(Phase);
+}
+void AImperialMatchManager::HandleMatchPhaseTransition(drone_soccer::Phase Previous)
+{
+    if(Previous!=drone_soccer::Phase::Playing||Rules.GetPhase()==Previous)return;
+    AdvanceGuidanceCommand();Mode=EImperialMode::Manual;
+    // No automatic route, position hold, or mid-air motor cut for a manual pilot.
+    // A disarmed aircraft cannot re-arm in the maintenance/finished phase.
+    for(auto& D:Drones)if(D->IsAutonomousEnabled())D->SetAutonomousEnabled(false);
+    Log(TEXT("Set ended. Manual landing control retained; new ARM and autonomous aids are locked."));
+}
+bool AImperialMatchManager::VerifyMatchAutonomyGates()
+{
+    // Explicit clock/API fixture only, not a native keyboard or USB pilot test.
+    StartMatch();auto* D=GetDrone(0);if(!D)return false;
+    std::array<drone_soccer::Vec3,10> Poses;
+    for(int32 I=0;I<Drones.Num();++I){const FVector P=Drones[I]->GetActorLocation()/100.;Poses[I]={P.X,P.Y,P.Z};}
+    const auto Reject=[&]()
+    {
+        const bool WasArmed=D->IsArmed();const auto Generation=GuidanceWindow.Command();
+        LaunchSwarm();HoldFleet();ReturnFleet();D->SetAutonomousEnabled(true);
+        bool Safe=Mode==EImperialMode::Manual&&GuidanceWindow.Command()==Generation&&D->IsArmed()==WasArmed;
+        for(auto& Item:Drones)Safe&=!Item->IsAutonomousEnabled();return Safe;
+    };
+    bool Safe=Rules.GetPhase()==drone_soccer::Phase::Ready&&Reject()&&!D->SetArmed(true);
+    Rules.Update(Poses,10);Safe&=Rules.GetPhase()==drone_soccer::Phase::Playing&&D->SetArmed(true)&&Reject();
+    const auto Before=Rules.GetPhase();Rules.Update(Poses,180);HandleMatchPhaseTransition(Before);
+    Safe&=Rules.GetPhase()==drone_soccer::Phase::Break&&Reject()&&D->IsArmed()&&!GetDrone(1)->SetArmed(true);
+    // Reach set three's final whistle through the real rule clock transitions.
+    Rules.Update(Poses,800);const auto FinalBefore=Rules.GetPhase();Rules.Update(Poses,180);HandleMatchPhaseTransition(FinalBefore);
+    Safe&=Rules.GetPhase()==drone_soccer::Phase::Finished&&Reject()&&D->IsArmed()&&!GetDrone(1)->SetArmed(true);
+    D->SetArmed(false);return Safe;
 }
 bool AImperialMatchManager::ExportTelemetry()
 {
@@ -288,11 +339,19 @@ bool AImperialMatchManager::ExportTelemetry()
             D->GetFlightModeName(),N(D->GetTiltDegrees()),N(Rotation.Roll),N(Rotation.Pitch),N(Rotation.Yaw),N(D->GetAngleLimitDegrees()),ImperialSoccerLayout::RoleName(D->GetPlayerRole()),
             N(Homes[I].X/100.),N(Homes[I].Y/100.),N(Pad.X),N(Pad.Y),N(Station.X),N(Station.Y)};
         const auto* HUD=Pilot?Cast<AImperialHUD>(Pilot->GetHUD()):nullptr;
-        if(I==0)CSV.ReplaceInline(TEXT("pilot_y_m\n"),TEXT("pilot_y_m,visual_quality,dust_capacity,radio_panel_open,flight_recording,radio_roll,radio_pitch,radio_yaw,radio_throttle\n"));
-        CSV+=FString::Join(Row,TEXT(","))+FString::Printf(TEXT(",%s,%d,%d,%d,%.6f,%.6f,%.6f,%.6f\n"),Visuals?*Visuals->GetQualityName():TEXT("Unavailable"),Visuals?Visuals->GetDustCapacity():0,
-            HUD&&HUD->IsRadioPanelOpen()?1:0,IsRecordingFlight()?1:0,Radio?Radio->GetNormalizedRoll():0.f,Radio?Radio->GetNormalizedPitch():0.f,Radio?Radio->GetNormalizedYaw():0.f,Radio?Radio->GetThrottle():0.f);
+        if(I==0)CSV.ReplaceInline(TEXT("pilot_y_m\n"),TEXT("pilot_y_m,visual_quality,dust_capacity,radio_panel_open,flight_recording,radio_roll,radio_pitch,radio_yaw,radio_throttle,guard_integrity_pct,guard_impact_count,guard_impact_work_j,blue_goal_sway_cm,red_goal_sway_cm,camera_role,camera_x_m,camera_y_m,camera_z_m,photoreal_equipment\n"));
+        const FVector Camera=Pilot?Pilot->GetRoleCameraPosition()/100.:FVector::ZeroVector;
+        const float BlueSway=Arena&&Arena->GetGoal(0)?Arena->GetGoal(0)->GetSwayCm():0,RedSway=Arena&&Arena->GetGoal(1)?Arena->GetGoal(1)->GetSwayCm():0;
+        CSV+=FString::Join(Row,TEXT(","))+FString::Printf(TEXT(",%s,%d,%d,%d,%.6f,%.6f,%.6f,%.6f,%.3f,%d,%.4f,%.3f,%.3f,%s,%.4f,%.4f,%.4f,%d\n"),Visuals?*Visuals->GetQualityName():TEXT("Unavailable"),Visuals?Visuals->GetDustCapacity():0,
+            HUD&&HUD->IsRadioPanelOpen()?1:0,IsRecordingFlight()?1:0,Radio?Radio->GetNormalizedRoll():0.f,Radio?Radio->GetNormalizedPitch():0.f,Radio?Radio->GetNormalizedYaw():0.f,Radio?Radio->GetThrottle():0.f,
+            D->GetGuardIntegrityPercent(),D->GetGuardImpactCount(),D->GetGuardImpactWorkJ(),BlueSway,RedSway,Pilot?*Pilot->GetCameraRoleName():TEXT("NONE"),Camera.X,Camera.Y,Camera.Z,D->HasPhotorealEquipment()?1:0);
     }
     bool Ok=FFileHelper::SaveStringToFile(CSV,*File,FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);Log(Ok?TEXT("Telemetry CSV exported to Saved/Reports."):TEXT("Telemetry export failed."));return Ok;
+}
+void AImperialMatchManager::RecordGuardImpact(ASoccerDronePawn* Drone,float DissipatedJ)
+{
+    const int32 Id=Drones.IndexOfByKey(Drone);
+    if(Id!=INDEX_NONE)Log(FString::Printf(TEXT("IW-%02d guard contact: %.0f%% integrity, %.1f J estimated dissipated work."),Id+1,Drone->GetGuardIntegrityPercent(),DissipatedJ));
 }
 void AImperialMatchManager::ToggleFlightRecording()
 {
@@ -320,6 +379,7 @@ void AImperialMatchManager::RecordFlightSample(const FString& Event)
         Row->SetStringField(TEXT("input_source"),D->GetInputSource());Row->SetStringField(TEXT("flight_mode"),D->GetFlightModeName());
         Row->SetArrayField(TEXT("position_m"),JsonVector(D->GetActorLocation()/100.));Row->SetNumberField(TEXT("speed_mps"),D->GetFlightSpeed());
         Row->SetNumberField(TEXT("throttle"),D->GetThrottle());Row->SetNumberField(TEXT("tilt_deg"),D->GetTiltDegrees());
+        Row->SetNumberField(TEXT("guard_integrity_pct"),D->GetGuardIntegrityPercent());Row->SetNumberField(TEXT("guard_impact_count"),D->GetGuardImpactCount());
         const auto Rotation=D->GetBodyMesh()->GetComponentRotation();Row->SetArrayField(TEXT("rotation_deg"),JsonVector(FVector(Rotation.Roll,Rotation.Pitch,Rotation.Yaw)));
         Rows.Add(MakeShared<FJsonValueObject>(Row));
     }
@@ -327,6 +387,170 @@ void AImperialMatchManager::RecordFlightSample(const FString& Event)
     Text+=TEXT("\n");
     if(!FFileHelper::SaveStringToFile(Text,*FlightLogPath,FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM,&IFileManager::Get(),FILEWRITE_Append))
     {FlightLogPath.Empty();Log(TEXT("Flight recording stopped: could not write to Saved/FlightLogs."));}
+}
+void AImperialMatchManager::ContactSmokeTick(float Dt)
+{
+    auto* Arena=Cast<APrototypeArenaBuilder>(UGameplayStatics::GetActorOfClass(GetWorld(),APrototypeArenaBuilder::StaticClass()));
+    auto* Goal=Arena?Arena->GetGoal(1):nullptr;auto* Drone=GetDrone(0);
+    if(!Goal||!Drone)return;
+    FixtureAge+=Dt;FixtureGoalPeak=FMath::Max(FixtureGoalPeak,Goal->GetSwayCm());
+    const auto LaunchContact=[&]()
+    {
+        Drone->SetArmed(false);Drone->GetBodyMesh()->SetPhysicsLinearVelocity(FVector::ZeroVector);Drone->GetBodyMesh()->SetPhysicsAngularVelocityInRadians(FVector::ZeroVector);
+        const FQuat Q=Goal->GetRingRotation();Drone->GetBodyMesh()->SetWorldLocationAndRotation(Goal->GetCentre()+Q.RotateVector(FVector(-100,42,0)),Q,false,nullptr,ETeleportType::TeleportPhysics);
+        Drone->GetBodyMesh()->SetPhysicsLinearVelocity(Q.RotateVector(FVector(500,0,0)));
+    };
+    if(SmokePhase==4)
+    {
+        FixtureStableGoalPeak=FMath::Max(FixtureStableGoalPeak,Goal->GetSwayCm());if(FixtureAge<1.5)return;
+        const bool Stable=FixtureStableGoalPeak<.5f&&Goal->GetImpactCount()>0;bFixtureOk&=Stable;
+        ContactVerification->SetNumberField(TEXT("competition_peak_sway_cm"),FixtureStableGoalPeak);ContactVerification->SetBoolField(TEXT("competition_suspension_stable"),Stable);
+        ContactVerification->SetNumberField(TEXT("guard_before_reset_pct"),Drone->GetGuardIntegrityPercent());ResetMatch();
+        const bool ResetOk=Drone->GetGuardIntegrityPercent()>99.999&&Drone->GetGuardImpactCount()==0&&Goal->GetSwayCm()<.01;bFixtureOk&=ResetOk;
+        ContactVerification->SetBoolField(TEXT("reset_repairs_guard_and_centres_goal"),ResetOk);ContactVerification->SetBoolField(TEXT("ok"),bFixtureOk);
+        FString Text;FJsonSerializer::Serialize(ContactVerification.ToSharedRef(),TJsonWriterFactory<>::Create(&Text));AttachVerificationIdentity(Text,SmokeMinDt,SmokeMaxDt);
+        FFileHelper::SaveStringToFile(Text,*(SmokeResultFile.IsEmpty()?ImperialUserData::Path(TEXT("contact-smoke.json")):SmokeResultFile));
+        bSmokeDone=true;FPlatformMisc::RequestExitWithStatus(false,bFixtureOk?0:1);return;
+    }
+    if(SmokePhase==0&&Elapsed>.5)
+    {
+        for(auto& D:Drones)D->ResetDrone();Arena->ResetGoals();FixtureGoalPeak=0;
+        bFixtureOk=Goal->HasOpenPhysicalHoop()&&Arena->GetGoal(0)&&Arena->GetGoal(0)->HasOpenPhysicalHoop();
+        LaunchContact();SmokePhase=1;FixtureAge=0;return;
+    }
+    if(SmokePhase==1&&FixtureAge>.65f)
+    {
+        FixtureGuardFirst=Drone->GetGuardIntegrityPercent();bFixtureOk&=FixtureGuardFirst<99.99f&&Goal->GetImpactCount()>0;
+        LaunchContact();SmokePhase=2;FixtureAge=0;return;
+    }
+    if(SmokePhase==2&&FixtureAge>.65f)
+    {
+        FixtureGuardSecond=Drone->GetGuardIntegrityPercent();FixtureGoalHits=Goal->GetImpactCount();
+        bFixtureOk&=FixtureGuardSecond<FixtureGuardFirst&&Drone->GetGuardImpactCount()>=2;
+        Drone->GetBodyMesh()->SetPhysicsLinearVelocity(FVector::ZeroVector);Drone->GetBodyMesh()->SetPhysicsAngularVelocityInRadians(FVector::ZeroVector);
+        // Place the collision sphere on the floor. Homes are launch poses 35cm
+        // high: returning there would add a new drop impact to an idle test.
+        Drone->GetBodyMesh()->SetWorldLocationAndRotation(FVector(Homes[0].X,Homes[0].Y,20),FRotator::ZeroRotator,false,nullptr,ETeleportType::TeleportPhysics);
+        SmokePhase=3;FixtureAge=0;return;
+    }
+    if(SmokePhase!=3||FixtureAge<12)return;
+    const float Settled=Goal->GetSwayCm();const bool IdleUnchanged=FMath::Abs(Drone->GetGuardIntegrityPercent()-FixtureGuardSecond)<.001;
+    auto* FX=Cast<AImperialPresentationEffects>(UGameplayStatics::GetActorOfClass(GetWorld(),AImperialPresentationEffects::StaticClass()));
+    const int32 Chips=FX?FX->GetGuardChipBursts():0;
+    bFixtureOk&=FixtureGoalPeak>.5&&FixtureGoalPeak<100&&Settled<FMath::Max(.5f,FixtureGoalPeak*.5f)&&IdleUnchanged&&Rules.Score(0)==0&&Rules.Score(1)==0&&Chips>0;
+    const float GuardBeforeReset=Drone->GetGuardIntegrityPercent();
+    const FVector GoalOffset=Goal->GetCentre()-FVector(650,0,300);
+    const double GoalMass=Goal->GetPhysicsRoot()->GetMass();
+    const FVector GoalOmega=Goal->GetPhysicsRoot()->GetPhysicsAngularVelocityInRadians();
+    auto Result=MakeShared<FJsonObject>();Result->SetBoolField(TEXT("ok"),bFixtureOk);
+    Result->SetStringField(TEXT("fixture"),TEXT("two practice and one competition initial-velocity Chaos collisions; idle damping and explicit reset; no USB input"));
+    Result->SetNumberField(TEXT("guard_after_first_pct"),FixtureGuardFirst);Result->SetNumberField(TEXT("guard_after_second_pct"),FixtureGuardSecond);Result->SetNumberField(TEXT("guard_before_reset_pct"),GuardBeforeReset);
+    Result->SetNumberField(TEXT("goal_contact_events"),FixtureGoalHits);Result->SetNumberField(TEXT("goal_peak_sway_cm"),FixtureGoalPeak);Result->SetNumberField(TEXT("goal_settled_sway_cm"),Settled);
+    Result->SetNumberField(TEXT("goal_mass_kg"),GoalMass);Result->SetArrayField(TEXT("goal_settled_offset_cm"),JsonVector(GoalOffset));Result->SetArrayField(TEXT("goal_settled_omega_rad_s"),JsonVector(GoalOmega));
+    Result->SetNumberField(TEXT("guard_chip_bursts"),Chips);Result->SetBoolField(TEXT("idle_contact_does_not_wear"),IdleUnchanged);
+    ContactVerification=Result;Goal->ResetGoal();Goal->SetCompetitionStable(true);LaunchContact();SmokePhase=4;FixtureAge=0;
+}
+void AImperialMatchManager::ViewSmokeTick(float Dt)
+{
+    auto* PC=Cast<AImperialPlayerController>(UGameplayStatics::GetPlayerController(this,0));auto* Drone=GetSelectedDrone();if(!PC||!Drone)return;
+    FixtureAge+=Dt;
+    if(SmokePhase==0&&Elapsed>.5){Drone->SetArmed(false);ChangeView(1);SmokePhase=1;FixtureAge=0;return;}
+    if(SmokePhase>=1&&SmokePhase<=5&&FixtureAge>.45f)
+    {
+        const FVector Expected=PC->GetRoleCameraPosition();const FVector Actual=PC->PlayerCameraManager?PC->PlayerCameraManager->GetCameraLocation():FVector(1e9);
+        const bool Position=FVector::Dist(Expected,Actual)<3;
+        bool Safe=true;if(SmokePhase==4||SmokePhase==5)Safe=!Drone->SetArmed(true)&&!Drone->IsArmed()&&Drone->GetInputSource()==TEXT("VIEW ONLY");
+        for(auto& D:Drones)Safe&=D->GetGuardIntegrityPercent()>99.999f;
+        const bool Valid=CameraView==SmokePhase&&Position&&Safe;bFixtureOk&=Valid;
+        auto Row=MakeShared<FJsonObject>();Row->SetNumberField(TEXT("view"),CameraView);Row->SetStringField(TEXT("camera_role"),PC->GetCameraRoleName());Row->SetArrayField(TEXT("position_cm"),JsonVector(Actual));Row->SetBoolField(TEXT("read_only_arm_rejected"),Safe);Row->SetBoolField(TEXT("ok"),Valid);FixtureViewRows.Add(MakeShared<FJsonValueObject>(Row));
+        ++SmokePhase;FixtureAge=0;if(SmokePhase<=5)ChangeView(SmokePhase);return;
+    }
+    if(SmokePhase==6)
+    {
+        ChangeView(1);const bool Armed=Drone->SetArmed(true);ChangeView(4);
+        const bool SwitchRejected=Armed&&CameraView==1&&Drone->IsArmed();bFixtureOk&=SwitchRejected;
+        Drone->SetArmed(false);PC->ToggleEquipmentInspection();
+        bFixtureOk&=CameraView==6&&Drone->HasPhotorealEquipment()&&Drone->IsEquipmentInspection()&&!Drone->SetArmed(true);
+        SmokePhase=7;FixtureAge=0;return;
+    }
+    if(SmokePhase!=7||FixtureAge<.5f)return;
+    auto Row=MakeShared<FJsonObject>();Row->SetNumberField(TEXT("view"),6);Row->SetStringField(TEXT("camera_role"),PC->GetCameraRoleName());Row->SetBoolField(TEXT("ok"),Drone->IsEquipmentInspection()&&!Drone->IsArmed()&&Drone->HasPhotorealEquipment());FixtureViewRows.Add(MakeShared<FJsonValueObject>(Row));
+    bFixtureOk&=Drone->IsEquipmentInspection()&&!Drone->IsArmed();PC->ToggleEquipmentInspection();bFixtureOk&=CameraView==1&&!Drone->IsEquipmentInspection();
+    auto Result=MakeShared<FJsonObject>();Result->SetBoolField(TEXT("ok"),bFixtureOk);Result->SetArrayField(TEXT("views"),FixtureViewRows);
+    Result->SetStringField(TEXT("fixture"),TEXT("actual camera/controller API calls, camera-manager poses and arm rejection; not physical USB or native mouse input"));
+    FString Text;FJsonSerializer::Serialize(Result,TJsonWriterFactory<>::Create(&Text));AttachVerificationIdentity(Text,SmokeMinDt,SmokeMaxDt);
+    FFileHelper::SaveStringToFile(Text,*(SmokeResultFile.IsEmpty()?ImperialUserData::Path(TEXT("view-smoke.json")):SmokeResultFile));
+    bSmokeDone=true;FPlatformMisc::RequestExitWithStatus(false,bFixtureOk?0:1);
+}
+void AImperialMatchManager::SwarmCheckpoint(const FString& Event)
+{
+    auto Row=MakeShared<FJsonObject>();Row->SetStringField(TEXT("event"),Event);Row->SetNumberField(TEXT("game_time_s"),Elapsed);
+    Row->SetStringField(TEXT("mode"),GetModeName());Row->SetBoolField(TEXT("connected"),bConnected);
+    TArray<TSharedPtr<FJsonValue>> Aircraft;
+    for(int32 I=0;I<Drones.Num();++I)
+    {
+        auto Item=MakeShared<FJsonObject>();Item->SetNumberField(TEXT("id"),I);Item->SetArrayField(TEXT("position_cm"),JsonVector(Drones[I]->GetActorLocation()));
+        Item->SetArrayField(TEXT("target_cm"),JsonVector(Drones[I]->GetAutonomousTarget()));Item->SetBoolField(TEXT("autonomous"),Drones[I]->IsAutonomousEnabled());
+        Item->SetNumberField(TEXT("speed_mps"),Drones[I]->GetFlightSpeed());Item->SetNumberField(TEXT("tilt_deg"),Drones[I]->GetTiltDegrees());
+        Item->SetNumberField(TEXT("guard_pct"),Drones[I]->GetGuardIntegrityPercent());Item->SetBoolField(TEXT("armed"),Drones[I]->IsArmed());Aircraft.Add(MakeShared<FJsonValueObject>(Item));
+    }
+    Row->SetArrayField(TEXT("drones"),Aircraft);
+    FString Line;FJsonSerializer::Serialize(Row,TJsonWriterFactory<TCHAR,TCondensedJsonPrintPolicy<TCHAR>>::Create(&Line));
+    if(!SmokeResultFile.IsEmpty())FFileHelper::SaveStringToFile(Line+TEXT("\n"),*(SmokeResultFile+TEXT(".events.jsonl")),FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM,&IFileManager::Get(),FILEWRITE_Append);
+    if(Event!=TEXT("sample"))SwarmCheckpoints.Add(MakeShared<FJsonValueObject>(Row));
+}
+void AImperialMatchManager::SwarmSmokeTick()
+{
+    const double Age=Elapsed-SwarmStageStart;
+    if(SmokePhase>0&&Elapsed-SwarmLastSample>.25)
+    {
+        SwarmLastSample=Elapsed;SwarmMinSeparation=FMath::Min(SwarmMinSeparation,ClosestSeparation);
+        for(int32 I=0;I<Drones.Num();++I)
+        {
+            const FVector P=Drones[I]->GetActorLocation();
+            bSwarmFinite&=!P.ContainsNaN()&&FMath::Abs(P.X)<805&&FMath::Abs(P.Y)<355&&P.Z>10&&P.Z<455;
+            if(Drones[I]->IsArmed()){SwarmMaxTilt=FMath::Max(SwarmMaxTilt,Drones[I]->GetTiltDegrees());SwarmMaxAltitude=FMath::Max(SwarmMaxAltitude,(float)P.Z);}
+            if(SmokePhase==2&&Age>1&&SwarmHoldPositions.IsValidIndex(I))SwarmHoldDrift=FMath::Max(SwarmHoldDrift,(float)FVector::Dist(P,SwarmHoldPositions[I]));
+        }
+        SwarmCheckpoint(TEXT("sample"));
+    }
+    if(SmokePhase==0&&bConnected&&Elapsed>.5)
+    {LaunchSwarm();SmokePhase=1;SwarmStageStart=Elapsed;SwarmCheckpoint(TEXT("launch"));return;}
+    if(SmokePhase==1&&Age>18)
+    {
+        bSwarmAirborne=Drones.Num()==10;
+        for(auto& D:Drones)bSwarmAirborne&=D->IsArmed()&&D->GetAltitudeMeters()>.8&&D->GetAltitudeMeters()<4.1;
+        HoldFleet();for(auto& D:Drones)SwarmHoldPositions.Add(D->GetActorLocation());
+        SmokePhase=2;SwarmStageStart=Elapsed;SwarmCheckpoint(TEXT("hold"));return;
+    }
+    if(SmokePhase==2&&Age>4)
+    {ReturnFleet();SmokePhase=3;SwarmStageStart=Elapsed;SwarmCheckpoint(TEXT("return"));return;}
+    if(SmokePhase==3&&Age>1.5)
+    {SmokePhase=4;SwarmStageStart=Elapsed;SwarmCheckpoint(TEXT("interrupt_return"));return;}
+    if(SmokePhase==4)
+    {
+        if(!bConnected&&Mode==EImperialMode::Hold&&!bSwarmTimeoutHeld){bSwarmTimeoutHeld=true;SwarmCheckpoint(TEXT("timeout_held"));}
+        if(bSwarmTimeoutHeld&&bConnected)
+        {bSwarmReconnectHeld=Mode==EImperialMode::Hold;SwarmCheckpoint(TEXT("reconnect_held"));ReturnFleet();SmokePhase=5;SwarmStageStart=Elapsed;return;}
+    }
+    if(SmokePhase==5&&Mode==EImperialMode::Manual)
+    {SmokePhase=6;SwarmStageStart=Elapsed;SwarmCheckpoint(TEXT("landed"));return;}
+    bool Finish=SmokePhase==6&&Age>2;
+    if(Elapsed>125)Finish=true;
+    if(!Finish)return;
+    bool Landed=SmokePhase==6&&Drones.Num()==10;
+    for(int32 I=0;I<Drones.Num();++I)Landed&=!Drones[I]->IsArmed()&&FVector::Dist2D(Drones[I]->GetActorLocation(),Homes[I])<45&&Drones[I]->GetAltitudeMeters()<.3&&Drones[I]->GetFlightSpeed()<.15;
+    const float Separation=SwarmMinSeparation,Drift=SwarmHoldDrift,PeakTilt=SwarmMaxTilt,PeakAltitude=SwarmMaxAltitude;
+    // Match mode must reject auto-launch and keep all ten motors stopped.
+    bool ManualMatchGate=VerifyMatchAutonomyGates();
+    for(auto& D:Drones)ManualMatchGate&=!D->IsArmed()&&!D->IsAutonomousEnabled();
+    const bool Valid=Landed&&bSwarmAirborne&&bSwarmFinite&&bSwarmTimeoutHeld&&bSwarmReconnectHeld&&ManualMatchGate&&Separation>.9&&Drift<100&&PeakTilt<70;
+    auto Result=MakeShared<FJsonObject>();Result->SetBoolField(TEXT("ok"),Valid);Result->SetStringField(TEXT("fixture"),TEXT("real-time ten Chaos aircraft using actual upstream APF HTTP; bounded server intentionally returns 503 during return; no USB or flight position corrections"));
+    Result->SetStringField(TEXT("source_commit"),SourceCommit);Result->SetBoolField(TEXT("ten_airborne"),bSwarmAirborne);Result->SetBoolField(TEXT("ten_landed_disarmed"),Landed);
+    Result->SetBoolField(TEXT("finite_inside_court"),bSwarmFinite);Result->SetBoolField(TEXT("timeout_local_hold"),bSwarmTimeoutHeld);Result->SetBoolField(TEXT("reconnect_does_not_resume"),bSwarmReconnectHeld);Result->SetBoolField(TEXT("manual_match_auto_rejected"),ManualMatchGate);
+    Result->SetNumberField(TEXT("minimum_separation_m"),Separation);Result->SetNumberField(TEXT("hold_max_drift_cm"),Drift);Result->SetNumberField(TEXT("armed_peak_tilt_deg"),PeakTilt);Result->SetNumberField(TEXT("peak_altitude_cm"),PeakAltitude);Result->SetArrayField(TEXT("checkpoints"),SwarmCheckpoints);
+    FString Text;FJsonSerializer::Serialize(Result,TJsonWriterFactory<>::Create(&Text));AttachVerificationIdentity(Text);
+    FFileHelper::SaveStringToFile(Text,*SmokeResultFile);bSmokeDone=true;FPlatformMisc::RequestExitWithStatus(false,Valid?0:1);
 }
 void AImperialMatchManager::AngleSmokeTick()
 {

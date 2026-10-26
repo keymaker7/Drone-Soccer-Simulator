@@ -21,6 +21,7 @@ public:
     bool SetVisualQuality(const FString& Name,bool bSave=true);
     FString GetQualityName() const { return QualityName; }
     int32 GetDustCapacity() const { return Capacity; }
+    int32 GetGuardChipBursts() const { return GuardChipBursts; }
 protected:
     virtual void BeginPlay() override;
     virtual void EndPlay(const EEndPlayReason::Type Reason) override;
@@ -34,6 +35,10 @@ private:
         float Radius = 1;
     };
     UPROPERTY() TObjectPtr<UInstancedStaticMeshComponent> Dust;
+    UPROPERTY() TObjectPtr<UInstancedStaticMeshComponent> GuardChips;
+    struct FGuardChip {FVector Position,Velocity;float Age=0,Lifetime=.5f,Size=.2f;};
+    TArray<FGuardChip> Chips;
+    int32 GuardChipBursts=0;
     UPROPERTY() TObjectPtr<UMaterialInstanceDynamic> DustMaterial;
     UPROPERTY() TObjectPtr<UPostProcessComponent> Grade;
     UPROPERTY() TArray<TObjectPtr<URectLightComponent>> FillLights;
@@ -57,6 +62,7 @@ private:
     void DiscoverAircraft();
     void AddMote(const FVector& Position, const FVector& Velocity, float Radius, float Lifetime);
     void EmitImpact(const FVector& Point, const FVector& Normal, float SpeedCmS);
+    void EmitGuardChips(const FVector& Point,const FVector& Normal,float ImpulseNs);
     void ApplyQuality();
     UFUNCTION() void OnAircraftHit(AActor* SelfActor, AActor* OtherActor,
         FVector NormalImpulse, const FHitResult& Hit);

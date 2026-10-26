@@ -182,13 +182,17 @@ class GuidanceBridge:
     def _route(drone_id: int, home: np.ndarray) -> list[np.ndarray]:
         slot = drone_id % 5
         side = -1.0 if drone_id < 5 else 1.0
-        altitude = 1.3 + slot*0.5 + (0.2 if drone_id >= 5 else 0.0)
+        # Separate opposing patrols vertically. A 20cm offset made head-on
+        # repulsion push the lower Striker towards the floor in actual UE runs.
+        altitude = 1.5 + slot*0.2 if drone_id < 5 else 2.9 + slot*0.15
         lane = float(np.clip(home[1], -3.2, 3.2))
         return [
-            np.array([home[0], lane, altitude]),
-            np.array([-side*7.3, lane, altitude]),
-            np.array([-side*7.3, float(np.clip(lane+0.65*side, -3.0, 3.0)), min(3.8, altitude+0.25)]),
-            np.array([side*7.3, float(np.clip(lane+0.65*side, -3.0, 3.0)), altitude]),
+            # Stay inside the goal planes, including the climb after takeoff.
+            np.array([side*5.3, lane, min(2.1, altitude)]),
+            np.array([side*5.3, lane, altitude]),
+            np.array([-side*5.3, lane, altitude]),
+            np.array([-side*5.3, float(np.clip(lane+0.65*side, -3.0, 3.0)), min(3.8, altitude+0.1)]),
+            np.array([side*5.3, float(np.clip(lane+0.65*side, -3.0, 3.0)), altitude]),
         ]
 
     @staticmethod
@@ -291,6 +295,9 @@ class GuidanceBridge:
                         stage = "return-land"
                 if stage == "return-land":
                     goals[str(drone_id)] = home.copy()
+                    # Home is the 35cm spawn pose. Descend to 25cm before UE
+                    # disarms, rather than cutting motors up to 65cm high.
+                    goals[str(drone_id)][2] = ARENA_MIN[2]
                 plan.return_stages[drone_id] = stages[drone_id] = stage
                 if position[2] <= 0.55 and abs(float(velocity[2])) < 0.35:
                     plan.takeoff_complete.discard(drone_id)

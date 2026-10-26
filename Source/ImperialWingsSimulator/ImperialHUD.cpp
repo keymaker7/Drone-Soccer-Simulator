@@ -1,5 +1,6 @@
 #include "ImperialHUD.h"
 #include "ImperialMatchManager.h"
+#include "ImperialPlayerController.h"
 #include "SoccerDronePawn.h"
 #include "ImperialRadioSubsystem.h"
 #include "ImperialSoccerLayout.h"
@@ -56,12 +57,17 @@ void AImperialHUD::Panel(float X,float Y,float W,float H)
 }
 void AImperialHUD::Button(FName Name,const FString& Label,float X,float Y,float W,float H,bool Active,bool Warning)
 {
+    const auto* RoleController=Cast<AImperialPlayerController>(PlayerOwner);
+    const bool ReadOnly=RoleController&&RoleController->IsReadOnlyView();
+    const bool AutonomousAction=Name==TEXT("Auto")||Name==TEXT("Hold")||Name==TEXT("Return");
+    const bool Disabled=(ReadOnly&&(AutonomousAction||Name==TEXT("Manual")||Name==TEXT("Reset")||Name==TEXT("StartMatch")||Name==TEXT("Arm")||Name==TEXT("ArmSelected")))||
+        (Match.IsValid()&&!Match->IsAutonomyAllowed()&&AutonomousAction);
     const bool Hover=FBox2D(Screen(X,Y),Screen(X+W,Y+H)).IsInside(Pointer);
     const auto Accent=Warning?Orange:Cyan;
     Rect(X,Y,W,H,Active||Hover?FLinearColor(.045f,.23f,.28f,.97f):FLinearColor(.055f,.10f,.15f,.97f));
     Rect(X,Y,W,1,Active||Hover?Accent:Edge);if(Active||Hover)Rect(X,Y,2,H,Accent);
-    Text(Label,X+11,Y+(H-13)*.5f,13,Active||Hover||Warning?Accent:White);
-    ButtonTargets.Add({Name,FBox2D(Screen(X,Y),Screen(X+W,Y+H)),ButtonPriority});
+    Text(Label,X+11,Y+(H-13)*.5f,13,Disabled?Muted:(Active||Hover||Warning?Accent:White));
+    if(!Disabled)ButtonTargets.Add({Name,FBox2D(Screen(X,Y),Screen(X+W,Y+H)),ButtonPriority});
 }
 void AImperialHUD::ClickPointer()
 {
@@ -127,7 +133,8 @@ void AImperialHUD::DrawHUD()
         Panel(470,22,660,76);
         Text(FString::Printf(TEXT("BLUE  %d   :   %d  RED"),M->GetScore(0),M->GetScore(1)),493,38,24,White);
         Text(TimeLabel(M->GetElapsed()),870,41,19,Cyan);
-        Text(M->GetView()==1?TEXT("LOS PILOT"):TEXT("OBSERVER"),990,43,13,Muted);
+        const auto* CameraController=Cast<AImperialPlayerController>(PlayerOwner);
+        Text(CameraController?CameraController->GetCameraRoleName():TEXT("CAMERA"),990,43,13,Muted);
         Text(ImperialBuildInfo::Label(),488,81,9,Muted);
         Panel(24,934,1552,42);
         if(Selected)Text(FString::Printf(TEXT("%s   %s   ALT %.2f m   THR %.0f%%   BAT %.0f%% / %.1f V"),*UnitName(M->GetSelected()),*Selected->GetPilotStatus(),Selected->GetAltitudeMeters(),Selected->GetThrottle()*100,Selected->GetBatteryPercent(),Selected->GetBatteryVoltage()),40,947,13,White);
@@ -175,12 +182,13 @@ void AImperialHUD::DrawHUD()
     Text(TEXT("Close pairs < 0.9 m"),42,340,12,Muted);Text(FString::FromInt(M->GetConflicts()),265,338,15,M->GetConflicts()>0?Amber:White,true);
     Text(TEXT("FIDA 2026 / CLASS 40"),42,377,10,White);
     Text(TEXT("16 x 7 x 4.5 m COURT"),42,394,10,Muted);
-    Text(M->GetView()==1?(M->GetSelected()<5?TEXT("LOS PILOT / BLUE"):TEXT("LOS PILOT / RED")):TEXT("TRAINING CAMERAS"),42,441,12,White);
+    const auto* ViewController=Cast<AImperialPlayerController>(PlayerOwner);
+    Text(ViewController?ViewController->GetCameraRoleName():TEXT("CAMERA VIEWS"),42,441,12,White);
     Button(TEXT("View1"),TEXT("1  LOS"),37,472,70,33,M->GetView()==1);
     Button(TEXT("View2"),TEXT("2  OBS"),115,472,80,33,M->GetView()==2);
     Button(TEXT("View3"),TEXT("3  ARENA"),203,472,69,33,M->GetView()==3);
-    Text(TEXT("LOS: RMB HEAD LOOK / WHEEL ZOOM"),42,516,9,Muted);
-    Text(TEXT("PHYSICS: EXPERIMENTAL / NOT CALIBRATED"),42,533,8,Amber);
+    Button(TEXT("View4"),TEXT("4 AUDIENCE"),37,513,113,28,M->GetView()==4);
+    Button(TEXT("View5"),TEXT("5 REFEREE"),158,513,114,28,M->GetView()==5);
     if(auto* Visuals=GetPresentation())
     {
         Panel(24,564,260,152);Text(TEXT("GRAPHICS"),42,581,12,White);
@@ -212,7 +220,9 @@ void AImperialHUD::DrawHUD()
         Rect(1220,610,4,44,M->GetTeamColor(M->GetSelected()));
         Text(UnitName(M->GetSelected()),1239,627,23,White);
         Text(ImperialSoccerLayout::RoleName(Selected->GetPlayerRole()),1556,634,10,Selected->GetRoleColor(),true);
-        Text(Fit(Selected->GetPilotStatus(),12,313),1240,666,12,Selected->IsArmed()?Green:Amber);
+        Text(Fit(Selected->GetPilotStatus(),12,190),1240,666,12,Selected->IsArmed()?Green:Amber);
+        const auto* Controller=Cast<AImperialPlayerController>(PlayerOwner);
+        Button(TEXT("Equipment"),Selected->IsArmed()?TEXT("DISARM FIRST"):(Controller&&Controller->IsEquipmentInspection()?TEXT("F9 BACK TO LOS"):TEXT("F9 EQUIPMENT")),1435,650,121,28,Controller&&Controller->IsEquipmentInspection());
         Rect(1239,694,317,1,Edge);
         Text(TEXT("FLIGHT SPEED"),1240,710,10,Muted);Text(FString::Printf(TEXT("%.2f m/s"),Selected->GetFlightSpeed()),1240,729,24,White);
         Text(TEXT("ALTITUDE"),1411,710,10,Muted);Text(FString::Printf(TEXT("%.2f m"),Selected->GetAltitudeMeters()),1411,729,24,White);
@@ -220,7 +230,7 @@ void AImperialHUD::DrawHUD()
         Text(TEXT("MOTORS"),1411,775,10,Muted);Text(Selected->IsArmed()?TEXT("ARMED"):TEXT("SAFE"),1411,797,18,Selected->IsArmed()?Green:Muted);
         Rect(1240,832,315,3,Edge);Rect(1240,832,315*FMath::Clamp(Selected->GetThrottle(),0.f,1.f),3,M->GetTeamColor(M->GetSelected()));
         Button(TEXT("ArmSelected"),Selected->IsArmed()?TEXT("DISARM SELECTED"):TEXT("ARM SELECTED"),1239,854,316,34,Selected->IsArmed(),true);
-        Text(FString::Printf(TEXT("BATTERY %.0f %%  /  %.2f V"),Selected->GetBatteryPercent(),Selected->GetBatteryVoltage()),1240,904,10,Muted);
+        Text(FString::Printf(TEXT("BAT %.0f%% %.1fV   GUARD %.0f%%"),Selected->GetBatteryPercent(),Selected->GetBatteryVoltage(),Selected->GetGuardIntegrityPercent()),1240,904,10,Selected->GetGuardIntegrityPercent()<30?Amber:Muted);
     }
 
     Rect(24,736,3,44,Cyan);Text(Fit(M->GetNotice(),12,636),42,752,12,White);
@@ -446,8 +456,11 @@ void AImperialHUD::DrawRadioPanel(AImperialMatchManager& Manager)
 void AImperialHUD::NotifyHitBoxClick(FName BoxName)
 {
     Super::NotifyHitBoxClick(BoxName);auto* M=FindMatch();if(!M)return;const FString N=BoxName.ToString();
+    if(const auto* ReadOnlyController=Cast<AImperialPlayerController>(PlayerOwner);ReadOnlyController&&ReadOnlyController->IsReadOnlyView()&&
+       (N==TEXT("Auto")||N==TEXT("Hold")||N==TEXT("Return")||N==TEXT("Manual")||N==TEXT("Reset")||N==TEXT("StartMatch")||N==TEXT("Arm")||N==TEXT("ArmSelected")))return;
     UE_LOG(LogTemp,Display,TEXT("IMPERIAL_UI_CLICK %s"),*N);
     if(N==TEXT("Exit")){M->ResetMatch();UKismetSystemLibrary::QuitGame(this,PlayerOwner,EQuitPreference::Quit,false);return;}
+    if(N==TEXT("Equipment")){if(auto* PC=Cast<AImperialPlayerController>(PlayerOwner))PC->ToggleEquipmentInspection();return;}
     if(N==TEXT("RadioOpen")){ToggleRadioPanel();return;}
     if(bRadioPanelOpen)
     {
@@ -489,5 +502,5 @@ void AImperialHUD::NotifyHitBoxClick(FName BoxName)
     else if(N==TEXT("Reset"))M->ResetMatch();else if(N==TEXT("Export"))M->ExportTelemetry();
     else if(N==TEXT("StartMatch"))M->StartMatch();
     else if(N==TEXT("Arm")||N==TEXT("ArmSelected"))M->ToggleArmSelected();else if(N==TEXT("View1"))M->ChangeView(1);
-    else if(N==TEXT("View2"))M->ChangeView(2);else if(N==TEXT("View3"))M->ChangeView(3);
+    else if(N==TEXT("View2"))M->ChangeView(2);else if(N==TEXT("View3"))M->ChangeView(3);else if(N==TEXT("View4"))M->ChangeView(4);else if(N==TEXT("View5"))M->ChangeView(5);
 }

@@ -150,13 +150,13 @@ class BridgeTests(unittest.TestCase):
     def test_modes_waypoints_and_reset(self):
         payload = request_payload()
         self.post("/step", payload)
-        payload["drones"][0]["position_m"][2] = 1.3
+        payload["drones"][0]["position_m"] = self.bridge._route(0, np.array(payload["drones"][0]["home_m"]))[0].tolist()
         progressed = self.post("/step", payload)
         self.assertEqual(progressed["targets"][0]["waypoint"], 1)
         held = self.post("/step", {**payload, "mode": "hold"})
         self.assertEqual(len(held["targets"]), 10)
         returned = self.post("/step", {**payload, "mode": "return"})
-        self.assertLess(returned["targets"][0]["target_m"][2], 1.3)
+        self.assertLess(returned["targets"][0]["target_m"][2], payload["drones"][0]["position_m"][2])
         self.post("/reset", {})
         self.assertEqual(self.bridge.requests, 0)
         self.assertEqual(self.bridge.waypoints, {})
@@ -177,17 +177,17 @@ class BridgeTests(unittest.TestCase):
         low = self.post("/step", payload)
         self.assertEqual(low["targets"][0]["stage"], "takeoff")
         self.assertEqual(low["targets"][0]["waypoint"], 0)
-        payload["drones"][0]["position_m"][2] = 1.23
+        payload["drones"][0]["position_m"][2] = 1.43
         clear = self.post("/step", payload)
         self.assertEqual(clear["targets"][0]["stage"], "patrol")
-        self.assertEqual(clear["targets"][0]["waypoint"], 1)
+        self.assertEqual(clear["targets"][0]["waypoint"], 0)  # First fly inside the goal plane.
         self.assertGreater(clear["targets"][0]["target_m"][0], -6.5)
         # The centre-row orange pad sits directly beneath the FIDA hoop. Its
         # takeoff gate must release below centre z=2.3m, not collide at z=2.5m.
         payload["drones"][7]["position_m"][2] = 2.13
         below_hoop = self.post("/step", payload)
         self.assertEqual(below_hoop["targets"][7]["stage"], "patrol")
-        self.assertEqual(below_hoop["targets"][7]["waypoint"], 1)
+        self.assertEqual(below_hoop["targets"][7]["waypoint"], 0)
         self.assertLess(below_hoop["targets"][7]["target_m"][0], 6.5)
         # A later physical landing starts a fresh staged launch without restart.
         payload["drones"][0]["position_m"][2] = 0.35
@@ -199,6 +199,16 @@ class BridgeTests(unittest.TestCase):
         held = self.post("/step", {**payload, "mode": "hold"})
         self.assertEqual(held["targets"][0]["stage"], "hold")
         self.assertLess(held["targets"][0]["target_m"][2], 0.5)
+
+    def test_patrol_has_goal_clearance_and_team_height_separation(self):
+        lanes = [0, -1.25, -2.5, 1.25, 2.5]
+        routes = [self.bridge._route(i,np.array([-6.5 if i<5 else 6.5,lanes[i%5]*(1 if i<5 else -1),.35])) for i in range(10)]
+        for route in routes:
+            self.assertTrue(all(abs(p[0])<=5.3 and 1.4<p[2]<=3.8 for p in route))
+            self.assertLessEqual(route[0][2],2.1)
+            self.assertEqual(route[0][0],route[1][0])
+        for blue,red in [(0,5),(1,8),(2,9),(3,6),(4,7)]:
+            self.assertGreaterEqual(routes[red][1][2]-routes[blue][1][2],.89)
 
     def test_position_controller_interface_takeoff_and_return(self):
         # This tests the interface gain against an ideal point-mass surrogate of
@@ -226,6 +236,8 @@ class BridgeTests(unittest.TestCase):
             result = tick()
         minimum_height = min(item["position_m"][2] for item in payload["drones"])
         self.assertGreater(minimum_height, 1.0, "Guidance interface still creeps along the floor")
+        for _ in range(80):
+            result = tick()
         self.assertTrue(any(target["waypoint"] > 0 for target in result["targets"]))
         # Exercise the full crossing return, rather than only descending beside
         # the launch pad: both teams start at the opposite end of the arena.

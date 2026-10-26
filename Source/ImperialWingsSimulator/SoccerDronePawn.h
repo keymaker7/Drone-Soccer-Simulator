@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "PhysicsModels.h"
+#include "ContactResponse.h"
 #include "SoccerDronePawn.generated.h"
 
 class UCameraComponent;
@@ -14,6 +15,7 @@ class UTextRenderComponent;
 class UPhysicalMaterial;
 class UPrimitiveComponent;
 class USceneComponent;
+class UMaterialInstanceDynamic;
 
 /** Experimental force-driven quadcopter. +X forward, +Y right, +Z up.
  *  All motor/controller constants are prototype assumptions, not measured aircraft data.
@@ -31,6 +33,9 @@ public:
     virtual void UnPossessed() override;
     virtual void OnConstruction(const FTransform& Transform) override;
     bool VerifyDetailedAirframe() const;
+    bool HasPhotorealEquipment() const;
+    void SetEquipmentInspection(bool bEnabled);
+    bool IsEquipmentInspection() const { return bEquipmentInspection; }
 
     UFUNCTION(BlueprintCallable, Category="Drone|Autonomy")
     void SetAutonomousTarget(const FVector& WorldPosition);
@@ -101,6 +106,9 @@ public:
     float GetBatteryPercent() const { return static_cast<float>(BatteryState.Soc*100.); }
     float GetBatteryVoltage() const { return static_cast<float>(BatteryState.VoltageV); }
     float GetNetDeflection() const;
+    float GetGuardIntegrityPercent() const { return static_cast<float>(GuardState.Integrity*100); }
+    int32 GetGuardImpactCount() const { return static_cast<int32>(GuardState.ImpactCount); }
+    float GetGuardImpactWorkJ() const { return static_cast<float>(GuardState.TotalDissipatedJ); }
     FString GetFlightModeName() const { return TEXT("ANGLE"); }
     float GetTiltDegrees() const;
     float GetAngleLimitDegrees() const { return MaximumTiltDegrees; }
@@ -214,6 +222,15 @@ private:
     UPROPERTY() TObjectPtr<UInstancedStaticMeshComponent> PowerWires;
     UPROPERTY() TObjectPtr<UInstancedStaticMeshComponent> GroundWires;
     UPROPERTY() TObjectPtr<UInstancedStaticMeshComponent> CageClips;
+    UPROPERTY() TObjectPtr<UInstancedStaticMeshComponent> GuardScuffs;
+    UPROPERTY() TObjectPtr<UMaterialInstanceDynamic> GuardMaterial;
+    ImperialContact::GuardParameters GuardParameters;
+    ImperialContact::GuardState GuardState;
+    TWeakObjectPtr<AActor> LastWearOther;
+    double LastWearContactTime=-100;
+    UPROPERTY() TObjectPtr<UStaticMeshComponent> EquipmentAssembly;
+    UPROPERTY() TArray<TObjectPtr<UStaticMeshComponent>> DetailedPropellers;
+    bool bPhotorealEquipment=false,bEquipmentInspection=false;
 
     UPROPERTY()
     TObjectPtr<UInstancedStaticMeshComponent> TeamLedElements;
@@ -253,6 +270,7 @@ private:
     float RotorAngle = 0.0f;
     float MotorThrustN[4] = {0, 0, 0, 0};
     FVector IntegralError = FVector::ZeroVector;
+    FVector AutonomousVelocityIntegral = FVector::ZeroVector;
     FVector PreviousBodyRate = FVector::ZeroVector;
     FVector FilteredBodyAcceleration = FVector::ZeroVector;
     FVector SpawnPosition = FVector::ZeroVector;
@@ -298,7 +316,10 @@ private:
     void ApplyAerodynamicDrag();
     void ApplyVisualMaterials();
     void BuildCageVisuals();
+    void BuildDetailedEquipment();
+    void UpdateGuardMaterial();
+    void ResetFromPilotInput();
     void UpdateRoleTag();
-    FVector CalculateAutonomousRate(float& OutCollectiveThrustN) const;
+    FVector CalculateAutonomousRate(float& OutCollectiveThrustN);
     UImperialRadioSubsystem* GetRadio() const;
 };

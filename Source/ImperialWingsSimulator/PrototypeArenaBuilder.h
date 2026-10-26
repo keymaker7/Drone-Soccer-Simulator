@@ -11,6 +11,7 @@ class UMaterialInstanceDynamic;
 class UInstancedStaticMeshComponent;
 class UPhysicalMaterial;
 class AImperialElasticNet;
+class AImperialSuspendedGoal;
 
 /** Creates a FIDA 2026 Class 40 recommended 16 x 7 x 4.5 m court at BeginPlay.
  *  Elastic-net response coefficients and 16 cm goal depth are prototype choices.
@@ -24,6 +25,8 @@ public:
     APrototypeArenaBuilder();
     void SetGoalSignal(int32 GoalIndex, bool bScored);
     bool GetStartPadPosition(int32 AircraftId,FVector& Position) const;
+    AImperialSuspendedGoal* GetGoal(int32 Index) const;
+    void ResetGoals();
 
 protected:
     virtual void BeginPlay() override;
@@ -59,6 +62,7 @@ private:
     UPROPERTY() TObjectPtr<UMaterialInstanceDynamic> RedMaterial;
     UPROPERTY() TObjectPtr<UMaterialInstanceDynamic> GoalFrameMaterial;
     UPROPERTY() TArray<TObjectPtr<UMaterialInstanceDynamic>> GoalLights;
+    UPROPERTY() TArray<TObjectPtr<AImperialSuspendedGoal>> SuspendedGoals;
     bool GoalIsScored[2] = {false, false};
     TMap<FString, UInstancedStaticMeshComponent*> Batches;
     TArray<TWeakObjectPtr<UInstancedStaticMeshComponent>> StartPadBatches;

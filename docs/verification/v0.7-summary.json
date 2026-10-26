@@ -1,0 +1,216 @@
+{
+  "version": "0.7.0",
+  "date_kst": "2026-10-27",
+  "source_sha256": "5634f0bd80e6dd09013841e3537d484eb90130160380679bebc4770192e8da4e",
+  "source_inputs": 108,
+  "configuration": "Windows x64 Shipping",
+  "autonomy": {
+    "ok": true,
+    "ten_airborne": true,
+    "ten_landed_disarmed": true,
+    "finite_inside_court": true,
+    "timeout_local_hold": true,
+    "reconnect_does_not_resume": true,
+    "manual_match_auto_rejected": true,
+    "minimum_separation_m": 1.0977718830108643,
+    "hold_max_drift_cm": 28.888195037841797,
+    "armed_peak_tilt_deg": 5.1971588134765625,
+    "peak_altitude_cm": 395.1227111816406,
+    "match_gate_phases": [
+      "Ready",
+      "Playing",
+      "Break",
+      "Finished"
+    ],
+    "manual_landing_retained_at_whistle": true
+  },
+  "contact": [
+    {
+      "game_fps": 30,
+      "goal_mass_kg": 12.5,
+      "guard_after_first_pct": 89.48497772216797,
+      "guard_after_second_pct": 77.4837417602539,
+      "goal_peak_sway_cm": 5.414381980895996,
+      "goal_settled_sway_cm": 1.134331226348877,
+      "competition_peak_sway_cm": 0.19916784763336182,
+      "idle_contact_does_not_wear": true,
+      "reset_repairs_guard_and_centres_goal": true,
+      "competition_suspension_stable": true
+    },
+    {
+      "game_fps": 60,
+      "goal_mass_kg": 12.5,
+      "guard_after_first_pct": 89.66688537597656,
+      "guard_after_second_pct": 77.90645599365234,
+      "goal_peak_sway_cm": 5.465148448944092,
+      "goal_settled_sway_cm": 2.1220815181732178,
+      "competition_peak_sway_cm": 0.16712290048599243,
+      "idle_contact_does_not_wear": true,
+      "reset_repairs_guard_and_centres_goal": true,
+      "competition_suspension_stable": true
+    },
+    {
+      "game_fps": 120,
+      "goal_mass_kg": 12.5,
+      "guard_after_first_pct": 89.48280334472656,
+      "guard_after_second_pct": 77.68827819824219,
+      "goal_peak_sway_cm": 5.379362106323242,
+      "goal_settled_sway_cm": 1.9859166145324707,
+      "competition_peak_sway_cm": 0.1244763508439064,
+      "idle_contact_does_not_wear": true,
+      "reset_repairs_guard_and_centres_goal": true,
+      "competition_suspension_stable": true
+    }
+  ],
+  "manual_angle": [
+    {
+      "game_fps": 20,
+      "released_worst_tilt_deg": 0.07321567833423615,
+      "ok": true
+    },
+    {
+      "game_fps": 30,
+      "released_worst_tilt_deg": 0.06338710337877274,
+      "ok": true
+    },
+    {
+      "game_fps": 60,
+      "released_worst_tilt_deg": 0.08896995335817337,
+      "ok": true
+    },
+    {
+      "game_fps": 120,
+      "released_worst_tilt_deg": 0.08233817666769028,
+      "ok": true
+    },
+    {
+      "game_fps": 240,
+      "released_worst_tilt_deg": 0.16654500365257263,
+      "ok": true
+    }
+  ],
+  "runtime": [
+    {
+      "game_fps": 30,
+      "ok": true,
+      "hover_error_cm": 3.297,
+      "floor_wall_contact": true,
+      "net_contact": true,
+      "striker_physical_goal": true
+    },
+    {
+      "game_fps": 60,
+      "ok": true,
+      "hover_error_cm": 3.15,
+      "floor_wall_contact": true,
+      "net_contact": true,
+      "striker_physical_goal": true
+    },
+    {
+      "game_fps": 120,
+      "ok": true,
+      "hover_error_cm": 2.988,
+      "floor_wall_contact": true,
+      "net_contact": true,
+      "striker_physical_goal": true
+    }
+  ],
+  "camera_views": {
+    "ok": true,
+    "views": [
+      {
+        "view": 1,
+        "camera_role": "PILOT LOS",
+        "position_cm": [
+          -950,
+          0,
+          170
+        ],
+        "read_only_arm_rejected": true,
+        "ok": true
+      },
+      {
+        "view": 2,
+        "camera_role": "OBSERVER TRACK",
+        "position_cm": [
+          -880.7082975400838,
+          -230.70829754008392,
+          172.14257613489238
+        ],
+        "read_only_arm_rejected": true,
+        "ok": true
+      },
+      {
+        "view": 3,
+        "camera_role": "ARENA OVERVIEW",
+        "position_cm": [
+          1750,
+          -2250,
+          1180
+        ],
+        "read_only_arm_rejected": true,
+        "ok": true
+      },
+      {
+        "view": 4,
+        "camera_role": "AUDIENCE STANDS",
+        "position_cm": [
+          300,
+          -1050,
+          250
+        ],
+        "read_only_arm_rejected": true,
+        "ok": true
+      },
+      {
+        "view": 5,
+        "camera_role": "REFEREE SIDELINE",
+        "position_cm": [
+          220,
+          -550,
+          170
+        ],
+        "read_only_arm_rejected": true,
+        "ok": true
+      },
+      {
+        "view": 6,
+        "camera_role": "EQUIPMENT",
+        "ok": true
+      }
+    ]
+  },
+  "layout_ten_aircraft": true,
+  "portable": {
+    "ok": true,
+    "checks": 12,
+    "new_user_data": true,
+    "physical_other_pc": false,
+    "physical_usb_flight": false
+  },
+  "gpu_render": {
+    "samples": 1721,
+    "average_frame_ms": 8.721,
+    "p95_frame_ms": 9.682,
+    "average_fps": 114.66,
+    "res_x": 1600,
+    "res_y": 1000,
+    "gpu": "RTX 5070 Ti",
+    "quality": "High",
+    "scope": "Short local offscreen ten-aircraft APF GPU run; not USB latency or other hardware certification"
+  },
+  "independent_checks": {
+    "rules": 57,
+    "physics": 104,
+    "radio_math_no_hardware": 161,
+    "request_order": 16,
+    "apf_http": 11,
+    "cage_geometry": 4,
+    "flight_log_analysis": 5
+  },
+  "archive": {
+    "filename": "ImperialWings-Windows-v0.7.0-r3.zip",
+    "bytes": 374744460,
+    "sha256": "3ded30405e8290d69e35a3a0a3b48e786ac9000be2c6877a71e683bea87e4d4e"
+  }
+}

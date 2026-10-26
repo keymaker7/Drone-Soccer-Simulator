@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory=$true)][int]$ProcessId,
+    [string]$PackageRoot='',
     [ValidateSet('F5','F6','F8','Space','Home','1','2','3','C','Escape')][string[]]$Keys=@(),
     [switch]$Activate,
     [switch]$Screenshot
@@ -8,7 +9,19 @@ param(
 $ErrorActionPreference='Stop'
 $projectRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $process=Get-Process -Id $ProcessId
-if(-not $process.Path.StartsWith($projectRoot+'\',[StringComparison]::OrdinalIgnoreCase) -or $process.ProcessName -notlike 'ImperialWingsSimulator*'){throw 'Target is not this project game.'}
+$allowedRoot=$projectRoot
+if($PackageRoot){
+ $allowedRoot=[IO.Path]::GetFullPath($PackageRoot).TrimEnd('\')
+ $manifest=Get-Content -LiteralPath (Join-Path $allowedRoot 'release-manifest.json') -Raw | ConvertFrom-Json
+ $source=& (Join-Path $projectRoot 'Scripts\Get-SourceIdentity.ps1') -ProjectRoot $projectRoot
+ if($manifest.build.source_sha256 -ne $source.source_sha256){throw 'Portable package does not match this source snapshot.'}
+}
+if(-not $process.Path.StartsWith($allowedRoot+'\',[StringComparison]::OrdinalIgnoreCase) -or $process.ProcessName -notlike 'ImperialWingsSimulator*'){throw 'Target is not the explicitly selected project game.'}
+if($PackageRoot){
+ $relative=$process.Path.Substring($allowedRoot.Length+1).Replace('\','/')
+ $entry=@(Get-Content -LiteralPath (Join-Path $allowedRoot 'SHA256SUMS.txt') | Where-Object {($_ -split '  ',2)[1] -eq $relative})
+ if($entry.Count -ne 1 -or (Get-FileHash -LiteralPath $process.Path -Algorithm SHA256).Hash.ToLowerInvariant() -ne ($entry[0] -split '  ',2)[0]){throw 'Selected portable game executable failed release checksum verification.'}
+}
 Add-Type -TypeDefinition @'
 using System;
 using System.Runtime.InteropServices;

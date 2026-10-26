@@ -124,13 +124,32 @@ void TestInvalidInputsAndReset()
     m.Reset();p=Homes();Forward(m,p,0);Check(m.Score(0)==1,"Reset did not restore all active players");
     m.Reset();Check(m.Score(0)==0&&!m.IsOffside(0)&&m.Penalties(0)==0&&m.CurrentSet()==0,"Reset did not clear rule state");
 }
+void TestMovingGoalFrames()
+{
+    auto p=Homes();auto g=NominalGoalFrames();MatchRules m;
+    g[1].center.y=.14;p[0]={6.1,.14,3};m.Update(p,.01,g);p[0].x=6.9;m.Update(p,.01,g);
+    Check(m.Score(0)==1,"Translated hoop did not score its actual aperture");
+    m.Reset();p=Homes();p[0]={6.1,0,3};m.Update(p,.01,g);p[0].x=6.9;m.Update(p,.01,g);
+    Check(m.Score(0)==0,"Fixed nominal aperture scored outside the moved hoop");
+    const double c=std::cos(.17),s=std::sin(.17);
+    g=NominalGoalFrames();g[1].normal={c,s,0};g[1].side={-s,c,0};
+    m.Reset();p=Homes();p[0]={6.5-.4*c,-.4*s,3};m.Update(p,.01,g);p[0]={6.5+.4*c,.4*s,3};m.Update(p,.01,g);
+    Check(m.Score(0)==1,"Rotated hoop forward transit was not transformed into its local frame");
+    g=NominalGoalFrames();g[1].normal={c,0,-s};g[1].up={s,0,c};
+    m.Reset();p=Homes();p[0]={6.5-.4*c,0,3+.4*s};m.Update(p,.01,g);p[0]={6.5+.4*c,0,3-.4*s};m.Update(p,.01,g);
+    Check(m.Score(0)==1,"Tilted hoop height and normal were not applied together");
+    g=NominalGoalFrames();m.Reset();p=Homes();p[0]={6.5,0,3};g[1].center.x=6.9;m.Update(p,.01,g);g[1].center.x=6.1;m.Update(p,.01,g);
+    Check(m.Score(0)==0,"A moving hoop swept over a stationary aircraft and created a goal");
+    m.Reset();g=NominalGoalFrames();p=Homes();p[0]={6.1,0,3};m.Update(p,.01,g);g[1].normal={0,0,0};m.Update(p,.01,g);g=NominalGoalFrames();p[0].x=6.9;m.Update(p,.01,g);
+    Check(m.Score(0)==0,"Invalid goal pose followed by recovery invented a transit");
+}
 }
 int main()
 {
     try
     {
         TestProfileAndPractice();TestFullPassAndBounce();TestRolesAndEdges();TestOffsideAndPenalties();
-        TestClockAndSetWins();TestDrawsCarryAndWhistle();TestInvalidInputsAndReset();
+        TestClockAndSetWins();TestDrawsCarryAndWhistle();TestInvalidInputsAndReset();TestMovingGoalFrames();
         std::cout<<"PASS: "<<checks<<" FIDA rule checks (whole-ball goals, roles, offside, penalties, clock, sets and invalid inputs).\n";
         return 0;
     }

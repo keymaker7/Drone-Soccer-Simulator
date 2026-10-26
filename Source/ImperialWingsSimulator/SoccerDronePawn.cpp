@@ -1,6 +1,7 @@
 #include "SoccerDronePawn.h"
 #include "ImperialRadioSubsystem.h"
 #include "ImperialMatchManager.h"
+#include "ImperialPlayerController.h"
 #include "ImperialHUD.h"
 #include "Engine/GameInstance.h"
 #include "Kismet/GameplayStatics.h"
@@ -126,6 +127,7 @@ ASoccerDronePawn::ASoccerDronePawn()
     };
     CageRods = MakeInstances(TEXT("Class40Exoskeleton"), Cylinder.Object);
     CageJoints=MakeInstances(TEXT("RoundedCageJoints"),Sphere.Object);
+    GuardScuffs=MakeInstances(TEXT("GuardImpactScuffs"),Sphere.Object);
     MetalHardware=MakeInstances(TEXT("AirframeFasteners"),Cylinder.Object);
     MotorVents=MakeInstances(TEXT("MotorCoolingSlots"),Cube.Object);
     PowerWires=MakeInstances(TEXT("RedPowerHarness"),Cylinder.Object);
@@ -139,6 +141,15 @@ ASoccerDronePawn::ASoccerDronePawn()
     FrontLedElements->SetCastShadow(false);RearLedElements->SetCastShadow(false);
     TeamLedElements->SetCastShadow(false);
     RoleLedElements->SetCastShadow(false);
+    EquipmentAssembly=CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PhotorealEquipmentAssembly"));
+    EquipmentAssembly->SetupAttachment(Body);EquipmentAssembly->SetAbsolute(false,false,true);
+    EquipmentAssembly->SetCollisionEnabled(ECollisionEnabled::NoCollision);EquipmentAssembly->SetGenerateOverlapEvents(false);EquipmentAssembly->SetVisibility(false);
+    for(int32 I=0;I<4;++I)
+    {
+        auto* Prop=CreateDefaultSubobject<UStaticMeshComponent>(*FString::Printf(TEXT("DetailedPropeller%d"),I));
+        Prop->SetupAttachment(RotorPivots[I]);Prop->SetRelativeLocation(FVector::ZeroVector);Prop->SetRelativeScale3D(FVector::OneVector);
+        Prop->SetCollisionEnabled(ECollisionEnabled::NoCollision);Prop->SetGenerateOverlapEvents(false);Prop->SetVisibility(false);DetailedPropellers.Add(Prop);
+    }
 
     RoleTagPlate = MakePart(TEXT("RoleTag"), Cube.Object, FVector(11, 0, 8),
                             FVector(0.4, 7.5, 6.5), FRotator::ZeroRotator);
@@ -376,6 +387,7 @@ void ASoccerDronePawn::BeginPlay()
     AutonomousTarget = SpawnPosition;
     SetChaseView(bChaseView);
     ApplyVisualMaterials();
+    BuildDetailedEquipment();
 }
 
 bool ASoccerDronePawn::VerifyDetailedAirframe() const
@@ -386,6 +398,34 @@ bool ASoccerDronePawn::VerifyDetailedAirframe() const
         MotorVents->GetInstanceCount()==48&&PowerWires->GetInstanceCount()==4&&GroundWires->GetInstanceCount()==16&&CageClips->GetInstanceCount()==5&&
         TeamLedElements->GetInstanceCount()==96&&RoleLedElements->GetInstanceCount()==80&&FrontLedElements->GetInstanceCount()==12&&RearLedElements->GetInstanceCount()==24&&
         FMath::Abs(Body->GetMass()-.9f)<.001f;
+}
+
+void ASoccerDronePawn::BuildDetailedEquipment()
+{
+    auto* Assembly=LoadObject<UStaticMesh>(nullptr,TEXT("/Game/Airframe/SM_EquipmentAssembly.SM_EquipmentAssembly"));
+    auto* CW=LoadObject<UStaticMesh>(nullptr,TEXT("/Game/Airframe/SM_PropellerCW.SM_PropellerCW"));
+    auto* CCW=LoadObject<UStaticMesh>(nullptr,TEXT("/Game/Airframe/SM_PropellerCCW.SM_PropellerCCW"));
+    if(!Assembly||!CW||!CCW)return;
+    EquipmentAssembly->SetStaticMesh(Assembly);EquipmentAssembly->SetVisibility(true);
+    for(int32 I=0;I<DetailedPropellers.Num();++I){DetailedPropellers[I]->SetStaticMesh(I%2?CCW:CW);DetailedPropellers[I]->SetVisibility(true);}
+    for(auto* Group:{&FrameVisuals,&DarkVisuals,&TeamHighlights,&PropellerBlades})for(auto& Part:*Group)if(Part)Part->SetVisibility(false);
+    for(auto* Part:{MetalHardware.Get(),MotorVents.Get(),PowerWires.Get(),GroundWires.Get()})Part->SetVisibility(false);
+    bPhotorealEquipment=true;
+}
+bool ASoccerDronePawn::HasPhotorealEquipment() const
+{
+    if(!bPhotorealEquipment||!EquipmentAssembly->GetStaticMesh()||EquipmentAssembly->GetCollisionEnabled()!=ECollisionEnabled::NoCollision)return false;
+    const FVector Size=EquipmentAssembly->GetStaticMesh()->GetBoundingBox().GetSize();
+    if(Size.X<20||Size.X>26||Size.Y<20||Size.Y>26||Size.Z>13||EquipmentAssembly->GetNumMaterials()<10)return false;
+    for(const auto& Prop:DetailedPropellers)if(!Prop||!Prop->GetStaticMesh()||Prop->GetCollisionEnabled()!=ECollisionEnabled::NoCollision)return false;
+    return true;
+}
+void ASoccerDronePawn::SetEquipmentInspection(bool bEnabled)
+{
+    if(bEnabled&&IsArmed())return;
+    bEquipmentInspection=bEnabled;
+    for(auto* Part:{CageRods.Get(),CageJoints.Get(),CageClips.Get(),GuardScuffs.Get(),EquatorFrame.Get(),TeamLedElements.Get(),RoleLedElements.Get(),FrontLedElements.Get(),RearLedElements.Get()})Part->SetVisibility(!bEnabled);
+    RoleTagPlate->SetVisibility(!bEnabled);RoleTagLetter->SetVisibility(!bEnabled);
 }
 
 void ASoccerDronePawn::SetupPlayerInputComponent(UInputComponent* IC)
@@ -401,7 +441,7 @@ void ASoccerDronePawn::SetupPlayerInputComponent(UInputComponent* IC)
     IC->BindAxis(TEXT("BoxerYaw"), this, &ASoccerDronePawn::ReadBoxerYaw);
     IC->BindAxis(TEXT("BoxerThrottle"), this, &ASoccerDronePawn::ReadBoxerThrottle);
     IC->BindAction(TEXT("Arm"), IE_Pressed, this, &ASoccerDronePawn::ToggleArm);
-    IC->BindAction(TEXT("ResetDrone"), IE_Pressed, this, &ASoccerDronePawn::ResetDrone);
+    IC->BindAction(TEXT("ResetDrone"), IE_Pressed, this, &ASoccerDronePawn::ResetFromPilotInput);
     IC->BindKey(EKeys::V, IE_Pressed, this, &ASoccerDronePawn::ToggleCamera);
 }
 
@@ -430,6 +470,7 @@ float ASoccerDronePawn::GetThrottle() const
     {
         return AutonomousThrottle;
     }
+    if(const auto* Pilot=Cast<AImperialPlayerController>(GetController());Pilot&&Pilot->IsReadOnlyView())return 0;
     if (auto* Radio = GetRadio(); IsLocallyControlled() && Radio && Radio->IsEnabled())
     {
         return Radio->GetThrottle();
@@ -450,6 +491,7 @@ FString ASoccerDronePawn::GetInputSource() const
 {
     if(bAngleVerificationInput)return TEXT("VERIFICATION_FIXTURE");
     if (bAutonomousEnabled) return TEXT("AUTO");
+    if(const auto* Pilot=Cast<AImperialPlayerController>(GetController());Pilot&&Pilot->IsReadOnlyView())return TEXT("VIEW ONLY");
     if (auto* Radio = GetRadio(); IsLocallyControlled() && Radio && Radio->IsEnabled()) return TEXT("USB");
     return TEXT("KEYBOARD");
 }
@@ -492,6 +534,8 @@ void ASoccerDronePawn::SetAngleVerificationInput(FVector Stick,float Throttle)
 
 bool ASoccerDronePawn::SetArmed(bool bShouldArm)
 {
+    if(bShouldArm&&!bAutonomousEnabled)if(const auto* Pilot=Cast<AImperialPlayerController>(GetController());Pilot&&Pilot->IsReadOnlyView()){LastSafetyMessage=TEXT("Switch to PILOT view before arming.");return false;}
+    if(bShouldArm&&bEquipmentInspection){LastSafetyMessage=TEXT("Close equipment inspection before arming.");return false;}
     if (!bShouldArm)
     {
         bArmed = false;
@@ -564,6 +608,8 @@ void ASoccerDronePawn::SetAutonomousTarget(const FVector& WorldPosition)
 
 void ASoccerDronePawn::SetAutonomousEnabled(bool bEnabled)
 {
+    if(bEnabled)if(const auto* Match=Cast<AImperialMatchManager>(UGameplayStatics::GetActorOfClass(GetWorld(),AImperialMatchManager::StaticClass()));Match&&!Match->IsAutonomyAllowed())
+    {LastSafetyMessage=TEXT("AUTONOMY BLOCKED: PRACTICE ONLY");return;}
     if (bAutonomousEnabled == bEnabled)
     {
         return;
@@ -664,7 +710,9 @@ void ASoccerDronePawn::ApplyVisualMaterials()
         Result->SetScalarParameterValue(TEXT("Glow"), Glow);
         return Result;
     };
-    CageRods->SetMaterial(0, Material(FLinearColor(0.65f, 0.67f, 0.63f), 0.0f));
+    GuardMaterial=Material(FLinearColor(.65f,.67f,.63f),0);
+    CageRods->SetMaterial(0,GuardMaterial);
+    GuardScuffs->SetMaterial(0,Material(FLinearColor(.22f,.23f,.22f),0));
     CageJoints->SetMaterial(0,Material(FLinearColor(.54f,.56f,.53f),0));
     CageClips->SetMaterial(0,Material(FLinearColor(.055f,.063f,.07f),0));
     MotorVents->SetMaterial(0,Material(FLinearColor(.006f,.009f,.013f),0));
@@ -678,11 +726,25 @@ void ASoccerDronePawn::ApplyVisualMaterials()
     RearLedElements->SetMaterial(0,Material(FLinearColor(1.f,.012f,.008f),5.f));
     RoleTagPlate->SetMaterial(0, Material(RoleColor, 0.12f));
     UpdateRoleTag();
+    UpdateGuardMaterial();
+}
+
+void ASoccerDronePawn::UpdateGuardMaterial()
+{
+    const float Damage=1.f-static_cast<float>(GuardState.Integrity);
+    if(GuardMaterial)GuardMaterial->SetVectorParameterValue(TEXT("Color"),FMath::Lerp(FLinearColor(.65f,.67f,.63f),FLinearColor(.38f,.36f,.30f),Damage));
+    if(CagePhysicalMaterial)
+    {
+        CagePhysicalMaterial->Restitution=.25f-.15f*Damage;
+        CagePhysicalMaterial->Friction=.4f+.15f*Damage;CagePhysicalMaterial->StaticFriction=.55f+.2f*Damage;
+        Body->SetPhysMaterialOverride(CagePhysicalMaterial);
+    }
 }
 
 void ASoccerDronePawn::ClearController()
 {
     IntegralError = FVector::ZeroVector;
+    AutonomousVelocityIntegral = FVector::ZeroVector;
     PreviousBodyRate = FVector::ZeroVector;
     FilteredBodyAcceleration = FVector::ZeroVector;
 }
@@ -697,11 +759,18 @@ void ASoccerDronePawn::ResetDrone()
     KeyboardThrottleStep = 0.0f;
     Body->SetPhysicsLinearVelocity(FVector::ZeroVector);
     BatteryState=ImperialPhysics::BatteryState{};MotorStates={};NetStates={};Sensors.Reset(FCrc::StrCrc32(*GetName()));PhysicalTime=0;PreviousVelocityMS=FVector::ZeroVector;CageCompression=0;
+    GuardState={};LastWearOther.Reset();LastWearContactTime=-100;GuardScuffs->ClearInstances();UpdateGuardMaterial();SetEquipmentInspection(false);
     Body->SetPhysicsAngularVelocityInRadians(FVector::ZeroVector);
     // Reset is the sole teleport operation. All flight motion comes from Chaos forces.
     Body->SetWorldLocationAndRotation(SpawnPosition, SpawnRotation, false, nullptr, ETeleportType::TeleportPhysics);
     AutonomousTarget = SpawnPosition;
     Body->WakeAllRigidBodies();
+}
+void ASoccerDronePawn::ResetFromPilotInput()
+{
+    if(const auto* Pilot=Cast<AImperialPlayerController>(GetController());Pilot&&(Pilot->IsReadOnlyView()||Pilot->IsEquipmentInspection()))return;
+    if(const auto* Pilot=Cast<APlayerController>(GetController()))if(const auto* HUD=Cast<AImperialHUD>(Pilot->GetHUD());HUD&&HUD->IsRadioPanelOpen())return;
+    ResetDrone();
 }
 
 void ASoccerDronePawn::Tick(float Dt)
@@ -714,9 +783,11 @@ void ASoccerDronePawn::Tick(float Dt)
     SensorSample=Sensors.Step(PhysicalTime,{Rate.X,Rate.Y,Rate.Z},{Specific.X,Specific.Y,Specific.Z},PhysicalParams.Sensors,bSensorModel);
     ApplyNetForces(FMath::Min(Dt,.05f));
     CageCompression=FMath::FInterpTo(CageCompression,0,Dt,10);
-    FVector VisualScale(1+CageCompression*.25);VisualScale[CageCompressionAxis]=1-CageCompression;
+    const float Compression=FMath::Max(CageCompression,(1.f-static_cast<float>(GuardState.Integrity))*.035f);
+    FVector VisualScale(1+Compression*.25);VisualScale[CageCompressionAxis]=1-Compression;
     CageRods->SetRelativeScale3D(VisualScale);TeamLedElements->SetRelativeScale3D(VisualScale);RoleLedElements->SetRelativeScale3D(VisualScale);
     CageJoints->SetRelativeScale3D(VisualScale);
+    GuardScuffs->SetRelativeScale3D(VisualScale);
     if (bArmed && bRadioFlight)
     {
         auto* Radio = GetRadio();
@@ -732,7 +803,8 @@ void ASoccerDronePawn::Tick(float Dt)
         bool Modal=false;
         if(const auto* Pilot=Cast<APlayerController>(GetController()))
             if(const auto* HUD=Cast<AImperialHUD>(Pilot->GetHUD()))Modal=HUD->IsRadioPanelOpen();
-        if(Modal){KeyboardThrottle=KeyboardThrottleStep=KeyRoll=KeyPitch=KeyYaw=0;}
+        const auto* RolePilot=Cast<AImperialPlayerController>(GetController());
+        if(Modal||(RolePilot&&RolePilot->IsReadOnlyView())){KeyboardThrottle=KeyboardThrottleStep=KeyRoll=KeyPitch=KeyYaw=0;}
         else KeyboardThrottle = FMath::Clamp(KeyboardThrottle + KeyboardThrottleStep * Dt * 0.35f, 0.0f, 1.0f);
     }
     ApplyFlightForces(Dt);
@@ -743,7 +815,7 @@ void ASoccerDronePawn::Tick(float Dt)
     }
 }
 
-FVector ASoccerDronePawn::CalculateAutonomousRate(float& OutCollectiveThrustN) const
+FVector ASoccerDronePawn::CalculateAutonomousRate(float& OutCollectiveThrustN)
 {
     const FVector PositionErrorM = (AutonomousTarget - Body->GetComponentLocation()) * 0.01;
     const FVector VelocityMS = Body->GetPhysicsLinearVelocity() * 0.01;
@@ -754,7 +826,13 @@ FVector ASoccerDronePawn::CalculateAutonomousRate(float& OutCollectiveThrustN) c
     DesiredVelocity.X = Horizontal.X;
     DesiredVelocity.Y = Horizontal.Y;
     DesiredVelocity.Z = FMath::Clamp(DesiredVelocity.Z, -1.2, 1.5);
-    FVector DesiredAcceleration = (DesiredVelocity - VelocityMS) * 1.6;
+    const FVector VelocityError=DesiredVelocity-VelocityMS;
+    // Bounded outer-loop integral removes residual thrust/surface-effect bias.
+    // Without it a return could hover ~20cm off its corridor indefinitely.
+    const double Step=FMath::Clamp((double)GetWorld()->GetDeltaSeconds(),0.,.05);
+    AutonomousVelocityIntegral+=VelocityError*(Step*.25);
+    for(int32 Axis=0;Axis<3;++Axis)AutonomousVelocityIntegral[Axis]=FMath::Clamp(AutonomousVelocityIntegral[Axis],-.8,.8);
+    FVector DesiredAcceleration = VelocityError * 1.6 + AutonomousVelocityIntegral;
     const FVector HorizontalAcceleration = FVector(DesiredAcceleration.X, DesiredAcceleration.Y, 0).GetClampedToMaxSize(3.2);
     DesiredAcceleration.X = HorizontalAcceleration.X;
     DesiredAcceleration.Y = HorizontalAcceleration.Y;
@@ -796,6 +874,8 @@ void ASoccerDronePawn::InitializePhysicalModel()
         Number(TEXT("wake_coupling"),PhysicalParams.Downwash.Coupling,0,.5);
         Number(TEXT("net_stiffness_n_per_m"),PhysicalParams.Contact.StiffnessNPerM,60,1500);
         Number(TEXT("net_damping_ns_per_m"),PhysicalParams.Contact.DampingNsPerM,1,80);
+        Number(TEXT("guard_energy_capacity_j"),GuardParameters.EnergyCapacityJ,1,10000);
+        Number(TEXT("guard_damage_threshold_j"),GuardParameters.DamageThresholdJ,0,100);
     }
     if(FParse::Param(FCommandLine::Get(),TEXT("ImperialBaselinePhysics")))bBatteryModel=bWakeModel=bSurfaceModel=bSensorModel=bNonlinearMotors=false;
     Sensors.Reset(FCrc::StrCrc32(*GetName()));
@@ -849,6 +929,22 @@ void ASoccerDronePawn::OnBodyHit(UPrimitiveComponent* HitComponent,AActor* Other
     const float ImpulseNs=NormalImpulse.Size()*.01f;
     CageCompression=FMath::Max(CageCompression,FMath::Clamp(ImpulseNs*.015f,0.f,.08f));
     const FVector N=Body->GetComponentQuat().UnrotateVector(Hit.ImpactNormal).GetAbs();CageCompressionAxis=N.X>N.Y?(N.X>N.Z?0:2):(N.Y>N.Z?1:2);
+    if(OtherActor&&LastWearOther.Get()==OtherActor&&PhysicalTime-LastWearContactTime<.08)return;
+    const double OtherMass=OtherComponent&&OtherComponent->IsSimulatingPhysics()?OtherComponent->GetMass():0;
+    const auto Result=GuardState.Apply(ImpulseNs,MassKg,OtherMass,CagePhysicalMaterial?CagePhysicalMaterial->Restitution:.25,OtherActor&&OtherActor->IsA<ASoccerDronePawn>()?.5:1.,GuardParameters);
+    if(!Result.Significant)return;
+    LastWearOther=OtherActor;LastWearContactTime=PhysicalTime;UpdateGuardMaterial();
+    if(GuardScuffs->GetInstanceCount()<36)
+    {
+        const FVector Local=Body->GetComponentQuat().UnrotateVector(Hit.ImpactPoint-Body->GetComponentLocation());
+        double Best=TNumericLimits<double>::Max();FTransform Closest;
+        for(int32 I=0;I<CageRods->GetInstanceCount();++I)
+        {FTransform T;CageRods->GetInstanceTransform(I,T,false);const double D=FVector::DistSquared(Local,T.GetLocation());if(D<Best){Best=D;Closest=T;}}
+        const FVector Point=Closest.GetLocation()+Closest.GetLocation().GetSafeNormal()*.28f;
+        GuardScuffs->AddInstance(FTransform(Closest.GetRotation(),Point,FVector(.0035,.0012,.014)),false);
+    }
+    if(auto* Match=Cast<AImperialMatchManager>(UGameplayStatics::GetActorOfClass(GetWorld(),AImperialMatchManager::StaticClass())))
+        Match->RecordGuardImpact(this,static_cast<float>(Result.DissipatedJ));
 }
 void ASoccerDronePawn::ApplyNetForces(float Dt)
 {
@@ -881,6 +977,10 @@ void ASoccerDronePawn::ApplyFlightForces(float Dt)
         bLastArmed=false;MotorStates={};for(float& F:MotorThrustN)F=0;
         ImperialPhysics::BatteryStep(BatteryState,0,Step,PhysicalParams.Battery,bBatteryModel);ApplyAerodynamicDrag();return;
     }
+    // A hovering body can satisfy Chaos sleep thresholds even though its motors
+    // are active. Sleeping then freezes the residual position/altitude error.
+    // Keep powered aircraft awake; disarmed floor bodies may still sleep.
+    Body->WakeAllRigidBodies();
     const FQuat R=Body->GetComponentQuat();const FVector IdealRate=R.UnrotateVector(Body->GetPhysicsAngularVelocityInRadians());
     const FVector Rate=SensorSample.Valid?FVector(SensorSample.GyroRadS.X,SensorSample.GyroRadS.Y,SensorSample.GyroRadS.Z):IdealRate;
     if(!bLastArmed){ClearController();PreviousBodyRate=Rate;}bLastArmed=true;

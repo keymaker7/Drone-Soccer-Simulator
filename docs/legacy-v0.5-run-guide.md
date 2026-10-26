@@ -482,7 +482,7 @@ v0.5.0 Windows ZIP의 SHA-256:
 
 비선형 추력·모터 응답·배터리·무게중심·관성·자이로·상대 풍속·하향류·근접 효과·센서 오차·PID·접촉·네트 근사를 다룹니다. 모델별 검증 수준은 [물리 모델 범위](physics-models.md)를 참고합니다. 계수는 실험 가정이며 실측 디지털 트윈이 아닙니다.
 
-HELSEL STRIKER V3를 참고한 자체 절차적 외형을 사용합니다. 제조사 메시·사진·로고를 복제한 공식 제품 모델은 아닙니다. [모델 근거](model-reference.md)·[외부 권리 고지](THIRD_PARTY_NOTICES.md)를 참고합니다.
+HELSEL STRIKER V3를 참고한 자체 절차적 외형을 사용합니다. 제조사 메시·사진·로고를 복제한 공식 제품 모델은 아닙니다. [모델 근거](model-reference.md)·[외부 권리 고지](../THIRD_PARTY_NOTICES.md)를 참고합니다.
 
 ### 12-3. 다음 개발
 
@@ -492,7 +492,7 @@ HELSEL STRIKER V3를 참고한 자체 절차적 외형을 사용합니다. 제�
 - [28개 분야·292개 전체 기능 명세](simulator-feature-plan.md)
 - [멀티플레이 계획](development-roadmap.md#multiplayer-plan)
 - [개발 피드백 데이터 계획](development-roadmap.md#feedback-data-plan)
-- [작업 체크리스트](IMPERIAL_WINGS_CODEX_TASKS.md)
+- [작업 체크리스트](../IMPERIAL_WINGS_CODEX_TASKS.md)
 - [경기 영상 참고·확인 한계](match-video-references.md)
 - [대진 결과 기반 기획](match-results-development-plan.md)
 

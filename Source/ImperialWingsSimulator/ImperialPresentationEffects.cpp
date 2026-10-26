@@ -38,6 +38,10 @@ AImperialPresentationEffects::AImperialPresentationEffects()
     Dust->SetReceivesDecals(false);
     static ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
     if (Sphere.Succeeded()) Dust->SetStaticMesh(Sphere.Object);
+    static ConstructorHelpers::FObjectFinder<UStaticMesh> Cube(TEXT("/Engine/BasicShapes/Cube.Cube"));
+    GuardChips=CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("GuardWearFragments"));GuardChips->SetupAttachment(Scene);
+    GuardChips->SetStaticMesh(Cube.Object);GuardChips->SetCollisionEnabled(ECollisionEnabled::NoCollision);GuardChips->SetCastShadow(false);
+    for(int32 I=0;I<32;++I)GuardChips->AddInstance(FTransform(FQuat::Identity,FVector::ZeroVector,FVector::ZeroVector));
     Grade = CreateDefaultSubobject<UPostProcessComponent>(TEXT("ArenaPhotographicGrade"));
     Grade->SetupAttachment(Scene);
     Grade->bUnbound = true;
@@ -120,6 +124,8 @@ bool AImperialPresentationEffects::SetVisualQuality(const FString& Name,bool bSa
 void AImperialPresentationEffects::BeginPlay()
 {
     Super::BeginPlay();
+    if(auto* Surface=LoadObject<UMaterialInterface>(nullptr,TEXT("/Game/Materials/M_Surface.M_Surface")))
+    {auto* ChipMat=UMaterialInstanceDynamic::Create(Surface,this);ChipMat->SetVectorParameterValue(TEXT("Color"),FLinearColor(.64f,.65f,.60f));ChipMat->SetScalarParameterValue(TEXT("Glow"),0);GuardChips->SetMaterial(0,ChipMat);}
     bVerification = FParse::Param(FCommandLine::Get(), TEXT("ImperialEffectsSmoke"));
     if (FParse::Param(FCommandLine::Get(), TEXT("ImperialBaselineVisuals")))
     {
@@ -186,6 +192,14 @@ void AImperialPresentationEffects::EmitImpact(const FVector& Point, const FVecto
     ++ImpactBursts;
 }
 
+void AImperialPresentationEffects::EmitGuardChips(const FVector& Point,const FVector& Normal,float ImpulseNs)
+{
+    if(!bEffectsEnabled||ImpulseNs<1.4f)return;
+    const int32 Count=FMath::Clamp(FMath::RoundToInt(ImpulseNs*2),3,12);
+    for(int32 I=0;I<Count&&Chips.Num()<32;++I)
+    {FGuardChip Chip;Chip.Position=Point+Normal*.5f;Chip.Velocity=Normal*Random.FRandRange(35,110)+Random.VRand()*Random.FRandRange(15,65);Chip.Lifetime=Random.FRandRange(.22f,.65f);Chip.Size=Random.FRandRange(.08f,.24f);Chips.Add(Chip);}
+    ++GuardChipBursts;
+}
 void AImperialPresentationEffects::OnAircraftHit(AActor* SelfActor, AActor* OtherActor,
     FVector NormalImpulse, const FHitResult& Hit)
 {
@@ -193,6 +207,7 @@ void AImperialPresentationEffects::OnAircraftHit(AActor* SelfActor, AActor* Othe
     const double* Last = LastImpact.Find(SelfActor);
     if (Last && Elapsed - *Last < .18) return;
     LastImpact.Add(SelfActor, Elapsed);
+    EmitGuardChips(Hit.ImpactPoint,Hit.ImpactNormal,NormalImpulse.Size()*.01f);
     // UE impulse uses kg cm/s. Dividing by mass estimates contact delta-v in cm/s.
     const auto* Drone = Cast<ASoccerDronePawn>(SelfActor);
     const float Mass = Drone ? Drone->GetBodyMesh()->GetMass() : 1.f;
@@ -257,6 +272,10 @@ void AImperialPresentationEffects::Tick(float Dt)
         Dust->UpdateInstanceTransform(I, Transform, false, I == Updates - 1, true);
     }
     PreviousVisible = Motes.Num();
+    for(int32 I=Chips.Num()-1;I>=0;--I)
+    {auto& Chip=Chips[I];Chip.Age+=Dt;if(Chip.Age>=Chip.Lifetime){Chips.RemoveAtSwap(I);continue;}const float Step=FMath::Min(Dt,.05f);Chip.Velocity.Z-=981*Step;Chip.Position+=Chip.Velocity*Step;}
+    for(int32 I=0;I<32;++I)
+    {FTransform T(FQuat::Identity,FVector::ZeroVector,FVector::ZeroVector);if(Chips.IsValidIndex(I)){const auto& Chip=Chips[I];const float Scale=Chip.Size/100.f;T=FTransform(FRotator(Chip.Age*370,Chip.Age*290,Chip.Age*130),Chip.Position,FVector(Scale,Scale*.5f,Scale*.2f));}GuardChips->UpdateInstanceTransform(I,T,false,I==31,true);}
     if (bVerification && !bFixtureReported && Elapsed >= 3)
     {
         bFixtureReported = true;

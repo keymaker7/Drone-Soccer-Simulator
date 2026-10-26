@@ -33,10 +33,11 @@ bool ClearSegment(Vec3 from,Vec3 to,double a,double b,double extent)
 }
 }
 MatchRules::MatchRules(){Reset();}
+std::array<GoalFrame,2> NominalGoalFrames(){std::array<GoalFrame,2> G{};G[0].center={-6.5,0,3};G[1].center={6.5,0,3};return G;}
 void MatchRules::ClearTransits(){for(auto& drone:transits)for(auto& ring:drone)ring=Transit{};}
 void MatchRules::Reset()
 {
-    previous={};active.fill(true);scores={};penalties={};wins={};offside={};
+    previous={};previousGoals=NominalGoalFrames();active.fill(true);scores={};penalties={};wins={};offside={};
     phase=Phase::Practice;currentSet=0;remaining=0;havePrevious=false;ClearTransits();
 }
 void MatchRules::StartPractice(){Reset();}
@@ -75,7 +76,7 @@ void MatchRules::AdvanceClock(double dt)
         }
     }
 }
-void MatchRules::ProcessMotion(int id,int attackingTeam,Vec3 from,Vec3 to)
+void MatchRules::ProcessMotion(int id,int attackingTeam,Vec3 from,Vec3 to,bool bodyMoved)
 {
     const double sign=attackingTeam==0?1.0:-1.0;
     const double goal=sign*RuleProfileFIDA40::GoalX;
@@ -91,7 +92,7 @@ void MatchRules::ProcessMotion(int id,int attackingTeam,Vec3 from,Vec3 to)
             transit.direction=-1;transit.clear=true;
             // FIDA prohibits even partial reverse entry through one's own hoop.
             const double t=(extent-a)/(b-a);
-            if(ownRing&&Fits(Interpolate(from,to,std::clamp(t,0.0,1.0))))++penalties[id/5];
+            if(bodyMoved&&ownRing&&Fits(Interpolate(from,to,std::clamp(t,0.0,1.0))))++penalties[id/5];
         }
     }
     if(transit.direction==0)return;
@@ -100,7 +101,7 @@ void MatchRules::ProcessMotion(int id,int attackingTeam,Vec3 from,Vec3 to)
     const bool withdrew=transit.direction==1?b<=-extent:b>=extent;
     if(complete)
     {
-        if(transit.clear&&!ownRing&&(id==0||id==5))
+        if(bodyMoved&&transit.clear&&!ownRing&&(id==0||id==5))
         {
             const int team=id/5;
             if(transit.direction==1)
@@ -115,16 +116,42 @@ void MatchRules::ProcessMotion(int id,int attackingTeam,Vec3 from,Vec3 to)
     else if(withdrew)transit=Transit{};
 }
 void MatchRules::Update(const std::array<Vec3,10>& positions,double dt)
+{Update(positions,dt,NominalGoalFrames());}
+void MatchRules::Update(const std::array<Vec3,10>& positions,double dt,const std::array<GoalFrame,2>& goals)
 {
     if(!std::isfinite(dt)||dt<=0)return;
     for(const Vec3 p:positions)if(!Finite(p))return;
+    const auto Dot=[](Vec3 A,Vec3 B){return A.x*B.x+A.y*B.y+A.z*B.z;};
+    const auto Sub=[](Vec3 A,Vec3 B){return Vec3{A.x-B.x,A.y-B.y,A.z-B.z};};
+    const auto Unit=[&](Vec3 V,Vec3 Fallback){const double L=std::sqrt(Dot(V,V));return L>1e-8?Vec3{V.x/L,V.y/L,V.z/L}:Fallback;};
+    const auto Cross=[](Vec3 A,Vec3 B){return Vec3{A.y*B.z-A.z*B.y,A.z*B.x-A.x*B.z,A.x*B.y-A.y*B.x};};
+    for(const auto& G:goals)
+    {
+        if(!Finite(G.center)||!Finite(G.normal)||!Finite(G.side)||!Finite(G.up)||
+            std::abs(Dot(G.normal,G.normal)-1)>1e-4||std::abs(Dot(G.side,G.side)-1)>1e-4||std::abs(Dot(G.up,G.up)-1)>1e-4||
+            std::abs(Dot(G.normal,G.side))>1e-4||Dot(Cross(G.normal,G.side),G.up)<.9999)
+        {havePrevious=false;ClearTransits();AdvanceClock(dt);return;}
+    }
+    const auto Canonical=[&](Vec3 P,const GoalFrame& G,int Index){const Vec3 D=Sub(P,G.center);return Vec3{(Index==0?-6.5:6.5)+Dot(D,G.normal),Dot(D,G.side),3+Dot(D,G.up)};};
     const bool mayScore=phase==Phase::Practice||phase==Phase::Playing;
     // A frame spanning the end whistle may only score in its playing portion.
     const double fraction=phase==Phase::Playing?std::min(1.0,remaining/dt):1.0;
     if(havePrevious&&mayScore)
     {
-        for(int id=0;id<10;++id)if(active[id])
-            for(int team=0;team<2;++team)ProcessMotion(id,team,previous[id],Interpolate(previous[id],positions[id],fraction));
+        for(int id=0;id<10;++id)if(active[id])for(int team=0;team<2;++team)
+        {
+            const int Index=1-team;GoalFrame End=goals[Index];
+            if(fraction<1)
+            {
+                const auto& Start=previousGoals[Index];End.center=Interpolate(Start.center,End.center,fraction);
+                End.normal=Unit(Interpolate(Start.normal,End.normal,fraction),Start.normal);
+                Vec3 Side=Interpolate(Start.side,End.side,fraction);const double Projection=Dot(Side,End.normal);
+                End.side=Unit({Side.x-Projection*End.normal.x,Side.y-Projection*End.normal.y,Side.z-Projection*End.normal.z},Start.side);End.up=Cross(End.normal,End.side);
+            }
+            const Vec3 Last=Interpolate(previous[id],positions[id],fraction);
+            const bool BodyMoved=std::abs(Dot(Sub(Last,previous[id]),End.normal))>Epsilon;
+            ProcessMotion(id,team,Canonical(previous[id],previousGoals[Index],Index),Canonical(Last,End,Index),BodyMoved);
+        }
         for(int team=0;team<2;++team)if(offside[team])
         {
             bool retreated=true;
@@ -136,6 +163,6 @@ void MatchRules::Update(const std::array<Vec3,10>& positions,double dt)
             if(retreated)offside[team]=false;
         }
     }
-    previous=positions;havePrevious=true;AdvanceClock(dt);
+    previous=positions;previousGoals=goals;havePrevious=true;AdvanceClock(dt);
 }
 }

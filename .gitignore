@@ -35,6 +35,7 @@ __pycache__/
 *.iobj
 *.ipdb
 *.log
+*.blend1
 
 # Local environment and private key material; example settings may be published.
 .env

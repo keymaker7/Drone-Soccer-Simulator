@@ -1,5 +1,6 @@
 // Deterministic internal SI fixtures. No aircraft specifications are measured here.
 #include "PhysicsModels.h"
+#include "ContactResponse.h"
 #include <cmath>
 #include <iostream>
 #include <limits>
@@ -16,6 +17,22 @@ int main()
 {
     Parameters P;
     const double NaN = std::numeric_limits<double>::quiet_NaN();
+    ImperialContact::GuardParameters GuardP;ImperialContact::GuardState Guard;
+    for(int I=0;I<10000;++I)Guard.Apply(.08,.9,0,.25,1,GuardP);
+    Check(Near(Guard.Integrity,1)&&Guard.ImpactCount==0,"resting contact cannot wear out the cage");
+    const auto Impact=Guard.Apply(4,.9,0,.25,1,GuardP);
+    Check(Impact.Significant&&Impact.IntegrityLoss>0&&Impact.IntegrityLoss<.25,"actual impact work reduces bounded cage integrity");
+    const double AfterFirst=Guard.Integrity;Guard.Apply(4,.9,0,.25,1,GuardP);
+    Check(Guard.Integrity<AfterFirst&&Guard.ImpactCount==2,"successive impacts accumulate without automatic repair");
+    ImperialContact::GuardState Elastic;Elastic.Apply(4,.9,0,1,1,GuardP);
+    Check(Near(Elastic.Integrity,1),"ideal elastic collision has no dissipated impact-work wear");
+    ImperialContact::GuardState GuardA,GuardB,Whole;
+    const auto RA=GuardA.Apply(4,.9,.9,.25,.5,GuardP);const auto RB=GuardB.Apply(4,.9,.9,.25,.5,GuardP);const auto RW=Whole.Apply(4,.9,.9,.25,1,GuardP);
+    Check(Near(RA.DissipatedJ+RB.DissipatedJ,RW.DissipatedJ),"two cage contacts share dissipation rather than count it twice");
+    Check(!Guard.Apply(NaN,.9,0,.25,1,GuardP).Significant&&!Guard.Apply(-1,.9,0,.25,1,GuardP).Significant,"invalid or negative impulses cannot generate wear");
+    Check(!Guard.Apply(3,0,0,.25,1,GuardP).Significant,"zero mass cannot create invalid impact energy");
+    for(int I=0;I<30;++I)Guard.Apply(100,.9,0,.25,1,GuardP);
+    Check(Near(Guard.Integrity,0)&&std::isfinite(Guard.TotalDissipatedJ),"severe repeated impacts saturate at zero integrity");
     Check(!Vec3{NaN, 0, 0}.Finite(), "non-finite vector is identified");
     Check(Near(Vec3{1, 2, 2}.Length(), 3), "SI vector magnitude");
     Check(Near(Dot(Cross({1,0,0}, {0,1,0}), {0,0,1}), 1), "right handed vector cross product");

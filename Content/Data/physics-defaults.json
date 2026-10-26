@@ -10,5 +10,9 @@
   "gyro_noise_rad_s": 0.0005,
   "wake_coupling": 0.18,
   "net_stiffness_n_per_m": 300,
-  "net_damping_ns_per_m": 22
+  "net_damping_ns_per_m": 22,
+  "guard_energy_capacity_j": 80,
+  "guard_damage_threshold_j": 0.6,
+  "goal_mass_kg": 12.5,
+  "goal_suspension_angular_damping": 1.4
 }

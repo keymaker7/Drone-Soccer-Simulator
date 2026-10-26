@@ -9,6 +9,8 @@ $exe=Join-Path $environment.PackageRoot 'ImperialWingsSimulator\Binaries\Win64\I
 $output=Join-Path $root ('Saved\Verification\angle-'+[DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss-fff'))
 New-Item -ItemType Directory -Path $output | Out-Null
 $identity=& (Join-Path $root 'Scripts\Get-SourceIdentity.ps1') -ProjectRoot $root
+$buildPath=Join-Path (Split-Path -Parent $exe) 'ImperialBuildIdentity-ImperialWingsSimulator.json'
+if(-not(Test-Path -LiteralPath $buildPath) -or (Get-Content -LiteralPath $buildPath -Raw | ConvertFrom-Json).source_sha256 -ne $identity.source_sha256){throw 'Selected package differs from the current source. Pass -PackageRoot pointing to the newly built Windows directory.'}
 $results=@()
 foreach($rate in $FrameRates){
     if($rate -lt 20 -or $rate -gt 240){throw 'FrameRates must be 20..240.'}

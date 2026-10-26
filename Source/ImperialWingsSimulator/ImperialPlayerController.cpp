@@ -37,6 +37,9 @@ void AImperialPlayerController::BeginPlay()
     ConfigureSpectatorCamera(ArenaCamera->GetCameraComponent(),60);
     PilotCamera=GetWorld()->SpawnActor<ACameraActor>();
     ConfigureSpectatorCamera(PilotCamera->GetCameraComponent(),PilotFieldOfView);
+    ObserverCamera=GetWorld()->SpawnActor<ACameraActor>();ConfigureSpectatorCamera(ObserverCamera->GetCameraComponent(),65);
+    AudienceCamera=GetWorld()->SpawnActor<ACameraActor>();ConfigureSpectatorCamera(AudienceCamera->GetCameraComponent(),AudienceFov);
+    RefereeCamera=GetWorld()->SpawnActor<ACameraActor>();ConfigureSpectatorCamera(RefereeCamera->GetCameraComponent(),RefereeFov);
     UpdatePilotCamera();ConfigureInput();SetView(Match?Match->GetView():1);
 }
 void AImperialPlayerController::ConfigureInput()
@@ -51,24 +54,41 @@ void AImperialPlayerController::PlayerTick(float Dt)
 {
     Super::PlayerTick(Dt);
     if(Match&&!bPossessed&&Match->GetSelectedDrone()) {Possess(Match->GetSelectedDrone());bPossessed=true;SetView(Match->GetView());}
+    if(bPossessed&&!bCheckedEquipmentShowcase)
+    {bCheckedEquipmentShowcase=true;if(FParse::Param(FCommandLine::Get(),TEXT("ImperialEquipmentShowcase")))ToggleEquipmentInspection();}
+    if(InspectedDrone.IsValid())
+    {
+        if(!Match||Match->GetSelectedDrone()!=InspectedDrone.Get()||!InspectedDrone->IsEquipmentInspection())
+        {InspectedDrone->SetEquipmentInspection(false);InspectedDrone.Reset();if(Match)Match->ChangeView(1);}
+        else
+        {
+            const FVector Centre=InspectedDrone->GetActorLocation();
+            const bool Macro=FParse::Param(FCommandLine::Get(),TEXT("ImperialEquipmentMacro"));
+            const FVector Position=Centre+(Macro?FVector(17,-21,17):FVector(32,-42,30));
+            ArenaCamera->SetActorLocationAndRotation(Position,(Centre+FVector(0,0,1)-Position).Rotation());
+            ArenaCamera->GetCameraComponent()->SetFieldOfView(45);
+        }
+    }
     const auto* HUD=Cast<AImperialHUD>(GetHUD());
     const bool RadioOpen=HUD&&HUD->IsRadioPanelOpen();
     float X=0,Y=0;
-    if(ActiveView==1&&!RadioOpen&&IsInputKeyDown(EKeys::RightMouseButton)&&GetMousePosition(X,Y))
+    if((ActiveView==1||ActiveView==2||ActiveView==4||ActiveView==5)&&!RadioOpen&&IsInputKeyDown(EKeys::RightMouseButton)&&GetMousePosition(X,Y))
     {
         const FVector2D Pointer(X,Y);
         // Use visible cursor movement rather than high-precision captured mouse axes.
         if(bHeadDragging)
         {
             const FVector2D Delta=Pointer-LastHeadPointer;
-            PilotHeadYaw=FMath::Clamp(PilotHeadYaw+static_cast<float>(Delta.X)*.18f,-60.f,60.f);
-            PilotHeadPitch=FMath::Clamp(PilotHeadPitch-static_cast<float>(Delta.Y)*.14f,-25.f,40.f);
+            if(ActiveView==1){PilotHeadYaw=FMath::Clamp(PilotHeadYaw+static_cast<float>(Delta.X)*.18f,-60.f,60.f);PilotHeadPitch=FMath::Clamp(PilotHeadPitch-static_cast<float>(Delta.Y)*.14f,-25.f,40.f);}
+            else if(ActiveView==2){ObserverYaw+=Delta.X*.18f;ObserverPitch=FMath::Clamp(ObserverPitch-static_cast<float>(Delta.Y)*.14f,10.f,70.f);}
+            else {auto& Head=ActiveView==4?AudienceHead:RefereeHead;Head.Yaw=FMath::Clamp(Head.Yaw+Delta.X*.18f,-65.,65.);Head.Pitch=FMath::Clamp(Head.Pitch-Delta.Y*.14f,-25.,40.);}
         }
         else if(!HUD||!HUD->IsPointerOverUI(Pointer))bHeadDragging=true;
         LastHeadPointer=Pointer;
     }
     else bHeadDragging=false;
     if(ActiveView==1)UpdatePilotCamera();
+    UpdateRoleCameras();
     if(ActiveView==3&&ArenaCamera&&Match&&Match->GetSelectedDrone()&&FParse::Param(FCommandLine::Get(),TEXT("ImperialShowcase")))
     {
         const FVector Centre=Match->GetSelectedDrone()->GetActorLocation();
@@ -79,6 +99,19 @@ void AImperialPlayerController::PlayerTick(float Dt)
     // View 2 is an external training observer, even if legacy pawn camera input is pressed.
     if(ActiveView==2&&Match&&Match->GetSelectedDrone())Match->GetSelectedDrone()->SetChaseView(true);
 }
+void AImperialPlayerController::UpdateRoleCameras()
+{
+    if(ObserverCamera&&Match&&Match->GetSelectedDrone())
+    {const FVector Target=Match->GetSelectedDrone()->GetActorLocation();const FVector Position=Target+FRotator(ObserverPitch,ObserverYaw,0).Vector()*ObserverDistance;ObserverCamera->SetActorLocationAndRotation(Position,(Target-Position).Rotation());}
+    if(AudienceCamera){const FVector Position(300,-1050,250);const FRotator Base=(FVector(0,0,180)-Position).Rotation();AudienceCamera->SetActorLocationAndRotation(Position,Base+AudienceHead);AudienceCamera->GetCameraComponent()->SetFieldOfView(AudienceFov);}
+    if(RefereeCamera){const FVector Position(220,-550,170);const FRotator Base=(FVector(0,0,190)-Position).Rotation();RefereeCamera->SetActorLocationAndRotation(Position,Base+RefereeHead);RefereeCamera->GetCameraComponent()->SetFieldOfView(RefereeFov);}
+}
+bool AImperialPlayerController::CanSetView(int32 View) const
+{const auto* Drone=Match?Match->GetSelectedDrone():nullptr;return View>=1&&View<=6&&(View!=6||InspectedDrone.IsValid())&&!((View==4||View==5)&&Drone&&Drone->IsArmed()&&!Drone->IsAutonomousEnabled());}
+FString AImperialPlayerController::GetCameraRoleName() const
+{if(InspectedDrone.IsValid())return TEXT("EQUIPMENT");switch(ActiveView){case 1:return TEXT("PILOT LOS");case 2:return TEXT("OBSERVER TRACK");case 3:return TEXT("ARENA OVERVIEW");case 4:return TEXT("AUDIENCE STANDS");case 5:return TEXT("REFEREE SIDELINE");default:return TEXT("UNKNOWN");}}
+FVector AImperialPlayerController::GetRoleCameraPosition() const
+{const ACameraActor* Camera=ActiveView==1?PilotCamera.Get():ActiveView==2?ObserverCamera.Get():ActiveView==4?AudienceCamera.Get():ActiveView==5?RefereeCamera.Get():ArenaCamera.Get();return Camera?Camera->GetActorLocation():FVector::ZeroVector;}
 void AImperialPlayerController::UpdatePilotCamera()
 {
     if(!PilotCamera)return;
@@ -94,11 +127,17 @@ void AImperialPlayerController::UpdatePilotCamera()
 FVector AImperialPlayerController::GetPilotStationPosition() const {return PilotCamera?PilotCamera->GetActorLocation():FVector::ZeroVector;}
 void AImperialPlayerController::SetView(int32 View)
 {
-    if(!Match) return;
-    ActiveView=FMath::Clamp(View,1,3);bHeadDragging=false;ConfigureInput();
+    if(!Match||!CanSetView(View)) return;
+    if(View!=6&&InspectedDrone.IsValid()){InspectedDrone->SetEquipmentInspection(false);InspectedDrone.Reset();}
+    if(View==3&&!InspectedDrone.IsValid()&&ArenaCamera)
+    {const FVector Position(1750,-2250,1180),Target(0,30,180);ArenaCamera->SetActorLocationAndRotation(Position,(Target-Position).Rotation());ArenaCamera->GetCameraComponent()->SetFieldOfView(60);}
+    ActiveView=FMath::Clamp(View,1,6);bHeadDragging=false;ConfigureInput();UpdateRoleCameras();
+    if(IsReadOnlyView()){if(auto* Radio=GetGameInstance()->GetSubsystem<UImperialRadioSubsystem>())Radio->DisableRadio();}
     if(ActiveView==1&&PilotCamera){UpdatePilotCamera();SetViewTargetWithBlend(PilotCamera,.25f);}
-    else if(ActiveView==3&&ArenaCamera)SetViewTargetWithBlend(ArenaCamera,.3f);
-    else if(auto* D=Match->GetSelectedDrone()){D->SetChaseView(true);SetViewTargetWithBlend(D,.25f);}
+    else if((ActiveView==3||ActiveView==6)&&ArenaCamera)SetViewTargetWithBlend(ArenaCamera,.3f);
+    else if(ActiveView==2&&ObserverCamera)SetViewTargetWithBlend(ObserverCamera,.25f);
+    else if(ActiveView==4&&AudienceCamera)SetViewTargetWithBlend(AudienceCamera,.25f);
+    else if(ActiveView==5&&RefereeCamera)SetViewTargetWithBlend(RefereeCamera,.25f);
 }
 void AImperialPlayerController::SetupInputComponent()
 {
@@ -106,6 +145,8 @@ void AImperialPlayerController::SetupInputComponent()
     InputComponent->BindKey(EKeys::One,IE_Pressed,this,&AImperialPlayerController::Fpv);
     InputComponent->BindKey(EKeys::Two,IE_Pressed,this,&AImperialPlayerController::Chase);
     InputComponent->BindKey(EKeys::Three,IE_Pressed,this,&AImperialPlayerController::Arena);
+    InputComponent->BindKey(EKeys::Four,IE_Pressed,this,&AImperialPlayerController::Audience);
+    InputComponent->BindKey(EKeys::Five,IE_Pressed,this,&AImperialPlayerController::Referee);
     InputComponent->BindKey(EKeys::Tab,IE_Pressed,this,&AImperialPlayerController::Next);
     InputComponent->BindKey(EKeys::Enter,IE_Pressed,this,&AImperialPlayerController::Auto);
     InputComponent->BindKey(EKeys::H,IE_Pressed,this,&AImperialPlayerController::Hold);
@@ -114,28 +155,38 @@ void AImperialPlayerController::SetupInputComponent()
     InputComponent->BindKey(EKeys::F5,IE_Pressed,this,&AImperialPlayerController::Export);
     InputComponent->BindKey(EKeys::F6,IE_Pressed,this,&AImperialPlayerController::RecordFlight);
     InputComponent->BindKey(EKeys::F8,IE_Pressed,this,&AImperialPlayerController::SavedRadio);
+    InputComponent->BindKey(EKeys::F9,IE_Pressed,this,&AImperialPlayerController::ToggleEquipmentInspection);
     InputComponent->BindKey(EKeys::C,IE_Pressed,this,&AImperialPlayerController::Radio);
     InputComponent->BindKey(EKeys::LeftMouseButton,IE_Pressed,this,&AImperialPlayerController::ClickHUD);
     InputComponent->BindKey(EKeys::F10,IE_Pressed,this,&AImperialPlayerController::CompactHUD);
     InputComponent->BindKey(EKeys::MouseScrollUp,IE_Pressed,this,&AImperialPlayerController::ZoomIn);
     InputComponent->BindKey(EKeys::MouseScrollDown,IE_Pressed,this,&AImperialPlayerController::ZoomOut);
 }
-void AImperialPlayerController::ZoomIn(){if(ActiveView==1){if(const auto* H=Cast<AImperialHUD>(GetHUD());H&&H->IsRadioPanelOpen())return;PilotFieldOfView=FMath::Clamp(PilotFieldOfView-5.f,40.f,85.f);UpdatePilotCamera();}}
-void AImperialPlayerController::ZoomOut(){if(ActiveView==1){if(const auto* H=Cast<AImperialHUD>(GetHUD());H&&H->IsRadioPanelOpen())return;PilotFieldOfView=FMath::Clamp(PilotFieldOfView+5.f,40.f,85.f);UpdatePilotCamera();}}
+void AImperialPlayerController::ZoomIn(){if(HasRadioModal())return;if(ActiveView==1){PilotFieldOfView=FMath::Clamp(PilotFieldOfView-5.f,40.f,85.f);UpdatePilotCamera();}else if(ActiveView==2)ObserverDistance=FMath::Clamp(ObserverDistance-35.f,100.f,900.f);else if(ActiveView==4)AudienceFov=FMath::Clamp(AudienceFov-5.f,40.f,85.f);else if(ActiveView==5)RefereeFov=FMath::Clamp(RefereeFov-5.f,60.f,110.f);}
+void AImperialPlayerController::ZoomOut(){if(HasRadioModal())return;if(ActiveView==1){PilotFieldOfView=FMath::Clamp(PilotFieldOfView+5.f,40.f,85.f);UpdatePilotCamera();}else if(ActiveView==2)ObserverDistance=FMath::Clamp(ObserverDistance+35.f,100.f,900.f);else if(ActiveView==4)AudienceFov=FMath::Clamp(AudienceFov+5.f,40.f,85.f);else if(ActiveView==5)RefereeFov=FMath::Clamp(RefereeFov+5.f,60.f,110.f);}
 bool AImperialPlayerController::HasRadioModal() const {const auto* H=Cast<AImperialHUD>(GetHUD());return H&&H->IsRadioPanelOpen();}
 void AImperialPlayerController::Fpv(){if(Match&&!HasRadioModal())Match->ChangeView(1);}
 void AImperialPlayerController::Chase(){if(Match&&!HasRadioModal())Match->ChangeView(2);}
 void AImperialPlayerController::Arena(){if(Match&&!HasRadioModal())Match->ChangeView(3);}
+void AImperialPlayerController::Audience(){if(Match&&!HasRadioModal())Match->ChangeView(4);}
+void AImperialPlayerController::Referee(){if(Match&&!HasRadioModal())Match->ChangeView(5);}
 void AImperialPlayerController::Next(){if(Match&&!HasRadioModal())Match->SelectNext();}
-void AImperialPlayerController::Auto(){if(HasRadioModal()){if(auto* H=Cast<AImperialHUD>(GetHUD()))H->AdvanceRadioSetup();return;}if(Match)Match->LaunchSwarm();}
-void AImperialPlayerController::Hold(){if(Match&&!HasRadioModal())Match->HoldFleet();}
-void AImperialPlayerController::Return(){if(Match&&!HasRadioModal())Match->ReturnFleet();}
-void AImperialPlayerController::Reset(){if(Match&&!HasRadioModal())Match->ResetMatch();}
+void AImperialPlayerController::Auto(){if(HasRadioModal()){if(auto* H=Cast<AImperialHUD>(GetHUD()))H->AdvanceRadioSetup();return;}if(Match&&!IsReadOnlyView())Match->LaunchSwarm();}
+void AImperialPlayerController::Hold(){if(Match&&!HasRadioModal()&&!IsReadOnlyView())Match->HoldFleet();}
+void AImperialPlayerController::Return(){if(Match&&!HasRadioModal()&&!IsReadOnlyView())Match->ReturnFleet();}
+void AImperialPlayerController::Reset(){if(Match&&!HasRadioModal()&&!IsReadOnlyView())Match->ResetMatch();}
 void AImperialPlayerController::Export(){if(Match)Match->ExportTelemetry();}
 void AImperialPlayerController::RecordFlight(){if(Match)Match->ToggleFlightRecording();}
+void AImperialPlayerController::ToggleEquipmentInspection()
+{
+    if(!Match||HasRadioModal())return;
+    if(InspectedDrone.IsValid()){InspectedDrone->SetEquipmentInspection(false);InspectedDrone.Reset();Match->ChangeView(1);return;}
+    auto* Drone=Match->GetSelectedDrone();if(!Drone||Drone->IsArmed())return;
+    Match->ManualSelected();InspectedDrone=Drone;Drone->SetEquipmentInspection(true);Match->ChangeView(6);
+}
 void AImperialPlayerController::SavedRadio()
 {
-    if(HasRadioModal()||!Match)return;
+    if(HasRadioModal()||!Match||IsReadOnlyView())return;
     auto* R=GetGameInstance()->GetSubsystem<UImperialRadioSubsystem>();if(!R)return;
     const bool WasEnabled=R->IsEnabled();Match->ManualSelected();
     if(WasEnabled)R->DisableRadio();else R->EnableSavedRadio();

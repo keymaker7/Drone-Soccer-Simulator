@@ -248,3 +248,7 @@ WP-A/B/E를 먼저 진행하고 WP-D는 전체 경기·고급 파괴가 완성�
 이번에 확인한 정적 경로를 수정 완료로 표시하지 않는다. 최신 v0.6 포터블 사전 배포는 기존 검증 기록을 따르며, 이번 문서 작업에서 새 기능·원문 조건·네트워크·USB 연속 시험을 구현/검증한 새 배포본을 만들지 않았다.
 
 연결 문서: [전체 기능 명세](simulator-feature-plan.md) · [개발 순서](development-roadmap.md) · [작업 목록](../IMPERIAL_WINGS_CODEX_TASKS.md) · [검증 기록](verification.md).
+
+## v0.7 후속 구현 — 2026-10-27
+
+위 표는 f05aa66 기준 정적 검토의 기록이다. 후속 v0.7에서 RV-01/AI-11의 AUTO·HOLD·RETURN·기체 API·HTTP 목표 적용을 Practice로 제한하고 세트 종료의 자동 귀환 호출을 제거했다. 종료 신호 뒤 기존 수동 기체의 착륙 조종은 유지하고 정비/종료 단계의 새 ARM은 차단한다. Ready/Playing/Break/Finished와 두 종료 전이를 실제 규칙 시계/API fixture로 확인한다. 실제 USB 조작과 전체 SC-01~20의 완료를 뜻하지 않는다. 결과는 [v0.7 검증](releases/v0.7.0.md)과 [자체 피드백](autonomy-feedback-v07.md)을 따른다.

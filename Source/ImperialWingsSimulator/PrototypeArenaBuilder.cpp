@@ -1,5 +1,6 @@
 #include "PrototypeArenaBuilder.h"
 #include "ImperialElasticNet.h"
+#include "ImperialSuspendedGoal.h"
 #include "ImperialSoccerLayout.h"
 #include "Components/DirectionalLightComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
@@ -116,25 +117,13 @@ void APrototypeArenaBuilder::AddGoal(const FString& Prefix, float X)
     const int32 GoalIndex=X<0?0:1;
     auto* ReadyLight=Material(FLinearColor(.90f,.94f,1.f),1.1f);
     GoalLights[GoalIndex]=ReadyLight;
-    // FIDA Class 40: inner diameter 60 cm, outer diameter 100 cm.
-    // Axial depth 16 cm is an implementation choice, not a prescribed rule value.
-    for (int32 I = 0; I < 64; ++I)
-    {
-        const double A = (I + 0.5) * 2.0 * PI / 64;
-        const FVector Tangent(0, FMath::Cos(A), -FMath::Sin(A));
-        const FVector Radial(0,FMath::Sin(A),FMath::Cos(A));
-        const FVector P=FVector(X,0,300)+Radial*40;
-        const FRotator R=FRotationMatrix::MakeFromXY(Tangent,Radial).Rotator();
-        const float Segment=2.f*50.f*FMath::Tan(PI/64.f)+.03f;
-        Piece(Prefix+FString::FromInt(I),CubeMesh,GoalFrameMaterial,P,FVector(Segment,20,16),R,true);
-        Piece(Prefix+TEXT("ReadyLight"),CubeMesh,ReadyLight,P+FVector(X<0?8.1:-8.1,0,0),FVector(Segment,18,0.6),R);
-    }
-    for (float Y : {-35.f, 35.f})
-    {
-        Piece(Prefix+TEXT("GoalSuspension"),CylinderMesh,GoalFrameMaterial,FVector(X,Y,392.5),FVector(.28,.28,115));
-    }
+    if(SuspendedGoals.Num()!=2)SuspendedGoals.SetNum(2);
+    auto* Goal=GetWorld()->SpawnActor<AImperialSuspendedGoal>(FVector(X,0,340),FRotator::ZeroRotator);
+    if(Goal){Goal->Configure(GoalIndex,GoalFrameMaterial,ReadyLight);SuspendedGoals[GoalIndex]=Goal;}
     Piece(Prefix+TEXT("GoalRoofBracket"),CubeMesh,StructureMaterial,FVector(X,0,455),FVector(12,90,8));
 }
+AImperialSuspendedGoal* APrototypeArenaBuilder::GetGoal(int32 Index) const{return SuspendedGoals.IsValidIndex(Index)?SuspendedGoals[Index].Get():nullptr;}
+void APrototypeArenaBuilder::ResetGoals(){for(auto& Goal:SuspendedGoals)if(Goal)Goal->ResetGoal();}
 
 void APrototypeArenaBuilder::SetGoalSignal(int32 GoalIndex,bool bScored)
 {
