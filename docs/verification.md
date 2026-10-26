@@ -60,3 +60,6 @@ Windows PnP의 상위 장치까지 확인했다. `0416:8258`은 **Archon M1 PRO 
 
 검사 뒤에는 전체 초기화·IW-01 선택·LOS 복귀 후 USB 패널에서 실제 Boxer에 대응하는6축·24버튼 장치를 선택했다. Saved/Verification/r4-boxer-panel.png에 실제 연결과 원시 축 표시를 남겼다. 보정 또는USB 활성화를 대신 성공 처리하지 않았으며 모든 기체는 DISARM 상태다.
 최종 R4c에서도 강체 자이로 결합을 켠 상태로30/60/120Hz 물리 시험을 다시 통과했다. 네이티브 UI 재검사도 `ok=true`,96항목 전부 통과했다. 최종 근거: `Saved\Verification\ui-20261026-183656-498/result.json`. 소스·패키지·최종 검사 이후 물리 코드를 추가 변경하지 않았다.
+
+지속 입력 기록을 준비한 뒤 사용자가 스틱을 다시 움직였고,X/Y/Z/V 네 아날로그 축에서 실제0–65535 끝값을 모두 관찰했다. 원본은 `Saved/Verification/boxer-final-range.json`과 시각별 실제 입력 journal이다. 물리 스틱별 정확한 채널 배정과 양의 방향·최저 스로틀 확정은 끝값 수집과 구분하며,미확정 프로필을 만들지 않는다. 첫 패킷 중심값을 이동으로 오인하지 않도록 읽기 전용 진단에 시작250ms 제외 구간을 추가했다. 별도의 HID 제품 정보 조회에서도 제품명이 Radiomaster Boxer Joystick으로 일치했다.
+최종 설정 패키지 R4d에서는 F5의 엔진 디버그 화면 전환 바인딩을 제거했다. 실제 F5 입력으로 새10행 CSV 생성,LOS1·Boxer연결·10대DISARM을 확인했고 ShaderComplexity 모드로 바뀌지 않았다. `Saved/Verification/r4d-input-check.log`, `r4d-boxer-panel.png`에 근거를 보관했다. 이 변경은 입력 설정과 읽기 전용 진단에 한정하며 R4c의 물리 코드·자산을 바꾸지 않는다.
