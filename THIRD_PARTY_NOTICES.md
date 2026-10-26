@@ -57,3 +57,15 @@ flight-equivalence claim.
 FIDA and FAI source documents are cited in `docs/rules-sources-2026.md`. Downloaded
 rulebooks and page renders remain local verification inputs under ignored
 `Saved/`; they are not part of the public source tree.
+
+## Portable Windows distribution
+
+The release ZIP includes the compiled Unreal game, an original .NET Framework launcher,
+a PyInstaller one-folder Python runtime, NumPy, and the MIT-licensed APF source from
+the recorded upstream commit. `release-manifest.json` records the APF/LICENCE SHA-256
+values. No manufacturer reference media, developer environment, or pilot profile is bundled.
+Python and PyInstaller licence notices are in `Licenses`. NumPy's complete BSD and
+bundled-library notices are preserved in `Guidance/_internal/numpy-2.2.6.dist-info/LICENSE.txt`.
+The upstream MIT licence is also in `Licenses/swarm-drone-atc-MIT.txt`.
+Microsoft's signed Visual C++ redistributable is included for the required runtime;
+its installer presents its own terms. Unreal runtime notices remain in `Windows/NOTICES.txt`.

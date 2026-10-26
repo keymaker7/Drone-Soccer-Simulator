@@ -36,6 +36,8 @@ public:
     void ToggleArmSelected();
     void ChangeView(int32 View);
     bool ExportTelemetry();
+    void ToggleFlightRecording();
+    bool IsRecordingFlight() const { return !FlightLogPath.IsEmpty(); }
     bool IsConnected() const { return bConnected; }
     FString GetSourceCommit() const { return SourceCommit; }
     uint64 GetGuidanceCommand() const { return GuidanceWindow.Command(); }
@@ -65,6 +67,7 @@ private:
     bool bConnected=false,bRequestPending=false,bSmoke=false,bSmokeDone=false,bDemo=false,bDemoStarted=false;
     int32 SmokePhase=0;
     float SmokeMaxHeight=0,SmokeMinHeight=10000;
+    float SmokeMinDt=1000,SmokeMaxDt=0;
     float SmokeHoverError=0,SmokeNetPeak=0,SmokeNetVisualPeak=0,SmokeNetRebound=0,SmokeNetMinY=0;
     bool bSmokeFloorWall=false,bSmokeNet=false,bSmokeGoal=false;
     bool bAngleSmoke=false,bAngleInitialLevel=false,bAngleReleasedLevel=false;
@@ -83,6 +86,9 @@ private:
     TArray<double> FrameTimes;
     bool bProfileWritten=false;
     FString Notice=TEXT("Keyboard ready. Select AUTO FLEET for SDACS autonomous guidance.");
+    FString FlightLogPath;
+    double LastFlightRecord=0;
+    void RecordFlightSample(const FString& Event);
     void RequestGuidance();
     void OnGuidance(FHttpRequestPtr Request,FHttpResponsePtr Response,bool bSuccess,ImperialGuidance::Ticket Ticket);
     void AdvanceGuidanceCommand();

@@ -1,4 +1,5 @@
 #include "ImperialBuildInfo.h"
+#include "ImperialUserData.h"
 #include "ImperialBuildIdentity.generated.h"
 #include "Dom/JsonObject.h"
 #include "Serialization/JsonSerializer.h"
@@ -26,7 +27,7 @@ TSharedRef<FJsonObject> Json()
 void WriteRuntimeIdentity()
 {
     FString Value;FJsonSerializer::Serialize(Json(),TJsonWriterFactory<>::Create(&Value));
-    FFileHelper::SaveStringToFile(Value,*FPaths::Combine(FPaths::ProjectSavedDir(),TEXT("running-build.json")),FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);
+    FFileHelper::SaveStringToFile(Value,*FPaths::Combine(ImperialUserData::Directory(),TEXT("running-build.json")),FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);
     UE_LOG(LogTemp,Display,TEXT("IMPERIAL_BUILD %s source_sha256=%s"),*Label(),*SourceHash());
 }
 }

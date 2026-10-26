@@ -125,12 +125,24 @@ function Invoke-HudClick([double]$X, [double]$Y) {
     $bounds = Get-ClientBounds
     $screenX = [int][Math]::Round($bounds.X + $bounds.OffsetX + $X * $bounds.Scale)
     $screenY = [int][Math]::Round($bounds.Y + $bounds.OffsetY + $Y * $bounds.Scale)
-    if (-not [ImperialWingsSimulator.NativeUi]::SetCursorPos($screenX, $screenY)) { throw 'Cannot position the mouse over ImperialWingsSimulator.' }
-    Start-Sleep -Milliseconds 70
-    Assert-TargetForeground
     $before = [ImperialWingsSimulator.UiPoint]::new()
-    if (-not [ImperialWingsSimulator.NativeUi]::GetCursorPos([ref]$before)) { throw 'Cannot read the native cursor position before a HUD click.' }
-    if ([Math]::Abs($before.X-$screenX) -gt 2 -or [Math]::Abs($before.Y-$screenY) -gt 2) { throw "The native cursor moved before the click: target ($screenX,$screenY), actual ($($before.X),$($before.Y))." }
+    $stable=$false
+    # Activation/capture restoration can briefly restore an old cursor position.
+    # Require TWO stable readings before pressing; ongoing interference still stops.
+    for($positionAttempt=0;$positionAttempt -lt 4 -and -not $stable;$positionAttempt++){
+        Assert-TargetForeground
+        if (-not [ImperialWingsSimulator.NativeUi]::SetCursorPos($screenX, $screenY)) { throw 'Cannot position the mouse over ImperialWingsSimulator.' }
+        Start-Sleep -Milliseconds 70
+        Assert-TargetForeground
+        if (-not [ImperialWingsSimulator.NativeUi]::GetCursorPos([ref]$before)) { throw 'Cannot read the native cursor position before a HUD click.' }
+        if([Math]::Abs($before.X-$screenX) -le 2 -and [Math]::Abs($before.Y-$screenY) -le 2){
+            Start-Sleep -Milliseconds 70
+            Assert-TargetForeground
+            [void][ImperialWingsSimulator.NativeUi]::GetCursorPos([ref]$before)
+            $stable=[Math]::Abs($before.X-$screenX) -le 2 -and [Math]::Abs($before.Y-$screenY) -le 2
+        }
+    }
+    if(-not $stable){throw "The native cursor did not remain stable before the click: target ($screenX,$screenY), actual ($($before.X),$($before.Y))."}
     [ImperialWingsSimulator.NativeUi]::mouse_event(0x0002, 0, 0, 0, [UIntPtr]::Zero)
     $pressed = [ImperialWingsSimulator.UiPoint]::new()
     try {
@@ -284,7 +296,8 @@ try {
         $index=[int]$layoutRow.id.Substring(3)-1
         $roleIndex=$index%5
         $expectedX=if($index -lt 5){-6.5}else{6.5}
-        $expectedY=if($index -lt 5){-2.5+$roleIndex*1.25}else{2.5-$roleIndex*1.25}
+        $roleLanes=@(0,-1.25,-2.5,1.25,2.5)
+        $expectedY=if($index -lt 5){$roleLanes[$roleIndex]}else{-$roleLanes[$roleIndex]}
         $positionsMatch=[Math]::Abs([double]$layoutRow.x_m-$expectedX) -lt .03 -and [Math]::Abs([double]$layoutRow.y_m-$expectedY) -lt .03 -and
             [Math]::Abs([double]$layoutRow.home_x_m-$expectedX) -lt .001 -and [Math]::Abs([double]$layoutRow.home_y_m-$expectedY) -lt .001 -and
             [Math]::Abs([double]$layoutRow.pad_x_m-$expectedX) -lt .001 -and [Math]::Abs([double]$layoutRow.pad_y_m-$expectedY) -lt .001
@@ -377,7 +390,8 @@ try {
         $pilotSnapshot=Export-FleetSnapshot ('layout-pilot-'+$pilotIndex)
         $pilotRow=Get-Aircraft $pilotSnapshot ('IW-'+($pilotIndex+1).ToString('00'))
         $pilotX=if($pilotIndex -lt 5){-9.5}else{9.5}
-        $pilotY=if($pilotIndex -lt 5){-2.5+($pilotIndex%5)*1.25}else{2.5-($pilotIndex%5)*1.25}
+        $pilotLane=@(0,-1.25,-2.5,1.25,2.5)[$pilotIndex%5]
+        $pilotY=if($pilotIndex -lt 5){$pilotLane}else{-$pilotLane}
         Assert-Check "LOS pilot station for $($pilotRow.id)" ($pilotRow.selected -eq '1' -and $pilotRow.camera_view -eq '1' -and [Math]::Abs([double]$pilotRow.pilot_x_m-$pilotX) -lt .001 -and [Math]::Abs([double]$pilotRow.pilot_y_m-$pilotY) -lt .001) "Actual outside camera x=$pilotX, y=$pilotY metres matches the selected role."
         Save-ClientScreenshot ('layout-'+$pilotRow.id+'-los')
     }

@@ -67,3 +67,13 @@
 - [ ] 물리 파손·모터 고장·하단 띠·공격수 승계는 별도 구현/검증
 
 새 실행 파일: `dist/PresentationUpgrade/Windows/ImperialWingsSimulator.exe`. 실행 중인 기존 버전과 분리했다. 근거와 제한은 `docs/presentation-upgrade.md`, `docs/verification.md`.
+
+## 시작 위치·하단 띠 — 2026-10-26
+
+- [x] 양 팀 Striker 시작선 중앙(y=0),나머지 역할 거울 배치
+- [x] Striker 초록/Guide 분홍 하단 띠 좌우2개씩,기체당4개
+- [x] 실제10대의 패드·초기화·LOS·띠 개수 에디터/패키지 검사
+- [x] 에디터 빌드·별도 Windows 패키징·60Hz 실제 물리 검사·근접 렌더
+- [ ] 하단 띠 탈락 상태와 득점 불인정 연동·공격수 승계·실제 cloth/파손
+
+새 실행 파일: `dist/RoleLayoutUpgrade/Windows/ImperialWingsSimulator.exe`. 상세 근거는 `docs/position-and-led-design.md`, `docs/verification.md`.

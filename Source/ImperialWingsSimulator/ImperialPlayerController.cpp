@@ -3,6 +3,8 @@
 #include "SoccerDronePawn.h"
 #include "ImperialHUD.h"
 #include "ImperialSoccerLayout.h"
+#include "ImperialRadioSubsystem.h"
+#include "Engine/GameInstance.h"
 #include "Camera/CameraActor.h"
 #include "Camera/CameraComponent.h"
 #include "Components/InputComponent.h"
@@ -110,6 +112,8 @@ void AImperialPlayerController::SetupInputComponent()
     InputComponent->BindKey(EKeys::R,IE_Pressed,this,&AImperialPlayerController::Return);
     InputComponent->BindKey(EKeys::Home,IE_Pressed,this,&AImperialPlayerController::Reset);
     InputComponent->BindKey(EKeys::F5,IE_Pressed,this,&AImperialPlayerController::Export);
+    InputComponent->BindKey(EKeys::F6,IE_Pressed,this,&AImperialPlayerController::RecordFlight);
+    InputComponent->BindKey(EKeys::F8,IE_Pressed,this,&AImperialPlayerController::SavedRadio);
     InputComponent->BindKey(EKeys::C,IE_Pressed,this,&AImperialPlayerController::Radio);
     InputComponent->BindKey(EKeys::LeftMouseButton,IE_Pressed,this,&AImperialPlayerController::ClickHUD);
     InputComponent->BindKey(EKeys::F10,IE_Pressed,this,&AImperialPlayerController::CompactHUD);
@@ -128,6 +132,14 @@ void AImperialPlayerController::Hold(){if(Match&&!HasRadioModal())Match->HoldFle
 void AImperialPlayerController::Return(){if(Match&&!HasRadioModal())Match->ReturnFleet();}
 void AImperialPlayerController::Reset(){if(Match&&!HasRadioModal())Match->ResetMatch();}
 void AImperialPlayerController::Export(){if(Match)Match->ExportTelemetry();}
+void AImperialPlayerController::RecordFlight(){if(Match)Match->ToggleFlightRecording();}
+void AImperialPlayerController::SavedRadio()
+{
+    if(HasRadioModal()||!Match)return;
+    auto* R=GetGameInstance()->GetSubsystem<UImperialRadioSubsystem>();if(!R)return;
+    const bool WasEnabled=R->IsEnabled();Match->ManualSelected();
+    if(WasEnabled)R->DisableRadio();else R->EnableSavedRadio();
+}
 void AImperialPlayerController::Radio(){if(auto* H=Cast<AImperialHUD>(GetHUD()))H->ToggleRadioPanel();}
 void AImperialPlayerController::ClickHUD(){if(auto* H=Cast<AImperialHUD>(GetHUD()))H->ClickPointer();}
 void AImperialPlayerController::CompactHUD(){if(auto* H=Cast<AImperialHUD>(GetHUD()))H->ToggleCompactView();}

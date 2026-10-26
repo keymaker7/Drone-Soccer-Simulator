@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import importlib
+import importlib.util
 import json
 import math
 import pathlib
@@ -96,18 +97,39 @@ def _minimum_distance(points: list[np.ndarray]) -> float | None:
 
 
 class GuidanceBridge:
-    def __init__(self, repo: str | pathlib.Path) -> None:
+    def __init__(self, repo: str | pathlib.Path, *, bundled: bool = False) -> None:
+        sys.dont_write_bytecode = True
         self.repo = pathlib.Path(repo).resolve()
-        self.origin = _git(self.repo, "remote", "get-url", "origin")
-        if EXPECTED_REPOSITORY not in self.origin.lower().replace(":", "/"):
-            raise RuntimeError(f"Expected swarm-drone-atc origin; found {self.origin}")
-        self.commit = _git(self.repo, "rev-parse", "HEAD")
+        expected = self.repo / "simulation" / "apf_engine" / "apf.py"
+        if bundled:
+            # Distribution contains the actual MIT-licensed APF source, not a
+            # working checkout or a machine-specific path. Reject damaged data.
+            metadata = json.loads((self.repo / 'provenance.json').read_text(encoding='utf-8-sig'))
+            self.origin = metadata['origin']
+            self.commit = metadata['commit']
+            if self.origin != 'https://github.com/sun475300-sudo/swarm-drone-atc.git' or len(self.commit) != 40 or any(c not in '0123456789abcdef' for c in self.commit):
+                raise RuntimeError('Invalid bundled upstream provenance')
+            for relative, digest in metadata['files'].items():
+                path = (self.repo / relative).resolve()
+                if not path.is_relative_to(self.repo) or hashlib.sha256(path.read_bytes()).hexdigest() != digest:
+                    raise RuntimeError('Bundled upstream hash mismatch')
+            if 'simulation/apf_engine/apf.py' not in metadata['files'] or 'LICENSE' not in metadata['files']:
+                raise RuntimeError('Bundled upstream source or licence missing')
+            spec = importlib.util.spec_from_file_location('imperial_bundled_upstream_apf', expected)
+            self.apf = importlib.util.module_from_spec(spec)
+            sys.modules[spec.name] = self.apf
+            spec.loader.exec_module(self.apf)
+        else:
+            self.origin = _git(self.repo, "remote", "get-url", "origin")
+            if EXPECTED_REPOSITORY not in self.origin.lower().replace(":", "/"):
+                raise RuntimeError(f"Expected swarm-drone-atc origin; found {self.origin}")
+            self.commit = _git(self.repo, "rev-parse", "HEAD")
         # The user's source repository is an input, including its ignored files.
         sys.dont_write_bytecode = True
-        sys.path.insert(0, str(self.repo))
-        self.apf = importlib.import_module("simulation.apf_engine.apf")
+        if not bundled:
+            sys.path.insert(0, str(self.repo))
+            self.apf = importlib.import_module("simulation.apf_engine.apf")
         self.apf_path = pathlib.Path(self.apf.__file__).resolve()
-        expected = self.repo / "simulation" / "apf_engine" / "apf.py"
         if self.apf_path != expected:
             raise RuntimeError(f"Loaded APF module from unexpected location: {self.apf_path}")
         self.apf_sha256 = hashlib.sha256(self.apf_path.read_bytes()).hexdigest()

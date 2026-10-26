@@ -1,8 +1,11 @@
-[CmdletBinding()]
-param([int[]]$FrameRates=@(20,30,60,120,240))
+﻿[CmdletBinding()]
+param([int[]]$FrameRates=@(20,30,60,120,240),[string]$PackageRoot='')
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
-$exe=Join-Path $root 'dist\Windows\ImperialWingsSimulator\Binaries\Win64\ImperialWingsSimulator.exe'
+. (Join-Path $root 'Scripts\Environment.ps1')
+$environment=Get-ImperialEnvironment -ProjectRoot $root -PackageRoot $PackageRoot
+$exe=Join-Path $environment.PackageRoot 'ImperialWingsSimulator\Binaries\Win64\ImperialWingsSimulator.exe'
+    if(-not(Test-Path -LiteralPath $exe)){$exe=$exe.Replace('ImperialWingsSimulator.exe','ImperialWingsSimulator-Win64-Shipping.exe')}
 $output=Join-Path $root ('Saved\Verification\angle-'+[DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss-fff'))
 New-Item -ItemType Directory -Path $output | Out-Null
 $identity=& (Join-Path $root 'Scripts\Get-SourceIdentity.ps1') -ProjectRoot $root
@@ -15,6 +18,7 @@ foreach($rate in $FrameRates){
     $run=Start-Process -FilePath $exe -ArgumentList $quoted -PassThru -Wait -WindowStyle Hidden -RedirectStandardOutput (Join-Path $output "console-$rate.log") -RedirectStandardError (Join-Path $output "stderr-$rate.log")
     if(-not(Test-Path -LiteralPath $resultPath)){throw "No new angle result: $resultPath"}
     $result=Get-Content -LiteralPath $resultPath -Raw | ConvertFrom-Json
+    if([Math]::Abs([double]$result.actual_min_game_dt_s-1.0/$rate) -gt .00001 -or [Math]::Abs([double]$result.actual_max_game_dt_s-1.0/$rate) -gt .00001){throw "Actual engine Tick interval did not match requested $rate FPS."}
     $results+=[ordered]@{fixed_game_fps=$rate;exit_code=$run.ExitCode;result=$result}
     $results | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $output 'results.json')
     if($run.ExitCode -ne 0 -or -not $result.ok -or $result.build.source_sha256 -ne $identity.source_sha256){throw "Angle physics failed or source mismatch at $rate FPS; inspect $resultPath"}

@@ -1,4 +1,7 @@
 #include "ImperialMatchManager.h"
+#include "ImperialUserData.h"
+#include "ImperialHUD.h"
+#include "Misc/App.h"
 #include "SoccerDronePawn.h"
 #include "ImperialPlayerController.h"
 #include "ImperialRadioSubsystem.h"
@@ -6,6 +9,7 @@
 #include "ImperialElasticNet.h"
 #include "ImperialSoccerLayout.h"
 #include "ImperialBuildInfo.h"
+#include "ImperialPresentationEffects.h"
 #include "Engine/GameInstance.h"
 #include "Engine/GameViewportClient.h"
 #include "UnrealClient.h"
@@ -38,11 +42,12 @@ bool ReadVector(const TSharedPtr<FJsonObject>& O,const TCHAR* Key,FVector& V)
     double X,Y,Z;if(!(*A)[0]->TryGetNumber(X)||!(*A)[1]->TryGetNumber(Y)||!(*A)[2]->TryGetNumber(Z))return false;
     V=FVector(X,Y,Z);return !V.ContainsNaN()&&FMath::IsFinite(X)&&FMath::IsFinite(Y)&&FMath::IsFinite(Z);
 }
-void AttachVerificationIdentity(FString& Value)
+void AttachVerificationIdentity(FString& Value,float MinDt=0,float MaxDt=0)
 {
     TSharedPtr<FJsonObject> Root;
     if(!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Value),Root)||!Root.IsValid())return;
     Root->SetObjectField(TEXT("build"),ImperialBuildInfo::Json());
+    if(MinDt>0&&MaxDt>0){Root->SetNumberField(TEXT("actual_min_game_dt_s"),MinDt);Root->SetNumberField(TEXT("actual_max_game_dt_s"),MaxDt);}
     FString Settings;TSharedPtr<FJsonObject> Defaults;
     if(FFileHelper::LoadFileToString(Settings,*FPaths::Combine(FPaths::ProjectContentDir(),TEXT("Data/physics-defaults.json")))&&
        FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Settings),Defaults)&&Defaults.IsValid())Root->SetObjectField(TEXT("physics_defaults"),Defaults);
@@ -60,6 +65,11 @@ void AImperialMatchManager::BeginPlay()
     GuidanceUrl.RemoveFromEnd(TEXT("/"));
     bSmoke=FParse::Param(FCommandLine::Get(),TEXT("ImperialPhysicsSmoke"));
     bAngleSmoke=FParse::Param(FCommandLine::Get(),TEXT("ImperialAngleSmoke"));
+    // Shipping ignores the engine's developer-only -FPS override. Configure only
+    // these explicit non-USB verification scenarios, then report actual Tick dt.
+    double FixtureFPS=0;
+    if((bSmoke||bAngleSmoke)&&FParse::Param(FCommandLine::Get(),TEXT("UseFixedTimeStep"))&&FParse::Value(FCommandLine::Get(),TEXT("FPS="),FixtureFPS)&&FixtureFPS>=20&&FixtureFPS<=240)
+    {FApp::SetFixedDeltaTime(1./FixtureFPS);FApp::SetUseFixedTimeStep(true);}
     bDemo=FParse::Param(FCommandLine::Get(),TEXT("ImperialDemo"));
     FParse::Value(FCommandLine::Get(),TEXT("ImperialCapture="),CaptureFile);
     FParse::Value(FCommandLine::Get(),TEXT("ImperialCaptureTime="),CaptureAt);
@@ -79,6 +89,7 @@ void AImperialMatchManager::BeginPlay()
 }
 void AImperialMatchManager::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+    if(IsRecordingFlight()){RecordFlightSample(TEXT("stop"));FlightLogPath.Empty();}
     AdvanceGuidanceCommand();
     Super::EndPlay(EndPlayReason);
 }
@@ -164,6 +175,7 @@ void AImperialMatchManager::ChangeView(int32 View){CameraView=FMath::Clamp(View,
 void AImperialMatchManager::Tick(float Dt)
 {
     Super::Tick(Dt);Elapsed+=Dt;SmoothFPS=FMath::Lerp(SmoothFPS,1.f/FMath::Max(.001f,Dt),.04f);
+    if((bSmoke||bAngleSmoke)&&Elapsed>.2){SmokeMinDt=FMath::Min(SmokeMinDt,Dt);SmokeMaxDt=FMath::Max(SmokeMaxDt,Dt);}
     for(int32 I=0;I<Drones.Num();++I){TArray<FVector> Sources;TArray<float> Thrusts;for(int32 J=0;J<Drones.Num();++J)if(J!=I&&Drones[J]->IsArmed()){Sources.Add(Drones[J]->GetActorLocation()/100.);Thrusts.Add(Drones[J]->GetTotalThrustNewtons());}Drones[I]->SetWakeSources(Sources,Thrusts);}
     ClosestSeparation=1000;Conflicts=0;
     for(int32 I=0;I<Drones.Num();++I)for(int32 J=I+1;J<Drones.Num();++J){float D=FVector::Distance(Drones[I]->GetActorLocation(),Drones[J]->GetActorLocation())/100.f;ClosestSeparation=FMath::Min(ClosestSeparation,D);if(D<.9f)++Conflicts;}
@@ -183,6 +195,7 @@ void AImperialMatchManager::Tick(float Dt)
     if(bConnected&&WallNow-LastResponse>2){bConnected=false;if(Mode==EImperialMode::Mission||Mode==EImperialMode::Returning)HoldFleet();Log(TEXT("SDACS timeout. Local hold; reconnect does not resume mission or return."));}
     UpdateScoring();if(bSmoke&&!bSmokeDone)SmokeTick();
     if(bAngleSmoke&&!bSmokeDone)AngleSmokeTick();
+    if(IsRecordingFlight()&&WallNow-LastFlightRecord>=.05){RecordFlightSample(TEXT("sample"));LastFlightRecord=WallNow;}
     if(!CaptureFile.IsEmpty()&&Elapsed>CaptureAt&&!bCaptureRequested){bCaptureRequested=true;FScreenshotRequest::RequestScreenshot(CaptureFile,true,false);}
     if(bCaptureRequested&&Elapsed>CaptureAt+1&&FPaths::FileExists(CaptureFile))FPlatformMisc::RequestExit(false);
     if(FParse::Param(FCommandLine::Get(),TEXT("ImperialProfile"))&&Elapsed>3&&!bProfileWritten)
@@ -194,7 +207,7 @@ void AImperialMatchManager::Tick(float Dt)
             FVector2D Size(0,0);if(auto* V=GetWorld()->GetGameViewport())V->GetViewportSize(Size);
             FString Profile=FString::Printf(TEXT("{\"samples\":%d,\"average_frame_ms\":%.3f,\"p95_frame_ms\":%.3f,\"average_fps\":%.2f,\"res_x\":%.0f,\"res_y\":%.0f,\"note\":\"rendered game frame pacing; not USB input latency\"}\n"),FrameTimes.Num(),Total/FrameTimes.Num(),FrameTimes[FMath::Min(FrameTimes.Num()-1,FMath::FloorToInt(FrameTimes.Num()*.95))],1000.*FrameTimes.Num()/Total,Size.X,Size.Y);
             AttachVerificationIdentity(Profile);
-            FFileHelper::SaveStringToFile(Profile,*FPaths::Combine(FPaths::ProjectSavedDir(),TEXT("render-profile.json")));bProfileWritten=true;
+            FFileHelper::SaveStringToFile(Profile,*FPaths::Combine(ImperialUserData::Directory(),TEXT("render-profile.json")));bProfileWritten=true;
         }
     }
 }
@@ -249,7 +262,7 @@ void AImperialMatchManager::UpdateScoring()
 }
 bool AImperialMatchManager::ExportTelemetry()
 {
-    FString Dir=FPaths::Combine(FPaths::ProjectSavedDir(),TEXT("Reports"));IFileManager::Get().MakeDirectory(*Dir,true);
+    FString Dir=FPaths::Combine(ImperialUserData::Directory(),TEXT("Reports"));IFileManager::Get().MakeDirectory(*Dir,true);
     FString File=FPaths::Combine(Dir,FDateTime::Now().ToString(TEXT("%Y%m%d-%H%M%S"))+FString::Printf(TEXT("-%llu-fleet.csv"),FPlatformTime::Cycles64()));
     auto* Radio=GetWorld()->GetGameInstance()->GetSubsystem<UImperialRadioSubsystem>();
     const auto* Device=Radio?Radio->GetSelectedDevice():nullptr;
@@ -257,6 +270,7 @@ bool AImperialMatchManager::ExportTelemetry()
     auto* Arena=Cast<APrototypeArenaBuilder>(UGameplayStatics::GetActorOfClass(GetWorld(),APrototypeArenaBuilder::StaticClass()));
     auto* Pilot=Cast<AImperialPlayerController>(UGameplayStatics::GetPlayerController(this,0));
     const FVector Station=Pilot?Pilot->GetPilotStationPosition()/100.:FVector::ZeroVector;
+    auto* Visuals=Cast<AImperialPresentationEffects>(UGameplayStatics::GetActorOfClass(GetWorld(),AImperialPresentationEffects::StaticClass()));
     const auto N=[](double Value){return FString::Printf(TEXT("%.6f"),Value);};
     const auto B=[](bool Value){return Value?TEXT("1"):TEXT("0");};
     FString CSV=TEXT("id,team,armed,autonomous,x_m,y_m,z_m,speed_mps,throttle,mode,sdacs_connected,input_source,selected,camera_view,radio_connected,radio_calibrated,radio_enabled,battery_soc,battery_v,net_deflection_m,radio_setup_phase,radio_setup_channel,radio_setup_samples,radio_device_id,build_version,build_commit,build_source_sha256,build_utc,guidance_session,guidance_command,flight_mode,tilt_deg,roll_deg,pitch_deg,yaw_deg,angle_limit_deg,role,home_x_m,home_y_m,pad_x_m,pad_y_m,pilot_x_m,pilot_y_m\n");
@@ -273,9 +287,46 @@ bool AImperialMatchManager::ExportTelemetry()
             ImperialBuildInfo::Version(),ImperialBuildInfo::Commit(),ImperialBuildInfo::SourceHash(),ImperialBuildInfo::BuiltAt(),GuidanceSession,FString::Printf(TEXT("%llu"),static_cast<uint64>(GuidanceWindow.Command())),
             D->GetFlightModeName(),N(D->GetTiltDegrees()),N(Rotation.Roll),N(Rotation.Pitch),N(Rotation.Yaw),N(D->GetAngleLimitDegrees()),ImperialSoccerLayout::RoleName(D->GetPlayerRole()),
             N(Homes[I].X/100.),N(Homes[I].Y/100.),N(Pad.X),N(Pad.Y),N(Station.X),N(Station.Y)};
-        CSV+=FString::Join(Row,TEXT(","))+TEXT("\n");
+        const auto* HUD=Pilot?Cast<AImperialHUD>(Pilot->GetHUD()):nullptr;
+        if(I==0)CSV.ReplaceInline(TEXT("pilot_y_m\n"),TEXT("pilot_y_m,visual_quality,dust_capacity,radio_panel_open,flight_recording,radio_roll,radio_pitch,radio_yaw,radio_throttle\n"));
+        CSV+=FString::Join(Row,TEXT(","))+FString::Printf(TEXT(",%s,%d,%d,%d,%.6f,%.6f,%.6f,%.6f\n"),Visuals?*Visuals->GetQualityName():TEXT("Unavailable"),Visuals?Visuals->GetDustCapacity():0,
+            HUD&&HUD->IsRadioPanelOpen()?1:0,IsRecordingFlight()?1:0,Radio?Radio->GetNormalizedRoll():0.f,Radio?Radio->GetNormalizedPitch():0.f,Radio?Radio->GetNormalizedYaw():0.f,Radio?Radio->GetThrottle():0.f);
     }
     bool Ok=FFileHelper::SaveStringToFile(CSV,*File,FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);Log(Ok?TEXT("Telemetry CSV exported to Saved/Reports."):TEXT("Telemetry export failed."));return Ok;
+}
+void AImperialMatchManager::ToggleFlightRecording()
+{
+    if(IsRecordingFlight()){RecordFlightSample(TEXT("stop"));FlightLogPath.Empty();Log(TEXT("Flight recording saved in Saved/FlightLogs."));return;}
+    const FString Directory=FPaths::Combine(ImperialUserData::Directory(),TEXT("FlightLogs"));
+    IFileManager::Get().MakeDirectory(*Directory,true);
+    FlightLogPath=FPaths::Combine(Directory,FDateTime::UtcNow().ToString(TEXT("%Y%m%d-%H%M%S"))+TEXT("-")+FGuid::NewGuid().ToString(EGuidFormats::Digits)+TEXT(".jsonl"));
+    LastFlightRecord=0;RecordFlightSample(TEXT("start"));Log(TEXT("Recording actual controls and physics. F6 stops recording."));
+}
+void AImperialMatchManager::RecordFlightSample(const FString& Event)
+{
+    if(FlightLogPath.IsEmpty())return;
+    auto Root=MakeShared<FJsonObject>();Root->SetStringField(TEXT("event"),Event);
+    Root->SetStringField(TEXT("utc"),FDateTime::UtcNow().ToIso8601());Root->SetNumberField(TEXT("wall_s"),FPlatformTime::Seconds());
+    Root->SetNumberField(TEXT("game_s"),Elapsed);Root->SetNumberField(TEXT("selected"),Selected);
+    Root->SetStringField(TEXT("source_sha256"),ImperialBuildInfo::SourceHash());
+    auto* Radio=GetWorld()->GetGameInstance()->GetSubsystem<UImperialRadioSubsystem>();
+    Root->SetBoolField(TEXT("radio_connected"),Radio&&Radio->IsConnected());Root->SetBoolField(TEXT("radio_enabled"),Radio&&Radio->IsEnabled());
+    if(Radio){Root->SetArrayField(TEXT("stick"),{MakeShared<FJsonValueNumber>(Radio->GetNormalizedRoll()),MakeShared<FJsonValueNumber>(Radio->GetNormalizedPitch()),MakeShared<FJsonValueNumber>(Radio->GetNormalizedYaw()),MakeShared<FJsonValueNumber>(Radio->GetThrottle())});}
+    TArray<TSharedPtr<FJsonValue>> Rows;
+    for(int32 I=0;I<Drones.Num();++I)
+    {
+        auto* D=Drones[I].Get();auto Row=MakeShared<FJsonObject>();
+        Row->SetNumberField(TEXT("id"),I);Row->SetBoolField(TEXT("armed"),D->IsArmed());Row->SetBoolField(TEXT("autonomous"),D->IsAutonomousEnabled());
+        Row->SetStringField(TEXT("input_source"),D->GetInputSource());Row->SetStringField(TEXT("flight_mode"),D->GetFlightModeName());
+        Row->SetArrayField(TEXT("position_m"),JsonVector(D->GetActorLocation()/100.));Row->SetNumberField(TEXT("speed_mps"),D->GetFlightSpeed());
+        Row->SetNumberField(TEXT("throttle"),D->GetThrottle());Row->SetNumberField(TEXT("tilt_deg"),D->GetTiltDegrees());
+        const auto Rotation=D->GetBodyMesh()->GetComponentRotation();Row->SetArrayField(TEXT("rotation_deg"),JsonVector(FVector(Rotation.Roll,Rotation.Pitch,Rotation.Yaw)));
+        Rows.Add(MakeShared<FJsonValueObject>(Row));
+    }
+    Root->SetArrayField(TEXT("aircraft"),Rows);FString Text;FJsonSerializer::Serialize(Root,TJsonWriterFactory<TCHAR,TCondensedJsonPrintPolicy<TCHAR>>::Create(&Text));
+    Text+=TEXT("\n");
+    if(!FFileHelper::SaveStringToFile(Text,*FlightLogPath,FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM,&IFileManager::Get(),FILEWRITE_Append))
+    {FlightLogPath.Empty();Log(TEXT("Flight recording stopped: could not write to Saved/FlightLogs."));}
 }
 void AImperialMatchManager::AngleSmokeTick()
 {
@@ -321,8 +372,8 @@ void AImperialMatchManager::AngleSmokeTick()
         Result->SetNumberField(TEXT("stick_tilt_peak_deg"),AngleInputPeak);Result->SetNumberField(TEXT("overall_tilt_peak_deg"),AnglePeak);
         Result->SetNumberField(TEXT("released_worst_tilt_deg"),AngleReleaseWorst);Result->SetBoolField(TEXT("released_self_level"),bAngleReleasedLevel);
         Result->SetStringField(TEXT("input_source"),TEXT("explicit non-USB verification fixture; vertical compensation isolates angle control"));
-        FString Text;FJsonSerializer::Serialize(Result,TJsonWriterFactory<>::Create(&Text));AttachVerificationIdentity(Text);
-        FFileHelper::SaveStringToFile(Text,*(SmokeResultFile.IsEmpty()?FPaths::Combine(FPaths::ProjectSavedDir(),TEXT("angle-smoke.json")):SmokeResultFile));
+        FString Text;FJsonSerializer::Serialize(Result,TJsonWriterFactory<>::Create(&Text));AttachVerificationIdentity(Text,SmokeMinDt,SmokeMaxDt);
+        FFileHelper::SaveStringToFile(Text,*(SmokeResultFile.IsEmpty()?FPaths::Combine(ImperialUserData::Directory(),TEXT("angle-smoke.json")):SmokeResultFile));
         ExportTelemetry();bSmokeDone=true;UE_LOG(LogTemp,Display,TEXT("IMPERIAL_ANGLE_SMOKE %s"),*Text);
         FPlatformMisc::RequestExitWithStatus(false,Valid?0:1);
     }
@@ -364,7 +415,7 @@ void AImperialMatchManager::SmokeTick()
     bSmokeGoal=SmokePhase==5&&Rules.Score(0)==1&&Rules.Score(1)==0&&Rules.IsOffside(0)&&D->GetActorLocation().X>678;
     const bool CSV=ExportTelemetry();const bool Valid=SmokePhase==5&&bSmokeFloorWall&&bSmokeNet&&bSmokeGoal&&Drones.Num()==10&&CSV;
     FString Result=FString::Printf(TEXT("{\"ok\":%s,\"drones\":%d,\"hover_error_cm\":%.3f,\"hover_max_z_cm\":%.3f,\"hover_min_z_cm\":%.3f,\"floor_wall_contact\":%s,\"net_contact\":%s,\"net_peak_m\":%.5f,\"net_visible_peak_m\":%.5f,\"net_rebound_mps\":%.4f,\"striker_physical_goal\":%s,\"blue_score\":%d,\"csv_export\":%s}\n"),Valid?TEXT("true"):TEXT("false"),Drones.Num(),SmokeHoverError,SmokeMaxHeight,SmokeMinHeight,bSmokeFloorWall?TEXT("true"):TEXT("false"),bSmokeNet?TEXT("true"):TEXT("false"),SmokeNetPeak,SmokeNetVisualPeak,SmokeNetRebound/100,bSmokeGoal?TEXT("true"):TEXT("false"),Rules.Score(0),CSV?TEXT("true"):TEXT("false"));
-    AttachVerificationIdentity(Result);
-    FFileHelper::SaveStringToFile(Result,*(SmokeResultFile.IsEmpty()?FPaths::Combine(FPaths::ProjectSavedDir(),TEXT("physics-smoke.json")):SmokeResultFile));
+    AttachVerificationIdentity(Result,SmokeMinDt,SmokeMaxDt);
+    FFileHelper::SaveStringToFile(Result,*(SmokeResultFile.IsEmpty()?FPaths::Combine(ImperialUserData::Directory(),TEXT("physics-smoke.json")):SmokeResultFile));
     UE_LOG(LogTemp,Display,TEXT("IMPERIAL_PHYSICS_SMOKE_%s %s"),Valid?TEXT("PASS"):TEXT("FAIL"),*Result);FPlatformMisc::RequestExitWithStatus(false,Valid?0:1);
 }

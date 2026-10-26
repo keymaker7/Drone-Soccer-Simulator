@@ -1,4 +1,4 @@
-param([string]$ProjectRoot=(Split-Path -Parent $PSScriptRoot))
+﻿param([string]$ProjectRoot=(Split-Path -Parent $PSScriptRoot))
 $ErrorActionPreference='Stop'
 $sourceRoot=[IO.Path]::GetFullPath($ProjectRoot)
 if(-not(Test-Path -LiteralPath (Join-Path $sourceRoot 'ImperialWingsSimulator.uproject'))){throw '프로젝트 폴더에서 실행해 주세요.'}
@@ -10,7 +10,7 @@ foreach($folder in @('Source','Config','Content','ArtSource','Bridge','Scripts')
     if(Test-Path -LiteralPath $basePath){
         foreach($file in Get-ChildItem -LiteralPath $basePath -File -Recurse){
             if($extensions -contains $file.Extension.ToLowerInvariant()){
-                $relativePaths.Add([IO.Path]::GetRelativePath($sourceRoot,$file.FullName).Replace('\','/'))
+                $relativePaths.Add($file.FullName.Substring($sourceRoot.TrimEnd('\').Length+1).Replace('\','/'))
             }
         }
     }
@@ -26,10 +26,10 @@ try{
     foreach($relative in $ordered){
         $absolute=Join-Path $sourceRoot $relative
         $bytes=if([IO.Path]::GetExtension($relative).ToLowerInvariant() -in $binary){[IO.File]::ReadAllBytes($absolute)}else{[Text.Encoding]::UTF8.GetBytes([IO.File]::ReadAllText($absolute).Replace("`r`n","`n"))}
-        $digest=[Convert]::ToHexString($sha.ComputeHash([byte[]]$bytes)).ToLowerInvariant()
+        $digest=[BitConverter]::ToString($sha.ComputeHash([byte[]]$bytes)).Replace('-','').ToLowerInvariant()
         [void]$manifest.Append($relative).Append([char]0).Append($digest).Append("`n")
     }
-    $fingerprint=[Convert]::ToHexString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($manifest.ToString()))).ToLowerInvariant()
+    $fingerprint=[BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($manifest.ToString()))).Replace('-','').ToLowerInvariant()
 }finally{$sha.Dispose()}
 $commit='unknown';$dirty=$false
 if(Get-Command git -ErrorAction SilentlyContinue){

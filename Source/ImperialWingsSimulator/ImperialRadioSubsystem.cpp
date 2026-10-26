@@ -1,4 +1,6 @@
 #include "ImperialRadioSubsystem.h"
+#include "ImperialUserData.h"
+#include "ImperialBuildInfo.h"
 
 #include "Dom/JsonObject.h"
 #include "Engine/GameInstance.h"
@@ -7,6 +9,8 @@
 #include "HAL/PlatformTime.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 #include "Serialization/JsonWriter.h"
@@ -111,6 +115,34 @@ TStatId UImperialRadioSubsystem::GetStatId() const
 
 void UImperialRadioSubsystem::Tick(float DeltaTime)
 {
+    if(!bStorageSmokeDone&&FParse::Param(FCommandLine::Get(),TEXT("ImperialStorageSmoke")))
+    {
+        bStorageSmokeDone=true;
+        // Explicit disk/HID integration check. Never creates calibration values or arms a body.
+        const bool ColdKeyboard=!IsEnabled()&&SelectedId==INDEX_NONE;
+        const bool ExpectedSaved=FParse::Param(FCommandLine::Get(),TEXT("ImperialStorageExpectSaved"));
+        const bool SavedBefore=HasSavedProfiles();
+        const bool Activated=EnableSavedRadio();
+        const bool GenuineRoundTrip=ExpectedSaved&&Activated&&IsCalibrated()&&WriteProfile()&&LoadProfile()&&IsCalibrated()&&!IsEnabled();
+        DisableRadio();
+        const bool ReportSaved=ExportDeviceReport();
+        auto Result=MakeShared<FJsonObject>();
+        Result->SetStringField(TEXT("source_sha256"),ImperialBuildInfo::SourceHash());
+        Result->SetStringField(TEXT("data_directory"),ImperialUserData::Directory());
+        Result->SetStringField(TEXT("profile_path"),ProfilePath());
+        Result->SetNumberField(TEXT("actual_device_count"),Devices.Num());
+        Result->SetBoolField(TEXT("cold_start_keyboard"),ColdKeyboard);
+        Result->SetBoolField(TEXT("saved_profiles_found"),SavedBefore);
+        Result->SetBoolField(TEXT("saved_profile_activated"),Activated);
+        Result->SetBoolField(TEXT("genuine_profile_round_trip"),GenuineRoundTrip);
+        Result->SetBoolField(TEXT("diagnostic_saved"),ReportSaved);
+        Result->SetBoolField(TEXT("ended_disabled"),!IsEnabled());
+        Result->SetBoolField(TEXT("ok"),ColdKeyboard&&ReportSaved&&!IsEnabled()&&(ExpectedSaved?GenuineRoundTrip:!SavedBefore&&!Activated));
+        FString Path=ImperialUserData::Path(TEXT("storage-smoke.json"));FParse::Value(FCommandLine::Get(),TEXT("ImperialStorageResult="),Path);
+        FString Json;FJsonSerializer::Serialize(Result,TJsonWriterFactory<>::Create(&Json));
+        FFileHelper::SaveStringToFile(Json,*Path,FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);
+        FPlatformMisc::RequestExit(false);return;
+    }
     const double Now = FPlatformTime::Seconds();
     // A long paused/stalled game frame may recover with a successful poll. It still
     // invalidates the previous enable command, so reconnect never resumes throttle.
@@ -523,6 +555,24 @@ bool UImperialRadioSubsystem::EnableRadio()
     Status = TEXT("USB input enabled. Aircraft remains disarmed until the pilot explicitly arms at low throttle.");
     return true;
 }
+bool UImperialRadioSubsystem::EnableSavedRadio()
+{
+    bEnabled=false;
+    if(Guided.Active()||bCalibrationActive){Status=TEXT("Finish or cancel calibration before connecting saved radio.");return false;}
+    RefreshDevices();
+    TSharedPtr<FJsonObject> Root;
+    const TSharedPtr<FJsonObject>* Profiles=nullptr;
+    if(!ReadJsonFile(ProfilePath(),Root)||!Root->TryGetObjectField(TEXT("profiles"),Profiles)||!Profiles||!Profiles->IsValid())
+    {Status=TEXT("No saved radio profile. Open C / RADIO to select and calibrate the device.");return false;}
+    TArray<int32> Matches;
+    for(const auto& Device:Devices)
+    {
+        const TSharedPtr<FJsonObject>* Entry=nullptr;bool Confirmed=false;
+        if((*Profiles)->TryGetObjectField(Device.Identity,Entry)&&Entry&&Entry->IsValid()&&(*Entry)->TryGetBoolField(TEXT("confirmed"),Confirmed)&&Confirmed)Matches.Add(Device.Id);
+    }
+    if(Matches.Num()!=1){Status=TEXT("Select the connected radio explicitly in C / RADIO; no unique saved device found.");return false;}
+    return SelectDevice(Matches[0])&&IsCalibrated()&&EnableRadio();
+}
 
 void UImperialRadioSubsystem::DisableRadio()
 {
@@ -532,7 +582,44 @@ void UImperialRadioSubsystem::DisableRadio()
 
 FString UImperialRadioSubsystem::ProfilePath() const
 {
-    return FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("Config/RadioProfile.json"));
+    return FPaths::Combine(ImperialUserData::Directory(), TEXT("Config/RadioProfile.json"));
+}
+
+bool UImperialRadioSubsystem::HasSavedProfiles() const
+{
+    TSharedPtr<FJsonObject> Root;double Version=0;
+    const TSharedPtr<FJsonObject>* Profiles=nullptr;
+    return ReadJsonFile(ProfilePath(),Root)&&ReadFinite(Root,TEXT("version"),Version)&&Version==1.0&&
+        Root->TryGetObjectField(TEXT("profiles"),Profiles)&&Profiles&&Profiles->IsValid()&&!(*Profiles)->Values.IsEmpty();
+}
+
+bool UImperialRadioSubsystem::ExportDeviceReport()
+{
+    RefreshDevices();
+    auto Root=MakeShared<FJsonObject>();
+    Root->SetStringField(TEXT("utc"),FDateTime::UtcNow().ToIso8601());
+    Root->SetStringField(TEXT("build"),ImperialBuildInfo::Label());
+    Root->SetStringField(TEXT("source_sha256"),ImperialBuildInfo::SourceHash());
+    Root->SetStringField(TEXT("input_api"),TEXT("Windows WinMM joyGetPosEx"));
+    Root->SetStringField(TEXT("profile_path"),ProfilePath());
+    Root->SetBoolField(TEXT("connected"),IsConnected());Root->SetBoolField(TEXT("calibrated"),IsCalibrated());Root->SetBoolField(TEXT("enabled"),IsEnabled());
+    TArray<TSharedPtr<FJsonValue>> Entries;
+    for(const auto& Device:Devices)
+    {
+        auto Entry=MakeShared<FJsonObject>();
+        Entry->SetNumberField(TEXT("slot"),Device.Id);Entry->SetStringField(TEXT("name"),Device.Name);
+        Entry->SetStringField(TEXT("driver_id"),FString::Printf(TEXT("%04X:%04X"),Device.ManufacturerId,Device.ProductId));
+        Entry->SetNumberField(TEXT("axes"),Device.AxisCount);Entry->SetNumberField(TEXT("buttons"),Device.ButtonCount);
+        Entry->SetBoolField(TEXT("selected"),Device.Id==SelectedId&&Device.Identity==SelectedIdentity);
+        Entries.Add(MakeShared<FJsonValueObject>(Entry));
+    }
+    Root->SetArrayField(TEXT("devices"),Entries);
+    const FString Dir=ImperialUserData::Path(TEXT("Diagnostics"));IFileManager::Get().MakeDirectory(*Dir,true);
+    const FString Path=FPaths::Combine(Dir,TEXT("radio-")+FDateTime::UtcNow().ToString(TEXT("%Y%m%d-%H%M%S"))+TEXT(".json"));
+    FString Json;FJsonSerializer::Serialize(Root,TJsonWriterFactory<>::Create(&Json));
+    const bool Saved=FFileHelper::SaveStringToFile(Json,*Path,FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);
+    Status=Saved?TEXT("Device report saved in your user-data Diagnostics folder. No calibration was changed."):TEXT("Cannot write user data. Check your Windows user folder permissions.");
+    return Saved;
 }
 
 bool UImperialRadioSubsystem::SaveProfile()
@@ -600,7 +687,7 @@ bool UImperialRadioSubsystem::WriteProfile()
     const FString TempPath = Path + TEXT(".tmp");
     const bool bSaved = FFileHelper::SaveStringToFile(Json, *TempPath, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM) &&
         IFileManager::Get().Move(*Path, *TempPath, true, true, false, true);
-    Status = bSaved ? TEXT("Device calibration saved. USB activation is never saved.") : TEXT("Could not save radio calibration to Saved/Config.");
+    Status = bSaved ? TEXT("Device calibration saved for this Windows user. USB activation is never saved.") : TEXT("Could not save calibration. Check your Windows user-data folder permissions.");
     return bSaved;
 }
 

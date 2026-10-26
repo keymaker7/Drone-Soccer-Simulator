@@ -51,6 +51,9 @@ public:
     bool IsEnabled() const;
     bool IsCalibrating() const { return bCalibrationActive || Guided.Active(); }
     FString GetStatus() const;
+    bool HasSavedProfiles() const;
+    FString GetProfilePath() const { return ProfilePath(); }
+    bool ExportDeviceReport();
     int32 GetMappedAxis(int32 Channel) const;
     bool IsInverted(int32 Channel) const;
     float GetDeadzone() const { return static_cast<float>(Calibration.Deadzone); }
@@ -82,6 +85,7 @@ public:
     bool SaveProfile();
     bool LoadProfile();
     bool EnableRadio();
+    bool EnableSavedRadio();
     void DisableRadio();
 
 private:
@@ -98,6 +102,7 @@ private:
     bool bEnabled = false;
     bool bCalibrationActive = false;
     bool bInitialized = false;
+    bool bStorageSmokeDone = false;
     double LastSampleTime = 0.0;
     double LastPollTime = 0.0;
     double LastEnumerationTime = 0.0;

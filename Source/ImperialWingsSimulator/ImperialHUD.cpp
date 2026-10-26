@@ -4,11 +4,13 @@
 #include "ImperialRadioSubsystem.h"
 #include "ImperialSoccerLayout.h"
 #include "ImperialBuildInfo.h"
+#include "ImperialPresentationEffects.h"
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
 #include "Engine/GameInstance.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 
@@ -86,6 +88,11 @@ void AImperialHUD::ToggleRadioPanel()
     if(bRadioPanelOpen)if(auto* Manager=FindMatch())Manager->ManualSelected();
     if(!bRadioPanelOpen)if(auto* Radio=GetRadio())Radio->CancelGuidedCalibration();
 }
+AImperialPresentationEffects* AImperialHUD::GetPresentation()
+{
+    if(!Presentation.IsValid())Presentation=Cast<AImperialPresentationEffects>(UGameplayStatics::GetActorOfClass(GetWorld(),AImperialPresentationEffects::StaticClass()));
+    return Presentation.Get();
+}
 
 void AImperialHUD::AdvanceRadioSetup()
 {
@@ -102,6 +109,12 @@ void AImperialHUD::AdvanceRadioSetup()
 void AImperialHUD::DrawHUD()
 {
     Super::DrawHUD();if(!Canvas)return;Bounds.Reset();ButtonTargets.Reset();ButtonPriority=10;
+    if(!bCheckedFirstRun)
+    {
+        bCheckedFirstRun=true;
+        if(auto* Radio=GetRadio();Radio&&(!Radio->HasSavedProfiles()||FParse::Param(FCommandLine::Get(),TEXT("ImperialSetupRadio")))&&!FParse::Param(FCommandLine::Get(),TEXT("ImperialNoWelcome")))
+            ToggleRadioPanel();
+    }
     if(FParse::Param(FCommandLine::Get(),TEXT("ImperialNoHUD")))return;
     Scale=FMath::Min(Canvas->SizeX/1600.f,Canvas->SizeY/1000.f);
     Origin=FVector2D((Canvas->SizeX-1600*Scale)*.5f,(Canvas->SizeY-1000*Scale)*.5f);
@@ -143,6 +156,7 @@ void AImperialHUD::DrawHUD()
     Text(M->IsConnected()?TEXT("SDACS / APF LINKED"):TEXT("SDACS / OFFLINE"),1259,68,17,M->IsConnected()?Green:Amber);
     const FString Commit=M->GetSourceCommit();
     Text(Commit.IsEmpty()?TEXT("LOCAL PHYSICS READY"):TEXT("SOURCE ")+Commit.Left(10),1241,97,10,Muted);
+    Button(TEXT("Exit"),TEXT("EXIT"),1488,91,70,25);
 
     float X=36;
     auto Action=[this,&X](FName Name,const FString& Label,float W,bool Active=false,bool Warning=false){Button(Name,Label,X,153,W,36,Active,Warning);X+=W+10;};
@@ -167,6 +181,16 @@ void AImperialHUD::DrawHUD()
     Button(TEXT("View3"),TEXT("3  ARENA"),203,472,69,33,M->GetView()==3);
     Text(TEXT("LOS: RMB HEAD LOOK / WHEEL ZOOM"),42,516,9,Muted);
     Text(TEXT("PHYSICS: EXPERIMENTAL / NOT CALIBRATED"),42,533,8,Amber);
+    if(auto* Visuals=GetPresentation())
+    {
+        Panel(24,564,260,152);Text(TEXT("GRAPHICS"),42,581,12,White);
+        const FString Quality=Visuals->GetQualityName();
+        Button(TEXT("VisualBalanced"),TEXT("BALANCED"),37,610,84,32,Quality==TEXT("Balanced"));
+        Button(TEXT("VisualHigh"),TEXT("HIGH"),129,610,62,32,Quality==TEXT("High"));
+        Button(TEXT("VisualCinematic"),TEXT("CINEMA"),199,610,73,32,Quality==TEXT("Cinematic"));
+        Text(TEXT("F8 CONNECT SAVED RADIO"),42,657,9,Muted);
+        Button(TEXT("FlightRecord"),M->IsRecordingFlight()?TEXT("F6 STOP RECORDING"):TEXT("F6 RECORD FLIGHT"),37,680,235,25,M->IsRecordingFlight());
+    }
 
     Text(TEXT("5 v 5  /  TEAM ROSTER"),1238,159,15,White);
     Text(TEXT("AIRCRAFT"),1254,194,10,Muted);Text(TEXT("CONTROL"),1356,194,10,Muted);Text(TEXT("ALT"),1556,194,10,Muted,true);
@@ -237,7 +261,9 @@ void AImperialHUD::DrawRadioPanel(AImperialMatchManager& Manager)
     const bool Guided=Radio->IsGuidedActive();
     Rect(350,205,7,7,Connected?Green:Amber);
     Text(Connected?TEXT("CONNECTED"):TEXT("DISCONNECTED"),369,199,13,Connected?Green:Amber);
-    Text(Fit(Device?Device->Name:TEXT("No USB joystick detected. Connect the radio in USB joystick mode."),16,650),348,224,16,White);
+    const FString DevicePrompt=Radio->GetDevices().IsEmpty()?TEXT("No joystick: connect USB DATA and select USB Joystick on the radio.")
+        :FString::Printf(TEXT("%d device(s) found. Click NEXT DEVICE to select your radio."),Radio->GetDevices().Num());
+    Text(Fit(Device?Device->Name:DevicePrompt,16,650),348,224,16,White);
     Text(Device?FString::Printf(TEXT("%d AXES  /  %d BUTTONS  /  DRIVER ID %04X:%04X"),Device->AxisCount,Device->ButtonCount,Device->ManufacturerId,Device->ProductId):TEXT("The device name shown here comes directly from Windows."),348,249,10,Muted);
     Button(TEXT("Radio_Refresh"),TEXT("REFRESH"),1032,205,106,34);
     Button(TEXT("Radio_Device"),TEXT("NEXT DEVICE"),1148,205,104,34);
@@ -363,7 +389,8 @@ void AImperialHUD::DrawRadioPanel(AImperialMatchManager& Manager)
     Button(TEXT("Radio_Save"),TEXT("SAVE PROFILE"),719,783,144,36);
     Button(TEXT("Radio_Load"),TEXT("LOAD PROFILE"),875,783,144,36);
     Text(Radio->IsEnabled()?TEXT("USB RADIO ACTIVE"):TEXT("KEYBOARD ACTIVE"),1252,797,11,Radio->IsEnabled()?Green:Muted,true);
-    Text(TEXT("Mapping or inversion changes require calibration again. The app always starts in keyboard mode."),348,844,11,Muted);
+    Text(Fit(TEXT("First use: NEXT DEVICE > STICK SETUP / MODE 2 > SAVE > ENABLE RADIO. Space arms after closing."),10,670),348,844,10,Muted);
+    Button(TEXT("Radio_Report"),TEXT("EXPORT DEVICE REPORT"),1032,835,220,28);
     ButtonPriority=10;
 }
 
@@ -371,6 +398,7 @@ void AImperialHUD::NotifyHitBoxClick(FName BoxName)
 {
     Super::NotifyHitBoxClick(BoxName);auto* M=FindMatch();if(!M)return;const FString N=BoxName.ToString();
     UE_LOG(LogTemp,Display,TEXT("IMPERIAL_UI_CLICK %s"),*N);
+    if(N==TEXT("Exit")){M->ResetMatch();UKismetSystemLibrary::QuitGame(this,PlayerOwner,EQuitPreference::Quit,false);return;}
     if(N==TEXT("RadioOpen")){ToggleRadioPanel();return;}
     if(bRadioPanelOpen)
     {
@@ -394,11 +422,16 @@ void AImperialHUD::NotifyHitBoxClick(FName BoxName)
         else if(N==TEXT("Radio_Finish"))R->FinishCalibration();
         else if(N==TEXT("Radio_Save"))R->SaveProfile();
         else if(N==TEXT("Radio_Load"))R->LoadProfile();
+        else if(N==TEXT("Radio_Report"))R->ExportDeviceReport();
         else if(N==TEXT("Radio_Enable")){M->ManualSelected();R->EnableRadio();}
         else if(N==TEXT("Radio_Keyboard")){R->DisableRadio();M->ManualSelected();}
         return;
     }
     if(N.StartsWith(TEXT("Drone_")))M->SelectDrone(FCString::Atoi(*N.RightChop(6)));
+    else if(N==TEXT("FlightRecord"))M->ToggleFlightRecording();
+    else if(N==TEXT("VisualBalanced")){if(auto* V=GetPresentation())V->SetVisualQuality(TEXT("Balanced"));}
+    else if(N==TEXT("VisualHigh")){if(auto* V=GetPresentation())V->SetVisualQuality(TEXT("High"));}
+    else if(N==TEXT("VisualCinematic")){if(auto* V=GetPresentation())V->SetVisualQuality(TEXT("Cinematic"));}
     else if(N==TEXT("Auto"))M->LaunchSwarm();else if(N==TEXT("Hold"))M->HoldFleet();
     else if(N==TEXT("Return"))M->ReturnFleet();else if(N==TEXT("Manual"))M->ManualSelected();
     else if(N==TEXT("Reset"))M->ResetMatch();else if(N==TEXT("Export"))M->ExportTelemetry();
