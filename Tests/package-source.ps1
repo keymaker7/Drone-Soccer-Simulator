@@ -61,7 +61,7 @@ while ($pending.Count -gt 0) {
         }
         if ($excludedExtensions -contains $item.Extension) { continue }
         if (($item.Name -eq '.env' -or $item.Name -like '.env.*') -and $item.Name -ne '.env.example') { continue }
-        if ($item.Name -in @('credentials.json','id_rsa','id_ed25519')) { continue }
+        if ($item.Name -in @('credentials.json','id_rsa','id_ed25519','SimulatorEnvironment.local.json')) { continue }
         if ($directory -eq $sourceRoot -and $rootExtensions -notcontains $item.Extension -and $rootSpecialNames -notcontains $item.Name) { continue }
         if ($textExtensions -contains $item.Extension) {
             $text = [IO.File]::ReadAllText($absolute)

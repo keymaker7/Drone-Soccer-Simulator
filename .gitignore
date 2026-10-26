@@ -17,6 +17,7 @@ Saved/
 Content/Developers/
 dist/
 .venv/
+SimulatorEnvironment.local.json
 Tests/build/
 Tests/build-rules/
 Tests/build-radio/

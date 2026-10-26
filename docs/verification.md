@@ -133,3 +133,33 @@ Windows PnP의 상위 장치까지 확인했다. `0416:8258`은 **Archon M1 PRO 
 - 먼지 풀 시험은 명시적 가상 충격으로 시각 수명/상한을 검사한다. 실제 접촉 외형의 정밀도·실기체 먼지·실측 손상 검증을 뜻하지 않는다.
 - 실제 USB비행, 전체 화면 조작, 지속 GPU 성능 비교는 이번에 재검사하지 않았다. 기존 30/120Hz·UI 수치를 이번 변경의 새 검증으로 재사용하지 않는다. 모터 고장·보호구 실제 파괴·역할 승계 구현은 별도 작업이다.
 - 새 패키지1920×1080 렌더도15초 예열 후 확인했다: `Saved/Verification/presentation-packaged-warm.png`. 초기6초 캡처에는 HUD 일부 글리프가 미완성으로 보였고15초에는 정상 표시됐다. 초기 글꼴/렌더 예열 문제는 추가 확인 대상으로 남기며 전체 UI 시험 통과로 대신하지 않는다.
+
+## 스트라이커 중앙 배치·양쪽 하단 띠 — 2026-10-26
+
+사용자 요청을 적용했다. 양 팀 Striker는 자기 시작선 정중앙(x=±6.5m,y=0)이다. 조종자 기준 왼쪽부터 Libero/Guide/Striker/Sweeper/Keeper,간격1.25m다. 공유 배치 함수로 기체·홈·바닥 패드·LOS 위치를 동기화했다.
+
+양 팀 Striker 초록/Guide 분홍 하단 띠를 좌우 각각2개,기체당4개 추가했다. 기존 역할LED·팀LED·S/G태그와 별개이며 비충돌 메시다. 흔들림은 시각 근사이며 cloth·파손·탈락·득점 자격 연동은 구현하지 않았다.
+
+- 에디터 C++ 빌드 성공: `Saved/role-layout-editor-build.log`.
+- 실제10대 패드·초기화·LOS 위치·중앙 Striker·띠 개수 검사 ok=true: `Saved/Verification/center-striker-ribbons.json`.
+- 60Hz 실제 물리 시나리오 통과: `Saved/Verification/runtime-20261026-124018-448/results.json`,호버 오차0.341cm,바닥/벽·네트·실제 득점 통과.
+- 실제1920×1080 근접 렌더 확인: `Saved/Verification/lower-role-ribbons.png`.
+- 별도 Windows build/cook/stage/package/archive 성공: `Saved/role-layout-package-console.log`,ExitCode0.
+- 새 패키지의10대 배치·초기화·LOS·띠 검사 통과: `Saved/Verification/role-layout-20261026-124413-578/result.json`.
+- 실행 파일은 `dist/RoleLayoutUpgrade/Windows/ImperialWingsSimulator.exe`. 기존 실행 중인 게임을 종료하거나 교체하지 않았다. 실제 USB 비행·전체 UI·새 배치의 자율10대귀환은 이번에 재검사하지 않았다.
+- `Tests/imperial-ui-smoke.ps1`의 기존 선형 역할 순서 기대값은 새 중앙 배치로 수정했다. 이 수정 자체를 전체 화면 검사 통과로 기록하지 않는다.
+
+## 2026-10-26 오늘 최종 Windows 통합 빌드
+
+현재 구현을 합친 v0.5.0을 `Scripts/Build.ps1 -Package`로 새로 build/cook/stage/package/archive했다. 미래 계획 전체의 구현 완료를 뜻하지 않는다.
+
+- 실행 파일: `dist/Integrated/Windows/ImperialWingsSimulator.exe`.
+- 바탕화면: `C:/Users/User/Desktop/Imperial Wings 2026-10-26.lnk`. 별도 서버를 시작하지 않는 직접 실행 바로가기다.
+- 소스와 패키지 빌드 입력SHA-256 일치: `d5f05e26ebc0df6bdfdff5d4206802bfa376264ba9c3f0b4253203179ba31e10`.
+- 빌드 ExitCode0 및 bootstrap 실행 ExitCode0,1920×1080 GPU 화면 확인: `Saved/Verification/final-build-20261026-124755-754`의 build-console.log/final-render.log/final-windows.png/final-summary.json.
+- 새 패키지30/60/120Hz 실제 물리 검사 전부 통과: `Saved/Verification/runtime-20261026-124923-369/results.json`.
+- 새 패키지10대 실제 패드/초기화/LOS/하단 띠 검사 통과: `Saved/Verification/role-layout-20261026-124923-365/result.json`.
+- 새 패키지Balanced/High/Cinematic 효과 검사 통과: `Saved/Verification/presentation-20261026-124929-465`.
+- 기존 실제RadioProfile을 새 패키지Saved/Config에 복사했다. 기존 파일은 덮어쓰지 않았고 새 보정 데이터나 USB 자동 활성화를 만들지 않았다.
+- 자율훈련 브리지 백그라운드 시작 명령은 자동 승인 검토에서 blocked by policy로 거부됐다. 추가 사유는 제공되지 않았으며 다른 명령으로 재시도하지 않았다. 따라서 이번 최종 빌드는 자율 연결이나 실제 USB비행 검증 결과를 포함하지 않는다.
+- 모터 고장·실제 파괴·하단 띠 탈락 득점 판정·공격수 승계는 여전히 후속 구현이다. 프로젝트 전체 계획의 완료나 GitHub 최종 반영으로 보고하지 않는다.

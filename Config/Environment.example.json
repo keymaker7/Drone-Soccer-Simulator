@@ -1,0 +1,7 @@
+{
+  "engine_root": "",
+  "python_exe": "",
+  "sdacs_root": "../swarm-drone-atc",
+  "package_root": "dist/Integrated/Windows",
+  "bridge_port": 8767
+}

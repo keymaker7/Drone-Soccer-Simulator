@@ -4,6 +4,7 @@
 #include "ImperialRadioSubsystem.h"
 #include "ImperialSoccerLayout.h"
 #include "ImperialBuildInfo.h"
+#include "ImperialPresentationEffects.h"
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
 #include "Engine/GameInstance.h"
@@ -86,6 +87,11 @@ void AImperialHUD::ToggleRadioPanel()
     if(bRadioPanelOpen)if(auto* Manager=FindMatch())Manager->ManualSelected();
     if(!bRadioPanelOpen)if(auto* Radio=GetRadio())Radio->CancelGuidedCalibration();
 }
+AImperialPresentationEffects* AImperialHUD::GetPresentation()
+{
+    if(!Presentation.IsValid())Presentation=Cast<AImperialPresentationEffects>(UGameplayStatics::GetActorOfClass(GetWorld(),AImperialPresentationEffects::StaticClass()));
+    return Presentation.Get();
+}
 
 void AImperialHUD::AdvanceRadioSetup()
 {
@@ -167,6 +173,15 @@ void AImperialHUD::DrawHUD()
     Button(TEXT("View3"),TEXT("3  ARENA"),203,472,69,33,M->GetView()==3);
     Text(TEXT("LOS: RMB HEAD LOOK / WHEEL ZOOM"),42,516,9,Muted);
     Text(TEXT("PHYSICS: EXPERIMENTAL / NOT CALIBRATED"),42,533,8,Amber);
+    if(auto* Visuals=GetPresentation())
+    {
+        Panel(24,564,260,126);Text(TEXT("GRAPHICS"),42,581,12,White);
+        const FString Quality=Visuals->GetQualityName();
+        Button(TEXT("VisualBalanced"),TEXT("BALANCED"),37,610,84,32,Quality==TEXT("Balanced"));
+        Button(TEXT("VisualHigh"),TEXT("HIGH"),129,610,62,32,Quality==TEXT("High"));
+        Button(TEXT("VisualCinematic"),TEXT("CINEMA"),199,610,73,32,Quality==TEXT("Cinematic"));
+        Text(TEXT("SAVED FOR THIS PROJECT"),42,662,9,Muted);
+    }
 
     Text(TEXT("5 v 5  /  TEAM ROSTER"),1238,159,15,White);
     Text(TEXT("AIRCRAFT"),1254,194,10,Muted);Text(TEXT("CONTROL"),1356,194,10,Muted);Text(TEXT("ALT"),1556,194,10,Muted,true);
@@ -399,6 +414,9 @@ void AImperialHUD::NotifyHitBoxClick(FName BoxName)
         return;
     }
     if(N.StartsWith(TEXT("Drone_")))M->SelectDrone(FCString::Atoi(*N.RightChop(6)));
+    else if(N==TEXT("VisualBalanced")){if(auto* V=GetPresentation())V->SetVisualQuality(TEXT("Balanced"));}
+    else if(N==TEXT("VisualHigh")){if(auto* V=GetPresentation())V->SetVisualQuality(TEXT("High"));}
+    else if(N==TEXT("VisualCinematic")){if(auto* V=GetPresentation())V->SetVisualQuality(TEXT("Cinematic"));}
     else if(N==TEXT("Auto"))M->LaunchSwarm();else if(N==TEXT("Hold"))M->HoldFleet();
     else if(N==TEXT("Return"))M->ReturnFleet();else if(N==TEXT("Manual"))M->ManualSelected();
     else if(N==TEXT("Reset"))M->ResetMatch();else if(N==TEXT("Export"))M->ExportTelemetry();

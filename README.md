@@ -4,6 +4,14 @@ Unreal Engine 5.8 기반 Windows 드론축구 시뮬레이터입니다. 기본 �
 
 기체는 네 모터의 개별 힘과 회전 모멘트, 중력·항력·Chaos 접촉으로 움직입니다. 정상 비행에서 위치를 강제로 갱신하지 않으며 초기화에서만 물리 위치를 되돌립니다. 실기체와 일치하도록 실측 보정된 제품은 아닙니다.
 
+## Windows 실행 파일 — v0.5.0
+
+[v0.5.0 릴리스](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/tag/v0.5.0)에서 `ImperialWingsSimulator-Windows-v0.5.0.zip`을 받아 전체 압축을 해제하고 `ImperialWingsSimulator.exe`를 실행합니다. 실행 파일 주변의 `Engine`·`ImperialWingsSimulator` 폴더를 함께 보관해야 합니다. 패키지 실행에는 Unreal Editor나 C++ 개발 도구가 필요하지 않습니다.
+
+이 버전에는 양 팀 스트라이커 시작선 중앙 배치, 스트라이커 초록/가이드 분홍 하단 띠(좌우 각각2개), 화질3단계·접촉 시각 효과와10대 ANGLE 조종을 포함합니다. 실제 Windows 실행과30/60/120Hz 물리·10대 배치/띠·화질3단계 효과 검사를 통과했습니다. 개인 USB 보정·PC 경로·실행 기록은 다운로드 파일에 포함하지 않습니다. 자율 훈련은 별도 SDACS 브리지 연결이 필요하며 이번 최종 패키지에서 자동 연결은 검증하지 못했습니다.
+
+모터 고장·실제 파괴·하단 띠 탈락의 득점 불인정·공격수 승계는 후속 구현입니다. [릴리스 범위와 검증](docs/releases/v0.5.0.md)을 참고합니다.
+
 ## 실행 환경과 설치
 
 필요 환경은 Windows, Unreal Engine 5.8, Visual Studio 2022 C++ 빌드 도구와 Windows SDK, Python 3.12, Git입니다. 실제 검증 PC는 UE 5.8.3 / RTX 5070 Ti / RAM 32GB입니다.
@@ -24,7 +32,7 @@ $SdacsRoot = [IO.Path]::GetFullPath((Join-Path $PWD '..\swarm-drone-atc'))
 
 `Setup-Bridge.ps1`는 외부 SDACS 저장소가 없으면 복제하고 프로젝트 `.venv`에 최소 의존성을 설치합니다. `Build.ps1`은 C++ 에디터 모듈과 맵·재질 생성을 수행합니다. 경로 기본값은 개발 PC의 예시이며 `-EngineRoot`, `-Python`, `-RepoRoot`로 바꿀 수 있습니다.
 
-배포 실행 파일을 만들려면 `Build.ps1`에 `-Package`를 추가합니다. 결과는 `dist/Windows/`에 생성됩니다. 실행 파일 주변의 Engine·프로젝트 폴더도 함께 필요합니다. 빌드된 PC에서는 `ImperialWings.cmd`로 브리지와 게임을 시작할 수 있습니다. 저장소에는 엔진·패키지 실행 파일·가상환경을 포함하지 않습니다.
+배포 실행 파일을 만들려면 `Build.ps1`에 `-Package`를 추가합니다. 기본 결과는 `dist/Integrated/Windows/`에 생성되며 로컬 환경 설정 또는 `-PackageRoot`로 바꿀 수 있습니다. 실행 파일 주변의 Engine·프로젝트 폴더도 함께 필요합니다. 환경을 설정한 PC에서는 `ImperialWings.cmd`로 브리지와 게임을 시작하고 `ImperialWings.cmd -ManualOnly`로 수동 실행할 수 있습니다. Git 소스에는 엔진·패키지 실행 파일·가상환경을 포함하지 않으며 Windows 패키지는 릴리스 첨부 파일로 제공합니다.
 
 ## LOS 조종과 화면
 

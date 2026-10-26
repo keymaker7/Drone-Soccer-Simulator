@@ -1,34 +1,58 @@
-param([string]$EngineRoot='E:\Program Files\UE_5.8',[string]$RepoRoot='E:\GitHub\swarm-drone-atc',[switch]$Demo,[switch]$AllowStaleBuild)
+﻿[CmdletBinding()]
+param([string]$EngineRoot='',[string]$RepoRoot='',[string]$PackageRoot='',[int]$BridgePort=0,
+      [switch]$Demo,[switch]$AllowStaleBuild,[switch]$ManualOnly,[switch]$Inspect)
 $ErrorActionPreference='Stop'
 $ProjectRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
-$Packaged=Join-Path $ProjectRoot 'dist\Windows\ImperialWingsSimulator.exe'
-$BuildIdentityPath=if(Test-Path -LiteralPath $Packaged){Join-Path $ProjectRoot 'dist\Windows\ImperialWingsSimulator\Binaries\Win64\ImperialBuildIdentity-ImperialWingsSimulator.json'}else{Join-Path $ProjectRoot 'Binaries\Win64\ImperialBuildIdentity-ImperialWingsSimulatorEditor.json'}
-$SourceIdentity=& (Join-Path $PSScriptRoot 'Get-SourceIdentity.ps1') -ProjectRoot $ProjectRoot
-$BuildMatches=$false
-if(Test-Path -LiteralPath $BuildIdentityPath){
-    try{$BuiltIdentity=Get-Content -LiteralPath $BuildIdentityPath -Raw | ConvertFrom-Json;$BuildMatches=$BuiltIdentity.source_sha256 -eq $SourceIdentity.source_sha256}catch{}
+. (Join-Path $PSScriptRoot 'Environment.ps1')
+$environment=Get-ImperialEnvironment -ProjectRoot $ProjectRoot -EngineRoot $EngineRoot -RepoRoot $RepoRoot -PackageRoot $PackageRoot -BridgePort $BridgePort
+$package=$environment.PackageRoot
+$executable=Join-Path $package 'ImperialWingsSimulator.exe'
+$manifestPath=Join-Path $package 'ImperialWingsSimulator\Binaries\Win64\ImperialBuildIdentity-ImperialWingsSimulator.json'
+$source=& (Join-Path $PSScriptRoot 'Get-SourceIdentity.ps1') -ProjectRoot $ProjectRoot
+$manifest=$null;$matches=$false
+if(Test-Path -LiteralPath $manifestPath){
+    try{$manifest=Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json;$matches=$manifest.source_sha256 -eq $source.source_sha256}catch{}
 }
-if(-not $BuildMatches){
-    $Message='현재 소스와 실행 파일의 버전이 일치하지 않거나 빌드 정보가 없습니다. Scripts\Build.ps1 -Package로 다시 빌드해 주세요.'
-    if(-not $AllowStaleBuild){throw $Message}
-    Write-Warning ($Message+' 이전 실행 파일을 명시적으로 선택해 실행합니다.')
+$inspection=[ordered]@{executable=$executable;exists=(Test-Path -LiteralPath $executable);matches_source=$matches;source_sha256=$source.source_sha256;build=$manifest;bridge_url=$environment.BridgeUrl;manual_only=[bool]$ManualOnly}
+if($Inspect){[pscustomobject]$inspection;return}
+if(-not(Test-Path -LiteralPath $executable)){throw '통합 실행 파일이 없습니다. Scripts\Build.ps1 -Package를 먼저 실행해 주세요.'}
+if(-not $matches){
+    $message='현재 소스와 통합 실행 파일이 다릅니다. Scripts\Build.ps1 -Package로 다시 빌드해 주세요.'
+    if(-not $AllowStaleBuild){throw $message};Write-Warning $message
 }
 New-Item -ItemType Directory -Path (Join-Path $ProjectRoot 'Saved') -Force | Out-Null
-$BridgePython=Join-Path $ProjectRoot '.venv\Scripts\python.exe'
-$BridgeScript=Join-Path $ProjectRoot 'Bridge\sdacs_bridge.py'
-$BridgeHealthy=$false
-$BridgeNeedsRestart=$false
-try { $Health=Invoke-RestMethod 'http://127.0.0.1:8766/health' -TimeoutSec 1; $BridgeHealthy=($Health.source -eq 'swarm-drone-atc' -and $Health.protocol_version -eq 2);$BridgeNeedsRestart=($Health.source -eq 'swarm-drone-atc' -and -not $BridgeHealthy) } catch {}
-if($BridgeNeedsRestart){throw '이전 버전의 자율 연결 프로그램이 실행 중입니다. 해당 프로그램을 종료하고 다시 실행해 주세요. 수동 조종에는 자율 연결 프로그램이 필요하지 않습니다.'}
-if(-not $BridgeHealthy -and (Test-Path -LiteralPath $BridgePython) -and (Test-Path -LiteralPath $BridgeScript)){
-    $Arguments=@(('"'+$BridgeScript+'"'),'--repo',('"'+$RepoRoot+'"'),'--host','127.0.0.1','--port','8766')
-    Start-Process -FilePath $BridgePython -ArgumentList $Arguments -WindowStyle Hidden -RedirectStandardOutput (Join-Path $ProjectRoot 'Saved\bridge.log') -RedirectStandardError (Join-Path $ProjectRoot 'Saved\bridge-errors.log')
+# Copy only an existing real profile. Activation is never persisted.
+$profileTarget=Join-Path $package 'ImperialWingsSimulator\Saved\Config\RadioProfile.json'
+if(-not(Test-Path -LiteralPath $profileTarget)){
+    foreach($candidate in @((Join-Path $ProjectRoot 'dist\Windows\ImperialWingsSimulator\Saved\Config\RadioProfile.json'),(Join-Path $ProjectRoot 'Saved\Config\RadioProfile.json'))){
+        if(Test-Path -LiteralPath $candidate){
+            $profile=Get-Content -LiteralPath $candidate -Raw | ConvertFrom-Json
+            if($profile.version -eq 1 -and $profile.profiles){
+                New-Item -ItemType Directory -Path (Split-Path -Parent $profileTarget) -Force | Out-Null
+                Copy-Item -LiteralPath $candidate -Destination $profileTarget;break
+            }
+        }
+    }
 }
-$Arguments=@('-windowed','-ResX=1600','-ResY=1000','-ForceRes','-NoScreenMessages')
-if($Demo){$Arguments+='-ImperialDemo'}
-if(Test-Path -LiteralPath $Packaged){Start-Process -FilePath $Packaged -ArgumentList $Arguments}
-else{
-    $Editor=Join-Path $EngineRoot 'Engine\Binaries\Win64\UnrealEditor.exe'
-    $Arguments=@(('"'+(Join-Path $ProjectRoot 'ImperialWingsSimulator.uproject')+'"'),'-game')+$Arguments
-    Start-Process -FilePath $Editor -ArgumentList $Arguments
+if(-not $ManualOnly){
+    $python=Join-Path $ProjectRoot '.venv\Scripts\python.exe'
+    $bridge=Join-Path $ProjectRoot 'Bridge\sdacs_bridge.py'
+    if(-not(Test-Path -LiteralPath $python)){throw '자율 훈련용 Python 환경이 없습니다. Setup-Bridge.ps1 또는 -ManualOnly를 사용해 주세요.'}
+    if(-not(Test-Path -LiteralPath (Join-Path $environment.RepoRoot 'simulation\apf_engine\apf.py'))){throw 'SDACS 원본 폴더가 없습니다. Configure-Environment.ps1의 RepoRoot를 확인해 주세요.'}
+    $healthy=$false;$occupied=$false
+    try{$health=Invoke-RestMethod ($environment.BridgeUrl+'/health') -TimeoutSec 1;$occupied=$true;$healthy=$health.source -eq 'swarm-drone-atc' -and $health.protocol_version -eq 2}catch{}
+    if($occupied -and -not $healthy){throw '설정된 포트에 다른 버전의 연결 프로그램이 있습니다. 수동 실행은 -ManualOnly를 사용하거나 설정에서 다른 포트를 지정해 주세요.'}
+    if(-not $healthy){
+        $arguments=@(('"'+$bridge+'"'),'--repo',('"'+$environment.RepoRoot+'"'),'--host','127.0.0.1','--port',([string]$environment.BridgePort))
+        Start-Process -FilePath $python -ArgumentList $arguments -WindowStyle Hidden -RedirectStandardOutput (Join-Path $ProjectRoot 'Saved\bridge-integrated.log') -RedirectStandardError (Join-Path $ProjectRoot 'Saved\bridge-integrated-errors.log')
+        for($attempt=0;$attempt -lt 30;$attempt++){
+            try{$health=Invoke-RestMethod ($environment.BridgeUrl+'/health') -TimeoutSec 1;$healthy=$health.source -eq 'swarm-drone-atc' -and $health.protocol_version -eq 2;if($healthy){break}}catch{}
+            Start-Sleep -Milliseconds 200
+        }
+        if(-not $healthy){throw '자율 연결 시작에 실패했습니다. Saved\bridge-integrated-errors.log를 확인해 주세요.'}
+    }
 }
+$arguments=@('-windowed','-ResX=1600','-ResY=1000','-ForceRes','-NoScreenMessages',('-ImperialBridgeUrl='+$environment.BridgeUrl))
+if($Demo){$arguments+='-ImperialDemo'}
+Write-Output ('Imperial Wings v'+$manifest.version+' / '+$package)
+Start-Process -FilePath $executable -ArgumentList $arguments -WorkingDirectory $package

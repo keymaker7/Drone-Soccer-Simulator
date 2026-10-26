@@ -6,6 +6,7 @@
 #include "ImperialElasticNet.h"
 #include "ImperialSoccerLayout.h"
 #include "ImperialBuildInfo.h"
+#include "ImperialPresentationEffects.h"
 #include "Engine/GameInstance.h"
 #include "Engine/GameViewportClient.h"
 #include "UnrealClient.h"
@@ -257,6 +258,7 @@ bool AImperialMatchManager::ExportTelemetry()
     auto* Arena=Cast<APrototypeArenaBuilder>(UGameplayStatics::GetActorOfClass(GetWorld(),APrototypeArenaBuilder::StaticClass()));
     auto* Pilot=Cast<AImperialPlayerController>(UGameplayStatics::GetPlayerController(this,0));
     const FVector Station=Pilot?Pilot->GetPilotStationPosition()/100.:FVector::ZeroVector;
+    auto* Visuals=Cast<AImperialPresentationEffects>(UGameplayStatics::GetActorOfClass(GetWorld(),AImperialPresentationEffects::StaticClass()));
     const auto N=[](double Value){return FString::Printf(TEXT("%.6f"),Value);};
     const auto B=[](bool Value){return Value?TEXT("1"):TEXT("0");};
     FString CSV=TEXT("id,team,armed,autonomous,x_m,y_m,z_m,speed_mps,throttle,mode,sdacs_connected,input_source,selected,camera_view,radio_connected,radio_calibrated,radio_enabled,battery_soc,battery_v,net_deflection_m,radio_setup_phase,radio_setup_channel,radio_setup_samples,radio_device_id,build_version,build_commit,build_source_sha256,build_utc,guidance_session,guidance_command,flight_mode,tilt_deg,roll_deg,pitch_deg,yaw_deg,angle_limit_deg,role,home_x_m,home_y_m,pad_x_m,pad_y_m,pilot_x_m,pilot_y_m\n");
@@ -273,7 +275,8 @@ bool AImperialMatchManager::ExportTelemetry()
             ImperialBuildInfo::Version(),ImperialBuildInfo::Commit(),ImperialBuildInfo::SourceHash(),ImperialBuildInfo::BuiltAt(),GuidanceSession,FString::Printf(TEXT("%llu"),static_cast<uint64>(GuidanceWindow.Command())),
             D->GetFlightModeName(),N(D->GetTiltDegrees()),N(Rotation.Roll),N(Rotation.Pitch),N(Rotation.Yaw),N(D->GetAngleLimitDegrees()),ImperialSoccerLayout::RoleName(D->GetPlayerRole()),
             N(Homes[I].X/100.),N(Homes[I].Y/100.),N(Pad.X),N(Pad.Y),N(Station.X),N(Station.Y)};
-        CSV+=FString::Join(Row,TEXT(","))+TEXT("\n");
+        if(I==0)CSV.ReplaceInline(TEXT("pilot_y_m\n"),TEXT("pilot_y_m,visual_quality,dust_capacity\n"));
+        CSV+=FString::Join(Row,TEXT(","))+FString::Printf(TEXT(",%s,%d\n"),Visuals?*Visuals->GetQualityName():TEXT("Unavailable"),Visuals?Visuals->GetDustCapacity():0);
     }
     bool Ok=FFileHelper::SaveStringToFile(CSV,*File,FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);Log(Ok?TEXT("Telemetry CSV exported to Saved/Reports."):TEXT("Telemetry export failed."));return Ok;
 }

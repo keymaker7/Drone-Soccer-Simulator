@@ -2,7 +2,7 @@
 #include "CoreMinimal.h"
 
 // FIDA fixes the starting line, not the five roles' lateral order. This project's
-// mirrored 1..5 order is a training layout viewed from each team's pilot area.
+// mirrored training layout keeps the Striker at the middle of each starting line.
 namespace ImperialSoccerLayout
 {
 inline const TCHAR* RoleName(int32 Role)
@@ -17,7 +17,9 @@ inline FLinearColor RoleColor(int32 Role)
 }
 inline FVector StartPosition(int32 Team,int32 Role)
 {
-    const float Y=-250.f+FMath::Clamp(Role,0,4)*125.f;
+    // Left to right from either pilot area: Libero, Guide, Striker, Sweeper, Keeper.
+    static const float LateralCm[] = {0.f, -125.f, -250.f, 125.f, 250.f};
+    const float Y=LateralCm[FMath::Clamp(Role,0,4)];
     return FVector(Team==0?-650.f:650.f,Team==0?Y:-Y,35.f);
 }
 inline FVector PilotPosition(int32 Team,int32 Role)

@@ -4,6 +4,7 @@
 #include "ImperialHUD.generated.h"
 class AImperialMatchManager;
 class UImperialRadioSubsystem;
+class AImperialPresentationEffects;
 
 UCLASS()
 class IMPERIALWINGSSIMULATOR_API AImperialHUD : public AHUD
@@ -31,6 +32,8 @@ private:
     int32 ButtonPriority = 10;
     AImperialMatchManager* FindMatch();
     UImperialRadioSubsystem* GetRadio() const;
+    AImperialPresentationEffects* GetPresentation();
+    UPROPERTY() TWeakObjectPtr<AImperialPresentationEffects> Presentation;
     void DrawRadioPanel(AImperialMatchManager& Manager);
     FVector2D Screen(float X, float Y) const;
     void Rect(float X, float Y, float W, float H, FLinearColor Color);
