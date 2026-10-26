@@ -485,6 +485,7 @@ HELSEL STRIKER V3를 참고한 자체 절차적 외형을 사용합니다. 제�
 모터 고장·실제 파괴, 띠 탈락 득점 자격, 공격수 승계, 심판·페널티 운영, 연속 USB 검증, 온·오프라인 멀티플레이, 개발 피드백 진단 묶음은 후속 작업입니다.
 
 - [전체 개발 계획·완료 기준](docs/development-roadmap.md)
+- [28개 분야·292개 전체 기능 명세](docs/simulator-feature-plan.md)
 - [멀티플레이 계획](docs/development-roadmap.md#multiplayer-plan)
 - [개발 피드백 데이터 계획](docs/development-roadmap.md#feedback-data-plan)
 - [작업 체크리스트](IMPERIAL_WINGS_CODEX_TASKS.md)
