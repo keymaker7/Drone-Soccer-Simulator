@@ -338,6 +338,7 @@ float ASoccerDronePawn::NormalizeUsb(float Value, bool bInvert) const
 
 float ASoccerDronePawn::GetThrottle() const
 {
+    if(bAngleVerificationInput)return AngleVerificationThrottle;
     if (bAutonomousEnabled)
     {
         return AutonomousThrottle;
@@ -360,6 +361,7 @@ UImperialRadioSubsystem* ASoccerDronePawn::GetRadio() const
 
 FString ASoccerDronePawn::GetInputSource() const
 {
+    if(bAngleVerificationInput)return TEXT("VERIFICATION_FIXTURE");
     if (bAutonomousEnabled) return TEXT("AUTO");
     if (auto* Radio = GetRadio(); IsLocallyControlled() && Radio && Radio->IsEnabled()) return TEXT("USB");
     return TEXT("KEYBOARD");
@@ -386,7 +388,19 @@ FString ASoccerDronePawn::GetPilotStatus() const
     {
         return LastSafetyMessage;
     }
-    return bArmed ? (bAutonomousEnabled ? TEXT("AUTONOMOUS") : TEXT("ACRO / MANUAL")) : TEXT("DISARMED / LOW THROTTLE TO ARM");
+    return bArmed ? (bAutonomousEnabled ? TEXT("AUTONOMOUS / ANGLE") : TEXT("ANGLE / MANUAL")) : TEXT("ANGLE / DISARMED");
+}
+
+float ASoccerDronePawn::GetTiltDegrees() const
+{
+    return FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(Body->GetUpVector().Z,-1.,1.)));
+}
+void ASoccerDronePawn::SetAngleVerificationInput(FVector Stick,float Throttle)
+{
+    if(!FParse::Param(FCommandLine::Get(),TEXT("ImperialAngleSmoke")))return;
+    bAngleVerificationInput=true;
+    AngleVerificationStick=Stick.GetClampedToMaxSize(1);
+    AngleVerificationThrottle=FMath::Clamp(Throttle,0.f,1.f);
 }
 
 bool ASoccerDronePawn::SetArmed(bool bShouldArm)
@@ -581,6 +595,7 @@ void ASoccerDronePawn::ClearController()
 
 void ASoccerDronePawn::ResetDrone()
 {
+    bAngleVerificationInput=false;AngleVerificationThrottle=0;AngleVerificationStick=FVector::ZeroVector;
     bAutonomousEnabled = false;
     SetArmed(false);
     AutonomousThrottle = 0.0f;
@@ -779,10 +794,14 @@ void ASoccerDronePawn::ApplyFlightForces(float Dt)
     else
     {
         auto* Radio=GetRadio();const bool USB=IsLocallyControlled()&&Radio&&Radio->IsEnabled();
-        const float Roll=USB?Radio->GetNormalizedRoll():(bUseBoxer?NormalizeUsb(UsbRoll,bInvertRoll):KeyRoll);
-        const float Pitch=USB?Radio->GetNormalizedPitch():(bUseBoxer?NormalizeUsb(UsbPitch,bInvertPitch):KeyPitch);
-        const float Yaw=USB?Radio->GetNormalizedYaw():(bUseBoxer?NormalizeUsb(UsbYaw,bInvertYaw):KeyYaw);
-        TargetRate=FVector(-Roll*MaxRateDegrees.X,Pitch*MaxRateDegrees.Y,Yaw*MaxRateDegrees.Z)*(PI/180.);
+        const float Roll=bAngleVerificationInput?AngleVerificationStick.X:(USB?Radio->GetNormalizedRoll():(bUseBoxer?NormalizeUsb(UsbRoll,bInvertRoll):KeyRoll));
+        const float Pitch=bAngleVerificationInput?AngleVerificationStick.Y:(USB?Radio->GetNormalizedPitch():(bUseBoxer?NormalizeUsb(UsbPitch,bInvertPitch):KeyPitch));
+        const float Yaw=bAngleVerificationInput?AngleVerificationStick.Z:(USB?Radio->GetNormalizedYaw():(bUseBoxer?NormalizeUsb(UsbYaw,bInvertYaw):KeyYaw));
+        const auto Desired=ImperialPhysics::AngleDesiredUp(Roll,Pitch,MaximumTiltDegrees);
+        const FQuat Heading(FRotator(0,Body->GetComponentRotation().Yaw,0));
+        const FVector DesiredUpBody=R.UnrotateVector(Heading.RotateVector(FVector(Desired.X,Desired.Y,Desired.Z)));
+        const auto TiltRate=ImperialPhysics::AngleBodyRate({DesiredUpBody.X,DesiredUpBody.Y,DesiredUpBody.Z},AngleGainPerSecond,FMath::DegreesToRadians(MaximumAngleRateDegrees));
+        TargetRate=FVector(TiltRate.X,TiltRate.Y,Yaw*FMath::Min(MaxRateDegrees.Z,180.)*(PI/180.));
     }
     const FVector Error=TargetRate-Rate;
     const FVector Derivative=(Rate-PreviousBodyRate)/Step;PreviousBodyRate=Rate;

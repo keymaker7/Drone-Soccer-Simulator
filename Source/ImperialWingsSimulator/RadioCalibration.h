@@ -17,7 +17,7 @@ enum class Error
     None, Disconnected, InvalidAxis, DuplicateAxis, UnavailableAxis, InvalidDeadzone,
     InsufficientSamples, InsufficientRange, InvalidCenter, ThrottleNotLow,
     NotCapturing, MissingRange, MissingNeutral, NotConfirmed, InvalidSample,
-    AmbiguousMovement, EndpointNotHeld, InputNotStable
+    AmbiguousMovement, EndpointNotHeld, InputNotStable, IncompleteSweep
 };
 const char* ErrorText(Error Value);
 
@@ -102,6 +102,8 @@ private:
     Profile Value;
     AxisMask Mask{};
     Axes StableMinimum{}, StableMaximum{};
+    Axes LatestSample{}, StartingCenter{};
+    bool HaveLatestSample = false;
     std::deque<TimedAxes> Window;
     std::size_t TotalSamples = 0;
     double LastTime = -1;

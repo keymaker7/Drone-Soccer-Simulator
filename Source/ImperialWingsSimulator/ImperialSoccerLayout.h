@@ -20,4 +20,8 @@ inline FVector StartPosition(int32 Team,int32 Role)
     const float Y=-250.f+FMath::Clamp(Role,0,4)*125.f;
     return FVector(Team==0?-650.f:650.f,Team==0?Y:-Y,35.f);
 }
+inline FVector PilotPosition(int32 Team,int32 Role)
+{
+    return FVector(Team==0?-950.f:950.f,StartPosition(Team,Role).Y,170.f);
+}
 }

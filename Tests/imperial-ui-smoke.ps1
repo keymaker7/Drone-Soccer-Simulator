@@ -14,7 +14,10 @@ param(
     [string]$OutputDirectory = (Join-Path $PSScriptRoot '..\Saved\Verification'),
     [string]$ReportsDir = '',
     [switch]$CheckGuidedSetup,
-    [string]$GuidedDeviceId = '1209:4F54'
+    [string]$GuidedDeviceId = '1209:4F54',
+    [switch]$LayoutOnly,
+    [string]$ExpectedSourceSha256 = '',
+    [switch]$PrepareBoxer
 )
 
 Set-StrictMode -Version Latest
@@ -44,6 +47,7 @@ $previousDpiContext = [IntPtr]::Zero
 $startedUtc = [DateTime]::UtcNow
 $success = $false
 $failure = $null
+$uiSourceIdentity = $null
 $targetProcessId = $ProcessId
 
 if (-not ('ImperialWingsSimulator.NativeUi' -as [type])) {
@@ -126,7 +130,7 @@ function Invoke-HudClick([double]$X, [double]$Y) {
     Assert-TargetForeground
     $before = [ImperialWingsSimulator.UiPoint]::new()
     if (-not [ImperialWingsSimulator.NativeUi]::GetCursorPos([ref]$before)) { throw 'Cannot read the native cursor position before a HUD click.' }
-    if ([Math]::Abs($before.X-$screenX) -gt 2 -or [Math]::Abs($before.Y-$screenY) -gt 2) { throw 'The native cursor moved away from the requested HUD coordinate before the click.' }
+    if ([Math]::Abs($before.X-$screenX) -gt 2 -or [Math]::Abs($before.Y-$screenY) -gt 2) { throw "The native cursor moved before the click: target ($screenX,$screenY), actual ($($before.X),$($before.Y))." }
     [ImperialWingsSimulator.NativeUi]::mouse_event(0x0002, 0, 0, 0, [UIntPtr]::Zero)
     $pressed = [ImperialWingsSimulator.UiPoint]::new()
     try {
@@ -274,8 +278,25 @@ try {
     $ready = Export-FleetSnapshot '01-ready'
     Assert-MatchUiState $ready 'IW-01' 1
     Assert-Check 'Reset disarms ten aircraft' (Test-DisarmedFleet $ready) 'All ten aircraft are disarmed with autonomy disabled.'
-    Assert-Check 'Actual SDACS connection' (@($ready.Rows | Where-Object { $_.sdacs_connected -ne '1' }).Count -eq 0) 'The game reports a live SDACS connection in exported telemetry.'
+    Assert-Check 'All ten aircraft use ANGLE mode' (@($ready.Rows | Where-Object {$_.flight_mode -ne 'ANGLE' -or [double]$_.angle_limit_deg -ne 35}).Count -eq 0) 'Manual roll and pitch command a maximum 35-degree tilt with self-leveling.'
+    $expectedRoles=@('STRIKER','GUIDE','LIBERO','SWEEPER','KEEPER')
+    foreach($layoutRow in $ready.Rows){
+        $index=[int]$layoutRow.id.Substring(3)-1
+        $roleIndex=$index%5
+        $expectedX=if($index -lt 5){-6.5}else{6.5}
+        $expectedY=if($index -lt 5){-2.5+$roleIndex*1.25}else{2.5-$roleIndex*1.25}
+        $positionsMatch=[Math]::Abs([double]$layoutRow.x_m-$expectedX) -lt .03 -and [Math]::Abs([double]$layoutRow.y_m-$expectedY) -lt .03 -and
+            [Math]::Abs([double]$layoutRow.home_x_m-$expectedX) -lt .001 -and [Math]::Abs([double]$layoutRow.home_y_m-$expectedY) -lt .001 -and
+            [Math]::Abs([double]$layoutRow.pad_x_m-$expectedX) -lt .001 -and [Math]::Abs([double]$layoutRow.pad_y_m-$expectedY) -lt .001
+        Assert-Check "Start/home/actual rendered pad $($layoutRow.id)" ($positionsMatch -and $layoutRow.role -eq $expectedRoles[$roleIndex]) "FIDA start line at x=$expectedX m; training role lane y=$expectedY m."
+        $yawError=if($index -lt 5){[Math]::Abs([double]$layoutRow.yaw_deg)}else{[Math]::Abs([Math]::Abs([double]$layoutRow.yaw_deg)-180)}
+        Assert-Check "Initial direction faces centre $($layoutRow.id)" ($yawError -lt .5) 'Blue faces +X; Red faces -X.'
+    }
+    if(-not $LayoutOnly){Assert-Check 'Actual SDACS connection' (@($ready.Rows | Where-Object { $_.sdacs_connected -ne '1' }).Count -eq 0) 'The game reports a live SDACS connection in exported telemetry.'}
     $radioColumns = @($ready.Rows[0].PSObject.Properties.Name)
+    $uiSourceIdentity=& (Join-Path $projectDirectory 'Scripts\Get-SourceIdentity.ps1') -ProjectRoot $projectDirectory
+    if(-not $ExpectedSourceSha256){$ExpectedSourceSha256=$uiSourceIdentity.source_sha256}
+    Assert-Check 'Runtime build matches expected source inputs' ($radioColumns -contains 'build_source_sha256' -and @($ready.Rows | Where-Object { $_.build_source_sha256 -ne $ExpectedSourceSha256 }).Count -eq 0) 'All ten records identify the requested compiled source snapshot; workspace changes are separately recorded.'
     Assert-Check 'Radio telemetry fields are present' ($radioColumns -contains 'input_source' -and $radioColumns -contains 'radio_connected' -and $radioColumns -contains 'radio_calibrated' -and $radioColumns -contains 'radio_enabled') 'The build exports actual input-source and USB safety state.'
     Assert-Check 'Application starts in keyboard mode' (@($ready.Rows | Where-Object { $_.input_source -ne 'KEYBOARD' -or $_.radio_enabled -ne '0' }).Count -eq 0) 'All ten disarmed aircraft report KEYBOARD; USB activation is never automatic.'
     Invoke-NativeKey 0x43 # C opens the real USB calibration modal.
@@ -296,6 +317,22 @@ try {
         Assert-Check 'Uncalibrated radio activation is rejected' (@($radioClosed.Rows | Where-Object { $_.radio_enabled -ne '0' -or $_.radio_calibrated -ne '0' }).Count -eq 0) 'An explicit ENABLE RADIO attempt kept the real uncalibrated USB source disabled.'
     }
     Assert-MatchUiState $radioClosed 'IW-01' 1
+    if($PrepareBoxer){
+        Invoke-NativeKey 0x43
+        $boxerState=Export-FleetSnapshot 'boxer-select-current' -ViaShortcut
+        for($step=0;$step -lt 16 -and $boxerState.Rows[0].radio_device_id -ne '1209:4F54';$step++){
+            Invoke-HudClick 1198 222
+            $boxerState=Export-FleetSnapshot ('boxer-select-'+$step) -ViaShortcut
+        }
+        Assert-Check 'Actual Boxer saved profile loaded' ($boxerState.Rows[0].radio_connected -eq '1' -and $boxerState.Rows[0].radio_device_id -eq '1209:4F54' -and $boxerState.Rows[0].radio_calibrated -eq '1') 'The real saved profile was loaded for the selected Windows identity.'
+        Invoke-HudClick 615 801
+        Save-ClientScreenshot 'boxer-angle-profile-panel'
+        Invoke-NativeKey 0x43
+        $prepared=Export-FleetSnapshot 'boxer-angle-ready'
+        Assert-Check 'Boxer setup leaves all aircraft disarmed' (Test-DisarmedFleet $prepared) 'Loading and enabling a radio does not arm any aircraft.'
+        Save-ClientScreenshot 'boxer-angle-ready'
+        if($LayoutOnly){$success=$true;return}
+    }
 
     if ($CheckGuidedSetup) {
         # This exercises only the real device's idle/rejection/cancel path.
@@ -332,6 +369,21 @@ try {
         $profileAfter = if (Test-Path -LiteralPath $profilePath) { (Get-FileHash -LiteralPath $profilePath -Algorithm SHA256).Hash } else { 'ABSENT' }
         Assert-Check 'Unfinished guide preserves existing profile file' ($profileBefore -eq $profileAfter) 'The real calibration file was neither created nor changed by this test.'
     }
+
+    for($pilotIndex=0;$pilotIndex -lt 10;$pilotIndex++){
+        Invoke-HudClick 1395 (232+$pilotIndex*35)
+        Invoke-NativeKey 0x31
+        Start-Sleep -Milliseconds 330
+        $pilotSnapshot=Export-FleetSnapshot ('layout-pilot-'+$pilotIndex)
+        $pilotRow=Get-Aircraft $pilotSnapshot ('IW-'+($pilotIndex+1).ToString('00'))
+        $pilotX=if($pilotIndex -lt 5){-9.5}else{9.5}
+        $pilotY=if($pilotIndex -lt 5){-2.5+($pilotIndex%5)*1.25}else{2.5-($pilotIndex%5)*1.25}
+        Assert-Check "LOS pilot station for $($pilotRow.id)" ($pilotRow.selected -eq '1' -and $pilotRow.camera_view -eq '1' -and [Math]::Abs([double]$pilotRow.pilot_x_m-$pilotX) -lt .001 -and [Math]::Abs([double]$pilotRow.pilot_y_m-$pilotY) -lt .001) "Actual outside camera x=$pilotX, y=$pilotY metres matches the selected role."
+        Save-ClientScreenshot ('layout-'+$pilotRow.id+'-los')
+    }
+    Invoke-HudClick 1395 232
+    Invoke-NativeKey 0x31
+    if($LayoutOnly){$success=$true;return}
 
     Invoke-NativeKey 0x20 # SPACE arms the possessed IW-01 at low throttle.
     $armed = Export-FleetSnapshot '02-manual-armed'
@@ -464,6 +516,11 @@ try {
         project = $projectDirectory; report_directory = $reportsDirectory; artifact_directory = $runDirectory
         fps_validation = 'Manager FPS is visible in client screenshots; no numerical frame benchmark is claimed.'
         radio_validation = 'Actual device connection and calibration flags are exported; no physical USB stick movement or calibration ranges are synthesized by this script.'
+        build_identity = $uiSourceIdentity
+        expected_runtime_source_sha256 = $ExpectedSourceSha256
+        workspace_matches_runtime = $uiSourceIdentity -and $uiSourceIdentity.source_sha256 -eq $ExpectedSourceSha256
+        layout_only = [bool]$LayoutOnly
+        prepare_boxer = [bool]$PrepareBoxer
         camera_validation = 'View 1 is an outside-court LOS pilot station, view 2 an external training observer, and view 3 the arena overview; actual camera_view and selection fields are asserted after native input.'
         checks = @($script:checks.ToArray()); snapshots = @($script:snapshots.ToArray()); screenshots = @($script:screenshots.ToArray()); input_actions = @($script:inputActions.ToArray())
     }

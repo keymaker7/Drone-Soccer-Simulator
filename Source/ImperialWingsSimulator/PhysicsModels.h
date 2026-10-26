@@ -29,6 +29,11 @@ double Dot(const Vec3& A, const Vec3& B);
 Vec3 Cross(const Vec3& A, const Vec3& B);
 Vec3 ClampMagnitude(const Vec3& V, double Maximum);
 double ClampFinite(double Value, double Minimum, double Maximum, double Fallback = 0);
+// Stick commands set a bounded tilt cone in a horizontal heading frame. Yaw
+// remains a separate rate command; neither helper holds position or altitude.
+Vec3 AngleDesiredUp(double Roll, double Pitch, double MaximumTiltDegrees = 35);
+Vec3 AngleBodyRate(const Vec3& DesiredUpInBody, double GainPerSecond = 4,
+                   double MaximumRateRadS = 3.141592653589793);
 
 struct MotorParams
 {

@@ -22,6 +22,15 @@
 - The user confirmed Mode 2 (left vertical throttle). Preserve the staged stick
   setup and its explicit review/save/enable steps. R5 tested idle rejection and
   cancel with the actual Boxer, not completed physical mapping or USB flight.
+- The user subsequently requested ANGLE for every aircraft. Manual roll/pitch
+  now command a 35-degree maximum target tilt and self-level at neutral; yaw and
+  throttle remain manual. Do not restore Acro as the default. R6 verified ten
+  actual Chaos bodies at 20/30/60/120/240 FPS and ten LOS stations/pad locations.
+- Actual Boxer calibration is now saved: X/Y/V/Z for roll/pitch/yaw/throttle,
+  normal directions, genuine full ranges and neutral/low-throttle confirmation.
+  R6 loaded it and enabled USB with all aircraft disarmed (45 UI checks).
+  Continuous physical USB flight, cable loss and response directions remain
+  incomplete. Preserve the local real profile; never replace it with fixtures.
 - The airframe is original procedural geometry informed by HELSEL STRIKER V3
   reference material. Do not copy manufacturer meshes, logos, manual pages or
   photographs into the repository. Use citations and distinguish visual

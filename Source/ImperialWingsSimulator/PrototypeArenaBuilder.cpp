@@ -85,7 +85,15 @@ void APrototypeArenaBuilder::Piece(const FString& Name, UStaticMesh* Mesh, UMate
         Batch->SetMobility(EComponentMobility::Static); Batch->SetCastShadow(Mat&&Mat->GetBlendMode()==BLEND_Opaque);
         Batch->RegisterComponent(); Batches.Add(Key, Batch);
     }
-    Batch->AddInstance(FTransform(Rotation, PositionCm, SizeCm / 100.0), false);
+    const int32 Instance=Batch->AddInstance(FTransform(Rotation, PositionCm, SizeCm / 100.0), false);
+    if(Name==TEXT("RoleStartPad")){StartPadBatches.Add(Batch);StartPadIndices.Add(Instance);}
+}
+bool APrototypeArenaBuilder::GetStartPadPosition(int32 AircraftId,FVector& Position) const
+{
+    if(!StartPadBatches.IsValidIndex(AircraftId)||!StartPadBatches[AircraftId].IsValid())return false;
+    FTransform Transform;
+    if(!StartPadBatches[AircraftId]->GetInstanceTransform(StartPadIndices[AircraftId],Transform,true))return false;
+    Position=Transform.GetLocation();return true;
 }
 
 void APrototypeArenaBuilder::AddBox(const FString& Name, const FVector& PositionCm, const FVector& SizeCm, bool bCollision)

@@ -28,6 +28,24 @@ double ClampFinite(double Value, double Minimum, double Maximum, double Fallback
     if (!std::isfinite(Minimum) || !std::isfinite(Maximum) || Maximum < Minimum) return 0;
     return std::clamp(std::isfinite(Value) ? Value : (std::isfinite(Fallback) ? Fallback : Minimum), Minimum, Maximum);
 }
+Vec3 AngleDesiredUp(double Roll, double Pitch, double MaximumTiltDegrees)
+{
+    const Vec3 Stick=ClampMagnitude({ClampFinite(Pitch,-1,1),ClampFinite(Roll,-1,1),0},1);
+    const double Magnitude=Stick.Length();
+    const double Tilt=ClampFinite(MaximumTiltDegrees,5,60,35)*Pi/180*Magnitude;
+    return Magnitude>1e-9 ? Stick*(std::sin(Tilt)/Magnitude)+Vec3{0,0,std::cos(Tilt)} : Vec3{0,0,1};
+}
+Vec3 AngleBodyRate(const Vec3& DesiredUpInBody, double GainPerSecond, double MaximumRateRadS)
+{
+    if(!DesiredUpInBody.Finite()||DesiredUpInBody.Length()<1e-9)return {};
+    const Vec3 Up=DesiredUpInBody/DesiredUpInBody.Length();
+    const Vec3 Axis{-Up.Y,Up.X,0};
+    const double Horizontal=Axis.Length();
+    const double Angle=std::atan2(Horizontal,ClampFinite(Up.Z,-1,1));
+    const double Speed=std::min(Angle*ClampFinite(GainPerSecond,0,30,4),ClampFinite(MaximumRateRadS,0,20,Pi));
+    if(Horizontal>1e-9)return Axis*(Speed/Horizontal);
+    return Up.Z<0?Vec3{Speed,0,0}:Vec3{};
+}
 Vec3 Vec3::operator/(double S) const { return std::isfinite(S) && std::abs(S) > 1e-15 ? *this * (1.0 / S) : Vec3{}; }
 double Vec3::LengthSquared() const { return X * X + Y * Y + Z * Z; }
 double Vec3::Length() const { return std::hypot(std::hypot(X, Y), Z); }

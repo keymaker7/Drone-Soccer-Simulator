@@ -3,6 +3,7 @@
 #include "SoccerDronePawn.h"
 #include "ImperialRadioSubsystem.h"
 #include "ImperialSoccerLayout.h"
+#include "ImperialBuildInfo.h"
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
 #include "Engine/GameInstance.h"
@@ -110,10 +111,11 @@ void AImperialHUD::DrawHUD()
     const auto& Drones=M->GetDrones();auto* Selected=M->GetSelectedDrone();
     if(bCompactView&&!bRadioPanelOpen)
     {
-        Panel(470,22,660,58);
+        Panel(470,22,660,76);
         Text(FString::Printf(TEXT("BLUE  %d   :   %d  RED"),M->GetScore(0),M->GetScore(1)),493,38,24,White);
         Text(TimeLabel(M->GetElapsed()),870,41,19,Cyan);
         Text(M->GetView()==1?TEXT("LOS PILOT"):TEXT("OBSERVER"),990,43,13,Muted);
+        Text(ImperialBuildInfo::Label(),488,81,9,Muted);
         Panel(24,934,1552,42);
         if(Selected)Text(FString::Printf(TEXT("%s   %s   ALT %.2f m   THR %.0f%%   BAT %.0f%% / %.1f V"),*UnitName(M->GetSelected()),*Selected->GetPilotStatus(),Selected->GetAltitudeMeters(),Selected->GetThrottle()*100,Selected->GetBatteryPercent(),Selected->GetBatteryVoltage()),40,947,13,White);
         Text(TEXT("F10 PANELS  |  C USB"),1548,950,11,Cyan,true);
@@ -125,6 +127,7 @@ void AImperialHUD::DrawHUD()
     Rect(24,24,5,102,Cyan);
     Text(TEXT("IMPERIAL WINGS"),45,42,31,White);
     Text(TEXT("DRONE SOCCER  /  GWANGJU TRAINING CENTRE"),47,88,12,Cyan);
+    Text(Fit(ImperialBuildInfo::Label(),9,440),47,109,9,Muted);
     Rect(500,43,1,64,Edge);
     Text(TEXT("BLUE"),540,43,11,M->GetTeamColor(0));Text(TEXT("RED"),821,43,11,M->GetTeamColor(5));
     Text(FString::Printf(TEXT("SETS  %d"),M->GetSetWins(0)),650,44,10,Muted);
@@ -175,7 +178,7 @@ void AImperialHUD::DrawHUD()
         if(Active)Rect(1230,Y,2,33,M->GetTeamColor(I));
         Rect(1241,Y+13,6,6,M->GetTeamColor(I));
         Text(UnitName(I),1255,Y+7,14,Active?White:Muted);
-        Text(D->IsAutonomousEnabled()?TEXT("AUTO"):(D->IsArmed()?TEXT("MANUAL"):TEXT("DISARMED")),1356,Y+8,11,D->IsArmed()?Green:Muted);
+        Text(D->IsAutonomousEnabled()?TEXT("AUTO"):(D->IsArmed()?TEXT("ANGLE"):TEXT("DISARMED")),1356,Y+8,11,D->IsArmed()?Green:Muted);
         Text(FString::Printf(TEXT("%.1f m"),D->GetAltitudeMeters()),1556,Y+8,12,White,true);
         Rect(1324,Y+10,5,14,D->GetRoleColor());
         ButtonTargets.Add({FName(*FString::Printf(TEXT("Drone_%d"),I)),FBox2D(Screen(1230,Y),Screen(1566,Y+33)),10});

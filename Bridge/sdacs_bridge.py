@@ -15,6 +15,8 @@ import subprocess
 import sys
 import threading
 import time
+import uuid
+from collections import OrderedDict
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import numpy as np
@@ -27,6 +29,46 @@ TARGET_SEPARATION_M = 1.10
 # Unreal's position controller requests velocity = position error * 0.8 / s.
 # This lookahead converts APF velocity advice back into that position interface.
 TARGET_LOOKAHEAD_S = 1.25
+PROTOCOL_VERSION = 2
+MAX_CORRELATION_ID = 2**53-1
+
+
+class StaleCommandError(ValueError):
+    """A superseded or repeated command must not change planner state."""
+
+
+class PlannerSession:
+    def __init__(self):
+        self.waypoints = {}
+        self.hold_positions = {}
+        self.takeoff_origins = {}
+        self.takeoff_complete = set()
+        self.return_stages = {}
+        self.return_anchors = {}
+        self.mode = None
+        self.generation = 0
+        self.last_request = 0
+
+
+def _correlation(payload: dict) -> dict | None:
+    fields = ("protocol_version", "session_id", "command_id", "request_id")
+    if not any(field in payload for field in fields):
+        return None  # Isolated compatibility path for earlier simulator builds.
+    if payload.get("protocol_version") != PROTOCOL_VERSION or isinstance(payload.get("protocol_version"), bool):
+        raise ValueError("protocol_version must be 2")
+    session = payload.get("session_id")
+    if not isinstance(session, str) or len(session) != 36:
+        raise ValueError("session_id must be a canonical UUID")
+    try:
+        if str(uuid.UUID(session)) != session:
+            raise ValueError("non-canonical session UUID")
+    except (ValueError, AttributeError):
+        raise ValueError("session_id must be a canonical UUID") from None
+    for field in ("command_id", "request_id"):
+        value = payload.get(field)
+        if isinstance(value, bool) or not isinstance(value, int) or not 1 <= value <= MAX_CORRELATION_ID:
+            raise ValueError(f"{field} must be a positive exact JSON integer")
+    return {field: payload[field] for field in fields}
 
 
 def _git(repo: pathlib.Path, *arguments: str) -> str:
@@ -85,10 +127,12 @@ class GuidanceBridge:
         self.mode: str | None = None
         self.requests = 0
         self.started = time.monotonic()
+        self.sessions: OrderedDict[str, PlannerSession] = OrderedDict()
 
     def health(self) -> dict:
         return {
             "ok": True, "source": "swarm-drone-atc", "source_commit": self.commit,
+            "protocol_version": PROTOCOL_VERSION, "supported_protocol_versions": [1, 2],
             "source_origin": self.origin, "apf_module": str(self.apf_path),
             "apf_sha256": self.apf_sha256, "backend": "upstream-numpy-cpu",
             "numpy_version": np.__version__, "upstream_params": self.params,
@@ -109,6 +153,7 @@ class GuidanceBridge:
             self.return_anchors.clear()
             self.mode = None
             self.requests = 0
+            self.sessions.clear()
         return {"ok": True, "source": "swarm-drone-atc", "source_commit": self.commit}
 
     @staticmethod
@@ -136,6 +181,7 @@ class GuidanceBridge:
     def step(self, payload: object) -> dict:
         if not isinstance(payload, dict):
             raise ValueError("request must be a JSON object")
+        correlation = _correlation(payload)
         mode = payload.get("mode")
         if mode not in ("mission", "hold", "return"):
             raise ValueError("mode must be mission, hold or return")
@@ -168,31 +214,52 @@ class GuidanceBridge:
             drones.append((drone_id, position, velocity, home))
         drones.sort(key=lambda d: d[0])
         with self.lock:
-            return self._compute(mode, float(dt), drones)
+            if correlation is None:
+                return self._compute(mode, float(dt), drones)
+            session_id = correlation["session_id"]
+            state = self.sessions.get(session_id, PlannerSession())
+            generation, sequence = correlation["command_id"], correlation["request_id"]
+            if generation < state.generation or sequence <= state.last_request:
+                raise StaleCommandError("superseded command or repeated request")
+            if generation == state.generation and state.mode is not None and state.mode != mode:
+                raise StaleCommandError("mode change requires a new command_id")
+            if generation > state.generation:
+                state = PlannerSession()
+                state.generation = generation
+            state.last_request = sequence
+            self.sessions[session_id] = state
+            self.sessions.move_to_end(session_id)
+            while len(self.sessions) > 16:
+                self.sessions.popitem(last=False)
+            result = self._compute(mode, float(dt), drones, state)
+            result.update(correlation)
+            result["mode"] = mode
+            return result
 
-    def _compute(self, mode: str, dt: float, drones: list) -> dict:
+    def _compute(self, mode: str, dt: float, drones: list, state=None) -> dict:
+        plan = self if state is None else state
         started = time.perf_counter()
-        if mode != self.mode:
+        if mode != plan.mode:
             if mode == "hold":
-                self.hold_positions = {drone_id: position.copy() for drone_id, position, _, _ in drones}
-            self.return_stages.clear()
-            self.return_anchors.clear()
-            self.mode = mode
+                plan.hold_positions = {drone_id: position.copy() for drone_id, position, _, _ in drones}
+            plan.return_stages.clear()
+            plan.return_anchors.clear()
+            plan.mode = mode
         states = [self.apf.APFState(position.copy(), velocity.copy(), str(drone_id))
                   for drone_id, position, velocity, _ in drones]
         goals: dict[str, np.ndarray] = {}
         stages: dict[int, str] = {}
         for drone_id, position, velocity, home in drones:
-            self.waypoints.setdefault(drone_id, 0)
+            plan.waypoints.setdefault(drone_id, 0)
             if mode == "hold":
-                goals[str(drone_id)] = self.hold_positions.setdefault(drone_id, position.copy())
+                goals[str(drone_id)] = plan.hold_positions.setdefault(drone_id, position.copy())
                 stages[drone_id] = "hold"
             elif mode == "return":
                 horizontal = float(np.linalg.norm(position[:2]-home[:2]))
-                stage = self.return_stages.setdefault(drone_id, "return-land" if horizontal < 0.65 else "return-altitude")
+                stage = plan.return_stages.setdefault(drone_id, "return-land" if horizontal < 0.65 else "return-altitude")
                 corridor_height = 1.0 if drone_id < 5 else 2.2
                 if stage == "return-altitude":
-                    anchor = self.return_anchors.setdefault(drone_id, position.copy())
+                    anchor = plan.return_anchors.setdefault(drone_id, position.copy())
                     goals[str(drone_id)] = np.array([anchor[0], anchor[1], corridor_height])
                     if abs(float(position[2])-corridor_height) < 0.12 and abs(float(velocity[2])) < 0.35:
                         stage = "return-transit"
@@ -202,11 +269,11 @@ class GuidanceBridge:
                         stage = "return-land"
                 if stage == "return-land":
                     goals[str(drone_id)] = home.copy()
-                self.return_stages[drone_id] = stages[drone_id] = stage
+                plan.return_stages[drone_id] = stages[drone_id] = stage
                 if position[2] <= 0.55 and abs(float(velocity[2])) < 0.35:
-                    self.takeoff_complete.discard(drone_id)
-                    self.takeoff_origins.pop(drone_id, None)
-                    self.waypoints[drone_id] = 0
+                    plan.takeoff_complete.discard(drone_id)
+                    plan.takeoff_origins.pop(drone_id, None)
+                    plan.waypoints[drone_id] = 0
             else:
                 route = self._route(drone_id, home)
                 # Pads at x +/-6.5 lie under the goals. A 40cm ball must leave
@@ -214,24 +281,24 @@ class GuidanceBridge:
                 takeoff_altitude = min(2.2, float(route[0][2]))
                 # A landed aircraft needs a new climb, including re-launch without
                 # a bridge restart. Keep an airborne HOLD/resume on its current leg.
-                if (drone_id in self.takeoff_complete and position[2] <= 0.55
+                if (drone_id in plan.takeoff_complete and position[2] <= 0.55
                         and abs(float(velocity[2])) < 0.35):
-                    self.takeoff_complete.discard(drone_id)
-                    self.takeoff_origins.pop(drone_id, None)
-                    self.waypoints[drone_id] = 0
-                if drone_id not in self.takeoff_complete:
-                    origin = self.takeoff_origins.setdefault(drone_id, position.copy())
+                    plan.takeoff_complete.discard(drone_id)
+                    plan.takeoff_origins.pop(drone_id, None)
+                    plan.waypoints[drone_id] = 0
+                if drone_id not in plan.takeoff_complete:
+                    origin = plan.takeoff_origins.setdefault(drone_id, position.copy())
                     if position[2] >= takeoff_altitude-0.08:
-                        self.takeoff_complete.add(drone_id)
+                        plan.takeoff_complete.add(drone_id)
                     else:
                         goals[str(drone_id)] = np.array([origin[0], origin[1], takeoff_altitude])
                         stages[drone_id] = "takeoff"
                         continue
                 stages[drone_id] = "patrol"
-                index = self.waypoints[drone_id]
+                index = plan.waypoints[drone_id]
                 if float(np.linalg.norm(route[index % len(route)]-position)) < 0.45:
                     index += 1
-                    self.waypoints[drone_id] = index
+                    plan.waypoints[drone_id] = index
                 goals[str(drone_id)] = route[index % len(route)]
 
         # Both functions below are imported from the checked-out upstream file.
@@ -306,7 +373,7 @@ class GuidanceBridge:
         target_minimum = _minimum_distance(targets)
         return {
             "source": "swarm-drone-atc", "source_commit": self.commit,
-            "targets": [{"id": drone_id, "target_m": target.tolist(), "waypoint": self.waypoints[drone_id],
+            "targets": [{"id": drone_id, "target_m": target.tolist(), "waypoint": plan.waypoints[drone_id],
                          "stage": stages[drone_id]}
                         for (drone_id, _, _, _), target in zip(drones, targets)],
             "min_separation_m": _minimum_distance([position for _, position, _, _ in drones]),
@@ -355,6 +422,8 @@ def make_handler(bridge: GuidanceBridge):
                 else:
                     result = bridge.step(payload)
                 self._reply(200, result)
+            except StaleCommandError as error:
+                self._reply(409, {"error": str(error), "source": "swarm-drone-atc"})
             except (ValueError, TypeError, OverflowError) as error:
                 self._reply(400, {"error": str(error), "source": "swarm-drone-atc"})
             except Exception as error:

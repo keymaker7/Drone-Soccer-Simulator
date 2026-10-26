@@ -100,6 +100,11 @@ public:
     float GetBatteryPercent() const { return static_cast<float>(BatteryState.Soc*100.); }
     float GetBatteryVoltage() const { return static_cast<float>(BatteryState.VoltageV); }
     float GetNetDeflection() const;
+    FString GetFlightModeName() const { return TEXT("ANGLE"); }
+    float GetTiltDegrees() const;
+    float GetAngleLimitDegrees() const { return MaximumTiltDegrees; }
+    /** Explicit in-engine verification fixture; unavailable without its test flag. */
+    void SetAngleVerificationInput(FVector Stick, float Throttle);
 
     UStaticMeshComponent* GetBodyMesh() const { return Body; }
 
@@ -140,6 +145,15 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Drone|Rates")
     FVector MaxRateDegrees = FVector(600.0, 600.0, 420.0);
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Drone|Angle", meta=(ClampMin="5",ClampMax="60"))
+    float MaximumTiltDegrees = 35.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Drone|Angle", meta=(ClampMin="0.1",ClampMax="15"))
+    float AngleGainPerSecond = 4.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Drone|Angle", meta=(ClampMin="30",ClampMax="360"))
+    float MaximumAngleRateDegrees = 180.f;
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Drone|PID")
     FVector RateKp = FVector(0.14, 0.14, 0.09);
 
@@ -178,6 +192,9 @@ protected:
     bool bInvertThrottle = false;
 
 private:
+    bool bAngleVerificationInput=false;
+    FVector AngleVerificationStick=FVector::ZeroVector;
+    float AngleVerificationThrottle=0;
     UPROPERTY()
     TArray<TObjectPtr<UStaticMeshComponent>> RotorVisuals;
     UPROPERTY() TArray<TObjectPtr<USceneComponent>> RotorPivots;

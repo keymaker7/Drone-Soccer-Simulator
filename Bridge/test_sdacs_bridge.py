@@ -79,6 +79,42 @@ class BridgeTests(unittest.TestCase):
         changed = self.post("/step", payload)
         self.assertAlmostEqual(changed["min_separation_m"], 1.2)
 
+    def versioned(self, mode="mission", command=1, request=1, session="d98e187a-8824-4492-a4c3-2df64aba1795"):
+        return {**request_payload(mode), "protocol_version": 2, "session_id": session,
+                "command_id": command, "request_id": request}
+
+    def test_versioned_correlation_and_superseded_commands(self):
+        mission=self.versioned()
+        first=self.post("/step", mission)
+        for field in ("protocol_version","session_id","command_id","request_id"):
+            self.assertEqual(first[field],mission[field])
+        held=self.post("/step",self.versioned("hold",command=2,request=2))
+        self.assertEqual(held["mode"],"hold")
+        for old in (mission,self.versioned("return",command=1,request=3),self.versioned("hold",command=2,request=2),self.versioned("return",command=2,request=4)):
+            with self.subTest(old=old),self.assertRaises(urllib.error.HTTPError) as caught:
+                self.post("/step",old)
+            self.assertEqual(caught.exception.code,409)
+        state=self.bridge.sessions[mission["session_id"]]
+        self.assertEqual(state.mode,"hold")
+        self.assertEqual(state.last_request,2)
+        self.assertEqual(self.bridge.requests,2)
+        returned=self.post("/step",self.versioned("return",command=3,request=5))
+        self.assertEqual(returned["command_id"],3)
+
+    def test_versioned_sessions_and_invalid_envelopes(self):
+        first=self.versioned()
+        self.post("/step",first)
+        other=self.versioned("hold",session="109e898b-f754-4c66-8578-c4d21df7ff86")
+        self.post("/step",other)
+        self.assertEqual(self.bridge.sessions[first["session_id"]].mode,"mission")
+        self.assertEqual(self.bridge.sessions[other["session_id"]].mode,"hold")
+        for field,value in (("protocol_version",True),("protocol_version",1),("session_id","bad"),("command_id",0),("request_id",True),("request_id",1.5),("request_id",2**53)):
+            bad={**first,field:value}
+            with self.subTest(field=field,value=value),self.assertRaises(urllib.error.HTTPError) as caught:
+                self.post("/step",bad)
+            self.assertEqual(caught.exception.code,400)
+        self.assertEqual(self.bridge.requests,2)
+
     def test_validation_and_no_fallback(self):
         invalid = []
         for field, value in [("dt", -1), ("dt", float("nan")), ("dt", True), ("mode", "invented"), ("drones", [])]:

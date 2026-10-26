@@ -79,3 +79,57 @@ Windows PnP의 상위 장치까지 확인했다. `0416:8258`은 **Archon M1 PRO 
 검사 후 LOS1·IW-01·10대DISARM·Boxer선택·USB비활성으로 복귀하고 안내 보정 첫 준비 화면을 열어 뒀다. `Saved/Verification/r5-mode2-ready-live-fleet.csv`로 실제 상태를 확인했다. [실행 중 안내 화면](images/radio-mode2-setup.png).
 
 **아직 실물 스틱별 축·방향·중립·최저 스로틀 보정과 USB 수동 비행을 완료하지 않았다.** 현재 검사는 보정 UI·계산·미완료 입력 거부·취소 흐름이며,사용자의 실제 단계별 스틱 움직임을 대신하지 않는다. CSV에는 검사용 `radio_setup_phase`(0대기/1준비/2수집/3중립/4검토/5저장완료/6중단),현재 채널·수집 수·드라이버ID를 추가했다.
+
+## R6 / v0.4.0 — 전 기체 ANGLE·시작 위치·실물 보정
+
+사용자가 전 기체 ANGLE 전환을 요청했다. 수동 Roll/Pitch는 최대35° 목표 기울기의 외부 자세 루프를 거쳐 기존 각속도PID·모터 믹싱으로 전달한다. 대각 스틱도 총 목표 기울기를35°로 제한한다. 중립은 수평 복원,Yaw는 각속도,고도는 수동 스로틀이다. 충돌로 생긴 순간적인 실제 기울기를 강제로 클램프하거나 물리 위치를 옮기지 않는다. 현재 루프는 게임 프레임의 PrePhysics이며 독립 고정 스레드 제어기를 구현했다고 주장하지 않는다.
+
+- 에디터 빌드: `Saved/editor-r6-angle-build.log` 성공.
+- Windows build/cook/stage/package: `Saved/package-r6-angle-console.log` 성공.
+- 독립 물리96·보정161·규정51·요청 순서16개 검사 통과. 실제 upstream APF/HTTP 브리지10개 검사 통과.
+- 실제 패키지의10대 수동 ANGLE 기체에서20/30/60/120/240 고정 게임FPS 모두 초기 기울기 복원·스틱 기울기 응답·해제 후 수평 복원 통과.
+
+| 고정 게임FPS | 스틱 해제1.8초 후10대 중 최대 기울기 |
+|---|---:|
+| 20 | 1.3384° |
+| 30 | 0.0526° |
+| 60 | 0.0429° |
+| 120 | 0.1243° |
+| 240 | 0.1185° |
+
+근거: `Saved/Verification/angle-20261026-115414-501/results.json`. 시험은 처음에만 명시적으로 초기 자세를 배치하고,비USB 시험용 스틱 명령과 수직 보상을 사용해 자세 제어를 분리했다. 이후 운동은 실제 모터/Chaos이며 USB 비행·실기체 성능·렌더링FPS 측정 결과가 아니다.
+
+새 실행 창의 **69개 네이티브 화면 검사 전부 통과**. 실제10대의 초기XY·홈·그려진 패드 인스턴스의 월드XY·역할·중앙선을 향하는 초기 방향,10개 역할 각각의 외부LOS 카메라 위치를 대조했다. 근거: `Saved/Verification/ui-20261026-210203-219/result.json`과 같은 폴더의CSV/역할별 화면. 이 검사는 배치/수동/USB 기본 제한 범위이며 R4의 전체AUTO/HOLD/RETURN96개 검사를 R6에서도 반복했다고 주장하지 않는다. [실제 ANGLE LOS 화면](images/angle-los-r6.png).
+
+실물 조작 과정에서는 한쪽 이동만 수집해도 안내 단계가 넘어가 마지막 중립을 거부할 수 있음을 발견했다. 시작 시 실제 중립을 기억하고 양쪽 범위를 확인한 후 단계 완료를 허용하도록 수정했다. 단발값을 끝값으로 꾸미거나 기준을 낮춰 완료시키지 않았다.
+
+실제 사용자 조작으로 확인된 Roll=X,Pitch=Y,Yaw=V,Throttle=Z,모두NORMAL을 수동 범위 수집에 적용해 **6,454개 실물 입력**의0–1 끝값·중립·최저 스로틀을 검증하고 저장했다. X/Y/V중립은0.499016/0.499504/0.497551,최저Throttle=0이다. 저장된 실제 프로필은 로컬Saved에만 있다. `boxer-after-ManualSave.png`와 실제CSV의 `radio_calibrated=1`로 저장 성공을 확인했다. 이어 USB활성화·최저 스로틀ARM도 `boxer-after-EnableAndArm.png`와CSV로 확인했다. [저장 직후 실제 화면](images/boxer-calibrated-r6.png).
+
+연속USB비행 검사는 포커스 상실로 중단됐다. `boxer-flight-20261026-203625/observation.json`의32개 샘플은 DISARM·키보드 상태이며 비행 성공으로 계산하지 않는다. 케이블 분리·재연결·기체 반응별 방향·USB지연 검증은 남아 있다.
+
+## R6 빌드 출처와 작업 폴더의 추가 변경
+
+화면·CSV·물리 결과와 패키지 옆manifest에 버전·빌드UTC·기반커밋/수정표시·빌드 입력SHA-256을 기록한다. 검증한 입력은62개이며 SHA-256은 **`01fa67e132697ad826c30bec585ca45242e3c9df97be4347689efd63046237c9`**다. C#빌드 계산과 독립 PowerShell 계산이 일치함을 확인했다. 소스 텍스트의CRLF/LF는 정규화하며 자체자산은 바이트 해시를 사용한다. 에디터와 게임manifest는 다른 파일명으로 저장한다.
+
+빌드 이후 작업 폴더에 `ImperialPresentationEffects.{h,cpp}`와 `ImperialGameMode.cpp`의 효과 생성 변경이 추가됐다. 이 추가 작업은 덮어쓰지 않았고 검증한62개 입력과 구분한다. 원래GameMode와 효과 파일 제외 조건으로 재계산한 해시는 위 빌드값과 정확히 일치했다. 화면검사에는 이 명시적인 빌드 스냅샷을 지정했고 `workspace_matches_runtime=false`를 숨기지 않고 기록했다. 새 효과의 성능·시각 품질을 이 검사로 보증하지 않는다.
+
+자율 통신은 세션UUID·명령세대·요청번호를 추가하고,모드/초기화 전환 시 대기 요청을 취소한다. 이전 콜백이 새 요청 대기 상태를 해제하지 못하며,서버도 이전세대/중복 요청을409로 거부한다. 임무·귀환에서2초 동안 유효 응답이 없으면 현 위치HOLD로 전환하고 복구만으로 임무를 재개하지 않는다. API/순서 수학·HTTP 검사와 UE컴파일은 통과했으나 실제UE귀환 도중 장애 검사는 남아 있다.
+
+자동 승인 검토가 기존 브리지 재시작 및 별도 브리지/게임 창 시작 명령을 “blocked by policy”로 거부했다. 해당 명령을 다른 실행 수단으로 우회하지 않았고 사용자가 새 실행 파일을 직접 열었다. 기존브리지의 프로토콜과 맞지 않아 R6관제는SDACS오프라인 상태였으며,수동ANGLE·배치 검사는 브리지 없이 수행했다. 보안창/커서 이동으로 중단된 추가USB준비 검사는 실패 기록으로 별도 보관한다.
+
+사용자가 보안창을 처리하고 입력을 멈춘 뒤 R6 USB준비 검사를 완료했다. **45개 항목 모두 통과**: `Saved/Verification/ui-20261026-211420-879/result.json`. 실제Boxer의 저장 프로필을 불러왔고 최종CSV에서 `input_source=USB,radio_connected=1,radio_calibrated=1,radio_enabled=1,armed=0,flight_mode=ANGLE,throttle=0`을 확인했다. 전체10대는DISARM이다. 이45개를 앞선69개 배치 검사와 중복 없는114개라고 합산하지 않는다.
+
+## 2026-10-26 시각 효과·화질 개선
+
+별도 `ImperialPresentationEffects` 액터와 GameMode 스폰 연결을 추가했다. 바닥 접촉 충격량 기반 먼지, 실제 추력·바닥 추적으로 제한한 저고도 로터 먼지, 유한 인스턴스 풀, 사진식 색 보정·낮은 bloom·넓은 보조광과 Balanced/High/Cinematic을 제공한다. 비행 힘·득점·ARM·USB 코드에는 이 변경을 넣지 않았다. 상세 범위는 [시각 효과 설명](presentation-upgrade.md).
+
+- 최종 에디터 C++ 빌드 성공: `Saved/presentation-editor-build.log`.
+- 에디터 효과 수명/풀 검사 3단계 통과: `Saved/Verification/presentation-20261026-115828-013`. 최대96/192/256, 수명 종료 후0개.
+- 새 Windows 패키지 build/cook/stage/package/archive 성공: `Saved/presentation-isolated-package-console.log`, ExitCode0.
+- 기존 `dist/Windows`가 실행 중이어서 첫 archive는 파일 잠금으로 실패했다. 실행 중인 게임을 종료하지 않고 새 패키지를 `dist/PresentationUpgrade/Windows`로 분리했다. 기존 런처는 이 새 경로로 전환하지 않았다.
+- 패키지 효과 수명/풀 검사 3단계 통과: `Saved/Verification/presentation-20261026-120323-271`의 각 새 JSON ok=true.
+- 패키지 실제 Chaos60Hz 시나리오 ok=true: `Saved/Verification/presentation-packaged-physics-60.json`. 호버 오차0.284cm, 바닥/벽·네트 접촉 및 실제 스트라이커 득점 통과, 네트 최대 처짐6.721cm.
+- 에디터 GPU1920×1080 전후 렌더를 확인했다: `Saved/Verification/presentation-before.png`, `presentation-after.png`.
+- 먼지 풀 시험은 명시적 가상 충격으로 시각 수명/상한을 검사한다. 실제 접촉 외형의 정밀도·실기체 먼지·실측 손상 검증을 뜻하지 않는다.
+- 실제 USB비행, 전체 화면 조작, 지속 GPU 성능 비교는 이번에 재검사하지 않았다. 기존 30/120Hz·UI 수치를 이번 변경의 새 검증으로 재사용하지 않는다. 모터 고장·보호구 실제 파괴·역할 승계 구현은 별도 작업이다.
+- 새 패키지1920×1080 렌더도15초 예열 후 확인했다: `Saved/Verification/presentation-packaged-warm.png`. 초기6초 캡처에는 HUD 일부 글리프가 미완성으로 보였고15초에는 정상 표시됐다. 초기 글꼴/렌더 예열 문제는 추가 확인 대상으로 남기며 전체 UI 시험 통과로 대신하지 않는다.

@@ -69,6 +69,7 @@ const char* ErrorText(Error Value)
     case Error::AmbiguousMovement: return "More than one axis moved. Retry with only the indicated stick direction.";
     case Error::EndpointNotHeld: return "Hold the indicated final end, then confirm this step.";
     case Error::InputNotStable: return "Keep the sticks still for a moment before confirming.";
+    case Error::IncompleteSweep: return "Sweep BOTH sides of the starting center. Retry from a centered stick.";
     }
     return "Unknown calibration error.";
 }
@@ -368,6 +369,8 @@ Error GuidedCapture::StartStep(bool Connected)
 {
     if (!Connected) return Interrupt(Error::Disconnected);
     if (CurrentPhase != GuidedPhase::Ready && CurrentPhase != GuidedPhase::Capturing) return Error::NotCapturing;
+    if (!HaveLatestSample) return Error::InsufficientSamples;
+    StartingCenter = LatestSample;
     ResetStepSamples();
     CurrentPhase = GuidedPhase::Capturing;
     return Error::None;
@@ -402,6 +405,8 @@ Error GuidedCapture::Observe(const Axes& Sample, const AxisMask& Available, bool
     if (!ValidSample(Sample, Available) || !std::isfinite(TimeSeconds) || TimeSeconds < 0 ||
         (LastTime >= 0 && TimeSeconds <= LastTime)) return Interrupt(Error::InvalidSample);
     LastTime = TimeSeconds;
+    LatestSample = Sample;
+    HaveLatestSample = true;
     if (CurrentPhase == GuidedPhase::Ready || CurrentPhase == GuidedPhase::Review) return Error::None;
     Window.push_back({TimeSeconds, Sample});
     while (!Window.empty() && (Window.front().Time < TimeSeconds - 1.0 || Window.size() > 256)) Window.pop_front();
@@ -444,6 +449,8 @@ Error GuidedCapture::FinishStep(bool Connected)
         if (Mask[Axis] && Span > Travel) { Best = Axis; Travel = Span; }
     }
     if (Best < 0 || Travel < MinimumTravel) return Error::InsufficientRange;
+    const double InitialPosition = (StartingCenter[Best] - ObservedMinimum(Best)) / Travel;
+    if (CurrentChannel < 3 && (InitialPosition < 0.2 || InitialPosition > 0.8)) return Error::IncompleteSweep;
     for (int Previous = 0; Previous < CurrentChannel; ++Previous)
         if (Value.Mapping[Previous] == Best) return Error::DuplicateAxis;
     for (int Axis = 0; Axis < static_cast<int>(AxisCount); ++Axis)
@@ -504,6 +511,7 @@ void GuidedCapture::Cancel()
 {
     CurrentPhase = GuidedPhase::Idle;
     Value = Profile{};
+    HaveLatestSample = false;
     CurrentChannel = 0;
     ResetStepSamples();
 }

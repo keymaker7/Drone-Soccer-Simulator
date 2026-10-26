@@ -13,6 +13,7 @@ public:
     virtual void SetupInputComponent() override;
     virtual void PlayerTick(float Dt) override;
     void SetView(int32 View);
+    FVector GetPilotStationPosition() const;
 private:
     UPROPERTY() TObjectPtr<ACameraActor> ArenaCamera;
     UPROPERTY() TObjectPtr<ACameraActor> PilotCamera;

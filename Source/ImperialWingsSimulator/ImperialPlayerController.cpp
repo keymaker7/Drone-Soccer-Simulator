@@ -83,12 +83,13 @@ void AImperialPlayerController::UpdatePilotCamera()
     const int32 Team=Match&&Match->GetSelected()>=5?1:0;
     if(Team!=PilotTeam){PilotTeam=Team;PilotHeadYaw=0;PilotHeadPitch=0;bHeadDragging=false;}
     const int32 Slot=Match?Match->GetSelected()%5:0;
-    const FVector Station(Team==0?-950.f:950.f,ImperialSoccerLayout::StartPosition(Team,Slot).Y,170);
+    const FVector Station=ImperialSoccerLayout::PilotPosition(Team,Slot);
     const FVector OpponentGoal(Team==0?650.f:-650.f,0,170);
     const FRotator Facing=(OpponentGoal-Station).Rotation();
     PilotCamera->SetActorLocationAndRotation(Station,FRotator(Facing.Pitch+PilotHeadPitch,Facing.Yaw+PilotHeadYaw,0));
     PilotCamera->GetCameraComponent()->SetFieldOfView(PilotFieldOfView);
 }
+FVector AImperialPlayerController::GetPilotStationPosition() const {return PilotCamera?PilotCamera->GetActorLocation():FVector::ZeroVector;}
 void AImperialPlayerController::SetView(int32 View)
 {
     if(!Match) return;

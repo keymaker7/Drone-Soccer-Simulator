@@ -13,6 +13,7 @@ public static class IWNativeCapture {
  [DllImport("user32.dll")]public static extern bool GetClientRect(IntPtr h,out Rect r);
  [DllImport("user32.dll")]public static extern bool ClientToScreen(IntPtr h,ref Point p);
  [DllImport("user32.dll")]public static extern bool SetForegroundWindow(IntPtr h);
+ [DllImport("user32.dll")]public static extern bool BringWindowToTop(IntPtr h);
  [DllImport("user32.dll")]public static extern IntPtr GetForegroundWindow();
  [DllImport("user32.dll")]public static extern bool SetWindowPos(IntPtr h,IntPtr after,int x,int y,int cx,int cy,uint flags);
  [DllImport("user32.dll")]public static extern uint GetWindowThreadProcessId(IntPtr h,out uint p);
@@ -28,14 +29,18 @@ $Handle=$Process.MainWindowHandle
 if($Handle -eq 0){throw 'The selected process has no visible game window.'}
 [void][IWNativeCapture]::ShowWindow($Handle,9)
 [void][IWNativeCapture]::SetWindowPos($Handle,[IntPtr]::new(-1),0,0,0,0,0x43)
-$Foreground=[IWNativeCapture]::GetForegroundWindow()
-$ForegroundPid=[uint32]0
-$ForegroundThread=[IWNativeCapture]::GetWindowThreadProcessId($Foreground,[ref]$ForegroundPid)
-$CurrentThread=[IWNativeCapture]::GetCurrentThreadId()
-[void][IWNativeCapture]::AttachThreadInput($CurrentThread,$ForegroundThread,$true)
-[void][IWNativeCapture]::SetForegroundWindow($Handle)
-[void][IWNativeCapture]::AttachThreadInput($CurrentThread,$ForegroundThread,$false)
-Start-Sleep -Milliseconds 250
+for($FocusAttempt=0;$FocusAttempt -lt 8 -and [IWNativeCapture]::GetForegroundWindow() -ne $Handle;$FocusAttempt++){
+ $Foreground=[IWNativeCapture]::GetForegroundWindow()
+ $ForegroundPid=[uint32]0
+ $ForegroundThread=[IWNativeCapture]::GetWindowThreadProcessId($Foreground,[ref]$ForegroundPid)
+ $CurrentThread=[IWNativeCapture]::GetCurrentThreadId()
+ [void][IWNativeCapture]::AttachThreadInput($CurrentThread,$ForegroundThread,$true)
+ try{
+  [void][IWNativeCapture]::BringWindowToTop($Handle)
+  [void][IWNativeCapture]::SetForegroundWindow($Handle)
+ }finally{[void][IWNativeCapture]::AttachThreadInput($CurrentThread,$ForegroundThread,$false)}
+ Start-Sleep -Milliseconds 150
+}
 [void][IWNativeCapture]::SetWindowPos($Handle,[IntPtr]::new(-2),0,0,0,0,0x13)
 if([IWNativeCapture]::GetForegroundWindow() -ne $Handle){throw 'The game window is not foreground; no screenshot was captured.'}
 $Rect=[IWNativeCapture+Rect]::new();$Point=[IWNativeCapture+Point]::new()

@@ -54,13 +54,14 @@ struct GuidedFixture
     GuidedCapture Session;
     Axes Sample{{0.5, 0.5, 0.0, 0.0, 0.0, 0.5}};
     double Time = 0;
-    GuidedFixture() { Session.Begin(AllAxes, true); }
+    GuidedFixture() { Session.Begin(AllAxes, true); Time+=.01; Session.Observe(Sample,AllAxes,true,Time); }
     void Hold(int Count = 70)
     {
         for (int I = 0; I < Count; ++I) { Time += .01; Session.Observe(Sample, AllAxes, true, Time); }
     }
     void Sweep(int Axis, bool EndHigh)
     {
+        Time+=.01;Session.Observe(Sample,AllAxes,true,Time);
         Session.StartStep(true);
         Sample[Axis] = 0.1; Hold();
         Sample[Axis] = 0.9; Hold();
@@ -108,6 +109,11 @@ void GuidedTests()
     GuidedFixture Narrow;
     Narrow.Session.StartStep(true); Narrow.Sample[0] = .4; Narrow.Hold(); Narrow.Sample[0] = .6; Narrow.Hold();
     Check(Narrow.Session.FinishStep(true) == Error::InsufficientRange, "narrow sweep is rejected");
+    GuidedFixture OneSided;
+    OneSided.Session.StartStep(true);OneSided.Hold();OneSided.Sample[0]=.9;OneSided.Hold();
+    Check(OneSided.Session.FinishStep(true)==Error::IncompleteSweep, "one-sided travel is rejected before the final neutral stage");
+    OneSided.Sample[0]=.1;OneSided.Hold();OneSided.Sample[0]=.9;OneSided.Hold();
+    Check(OneSided.Session.FinishStep(true)==Error::None, "sweeping the missing side repairs the current step");
 
     GuidedFixture Outlier;
     Outlier.Session.StartStep(true);
@@ -123,7 +129,7 @@ void GuidedTests()
     Diagonal.Sample[0] = .9; Diagonal.Sample[1] = .9; Diagonal.Hold();
     Check(Diagonal.Session.FinishStep(true) == Error::AmbiguousMovement, "diagonal stick movement requires retry instead of guessing");
     Check(Diagonal.Session.Candidate().Mapping[0] == -1, "ambiguous step does not mutate mapping");
-    Diagonal.Sample[1] = .5; Diagonal.Sweep(0, true);
+    Diagonal.Sample[0] = .5; Diagonal.Sample[1] = .5; Diagonal.Sweep(0, true);
     Check(Diagonal.Session.FinishStep(true) == Error::None, "retry clears contaminated range");
     Diagonal.Sample[0] = .5; Diagonal.Sweep(0, true);
     Check(Diagonal.Session.FinishStep(true) == Error::DuplicateAxis, "same physical axis cannot become two channels");

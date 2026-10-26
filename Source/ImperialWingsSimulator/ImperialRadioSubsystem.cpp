@@ -229,7 +229,9 @@ void UImperialRadioSubsystem::PollSelectedDevice()
     Buttons = static_cast<uint32>(Position.dwButtons);
     LastSampleTime = FPlatformTime::Seconds();
     bConnected = true;
-    if (!bWasConnected) Status = TEXT("Joystick live. USB disabled; calibrate or lower throttle and enable explicitly.");
+    if (!bWasConnected) Status = Guided.Phase()==ImperialRadio::GuidedPhase::Interrupted
+        ? TEXT("Stick setup interrupted by input loss. Previous saved profile retained; restart STICK SETUP.")
+        : TEXT("Joystick live. USB disabled; calibrate or lower throttle and enable explicitly.");
     if (bCalibrationActive && RangeCapture.Active)
     {
         const auto Error = RangeCapture.Observe(CurrentSample(), AvailableAxes(), true);

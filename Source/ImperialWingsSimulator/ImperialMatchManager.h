@@ -4,6 +4,7 @@
 #include "Interfaces/IHttpRequest.h"
 #include "Interfaces/IHttpResponse.h"
 #include "DroneSoccerRules.h"
+#include "GuidanceRequestWindow.h"
 #include "ImperialMatchManager.generated.h"
 class ASoccerDronePawn;
 enum class EImperialMode { Manual, Mission, Hold, Returning };
@@ -14,6 +15,7 @@ class IMPERIALWINGSSIMULATOR_API AImperialMatchManager : public AActor
 public:
     AImperialMatchManager();
     virtual void BeginPlay() override;
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
     virtual void Tick(float DeltaSeconds) override;
     const TArray<TObjectPtr<ASoccerDronePawn>>& GetDrones() const { return Drones; }
     ASoccerDronePawn* GetDrone(int32 Id) const;
@@ -36,6 +38,7 @@ public:
     bool ExportTelemetry();
     bool IsConnected() const { return bConnected; }
     FString GetSourceCommit() const { return SourceCommit; }
+    uint64 GetGuidanceCommand() const { return GuidanceWindow.Command(); }
     FString GetModeName() const;
     FString GetNotice() const { return Notice; }
     int32 GetScore(int32 Team) const { return Rules.Score(Team); }
@@ -57,14 +60,22 @@ private:
     int32 Selected=0;
     int32 CameraView=1;
     int32 BlueScore=0,OrangeScore=0,Conflicts=0;
-    double Elapsed=0,RequestClock=0,LastResponse=-100;
+    double Elapsed=0,LastResponse=-100;
     float ClosestSeparation=0,SmoothFPS=60;
     bool bConnected=false,bRequestPending=false,bSmoke=false,bSmokeDone=false,bDemo=false,bDemoStarted=false;
     int32 SmokePhase=0;
     float SmokeMaxHeight=0,SmokeMinHeight=10000;
     float SmokeHoverError=0,SmokeNetPeak=0,SmokeNetVisualPeak=0,SmokeNetRebound=0,SmokeNetMinY=0;
     bool bSmokeFloorWall=false,bSmokeNet=false,bSmokeGoal=false;
+    bool bAngleSmoke=false,bAngleInitialLevel=false,bAngleReleasedLevel=false;
+    double AnglePhaseStart=0;
+    float AnglePeak=0,AngleInputPeak=0,AngleReleaseWorst=0;
     FString SourceCommit;
+    FString GuidanceSession;
+    FString GuidanceUrl=TEXT("http://127.0.0.1:8766");
+    ImperialGuidance::RequestWindow GuidanceWindow;
+    FHttpRequestPtr PendingGuidance;
+    double LastRequestWallTime=0;
     FString CaptureFile;
     FString SmokeResultFile;
     double CaptureAt=10;
@@ -73,8 +84,12 @@ private:
     bool bProfileWritten=false;
     FString Notice=TEXT("Keyboard ready. Select AUTO FLEET for SDACS autonomous guidance.");
     void RequestGuidance();
-    void OnGuidance(FHttpRequestPtr Request,FHttpResponsePtr Response,bool bSuccess);
+    void OnGuidance(FHttpRequestPtr Request,FHttpResponsePtr Response,bool bSuccess,ImperialGuidance::Ticket Ticket);
+    void AdvanceGuidanceCommand();
+    void CancelPendingGuidance();
+    FString GuidanceMode() const;
     void Log(const FString& Message);
     void UpdateScoring();
     void SmokeTick();
+    void AngleSmokeTick();
 };

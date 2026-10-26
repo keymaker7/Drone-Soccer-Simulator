@@ -22,6 +22,21 @@ int main()
     Check(Near((Vec3{1,2,3} / 0).Length(), 0), "zero division returns finite zero");
     Check(Near(ClampMagnitude({3,4,0}, 2).Length(), 2), "vector clamp preserves bounded magnitude");
     Check(Near(ClampFinite(NaN, -1, 1), 0), "invalid scalar returns a finite fallback");
+    Check(Near(AngleBodyRate(AngleDesiredUp(0,0)).Length(),0),"centered angle input holds a level attitude");
+    Check(AngleBodyRate(AngleDesiredUp(1,0)).X<0,"right roll commands rightward body tilt");
+    Check(AngleBodyRate(AngleDesiredUp(0,1)).Y>0,"forward pitch commands forward body tilt");
+    const auto DiagonalTilt=AngleDesiredUp(1,1);
+    Check(Near(DiagonalTilt.Length(),1)&&Near(std::acos(DiagonalTilt.Z)*180/3.141592653589793,35),"diagonal stick input respects total tilt cone limit");
+    Check(AngleBodyRate({0,0,-1}).Finite()&&AngleBodyRate({0,0,-1}).Length()>0,"inverted aircraft receives bounded self-level recovery");
+    Check(AngleBodyRate({0,0,-1},30,1).Length()<=1.000001,"angle controller rate is limited independently from stick angle");
+    Check(Near(AngleBodyRate({NaN,0,1}).Length(),0),"invalid attitude cannot create a rate command");
+    Check(Near(AngleDesiredUp(NaN,NaN).Z,1),"invalid sticks fall back to level attitude");
+    for(int Rate:{20,30,60,120,240})
+    {
+        double Tilt=.5;
+        for(int I=0;I<Rate*2;++I)Tilt-=AngleBodyRate({0,-std::sin(Tilt),std::cos(Tilt)}).X/Rate;
+        Check(std::abs(Tilt)<.002,"released angle input converges to level across controller sample intervals");
+    }
 
     MotorState Motor;
     const double AtTau = MotorStep(Motor, 1, P.Motor.ResponseSeconds, P.Motor);

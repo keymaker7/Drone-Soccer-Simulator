@@ -23,6 +23,7 @@ class IMPERIALWINGSSIMULATOR_API APrototypeArenaBuilder : public AActor
 public:
     APrototypeArenaBuilder();
     void SetGoalSignal(int32 GoalIndex, bool bScored);
+    bool GetStartPadPosition(int32 AircraftId,FVector& Position) const;
 
 protected:
     virtual void BeginPlay() override;
@@ -60,6 +61,8 @@ private:
     UPROPERTY() TArray<TObjectPtr<UMaterialInstanceDynamic>> GoalLights;
     bool GoalIsScored[2] = {false, false};
     TMap<FString, UInstancedStaticMeshComponent*> Batches;
+    TArray<TWeakObjectPtr<UInstancedStaticMeshComponent>> StartPadBatches;
+    TArray<int32> StartPadIndices;
     UMaterialInstanceDynamic* Material(FLinearColor Color, float Glow = 0.f, UMaterialInterface* BaseOverride = nullptr);
     void SteelBeam(const FString& Name, FVector Start, FVector End, float Depth = 24.f, float Width = 14.f);
     void Piece(const FString& Name, UStaticMesh* Mesh, UMaterialInterface* Mat,
