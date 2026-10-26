@@ -49,14 +49,23 @@ public:
     bool IsConnected() const;
     bool IsCalibrated() const;
     bool IsEnabled() const;
-    bool IsCalibrating() const { return bCalibrationActive; }
+    bool IsCalibrating() const { return bCalibrationActive || Guided.Active(); }
     FString GetStatus() const;
     int32 GetMappedAxis(int32 Channel) const;
     bool IsInverted(int32 Channel) const;
     float GetDeadzone() const { return static_cast<float>(Calibration.Deadzone); }
     float GetCapturedMinimum(int32 Axis) const;
     float GetCapturedMaximum(int32 Axis) const;
-    int32 GetCaptureSampleCount() const { return static_cast<int32>(RangeCapture.Samples); }
+    int32 GetCaptureSampleCount() const { return static_cast<int32>(Guided.Active() ? Guided.SampleCount() : RangeCapture.Samples); }
+    ImperialRadio::GuidedPhase GetGuidedPhase() const { return Guided.Phase(); }
+    int32 GetGuidedChannel() const { return Guided.Channel(); }
+    bool IsGuidedActive() const { return Guided.Active(); }
+    bool BeginGuidedCalibration();
+    bool StartGuidedStep();
+    bool FinishGuidedStep();
+    bool FinishGuidedNeutral();
+    bool SaveGuidedCalibration();
+    void CancelGuidedCalibration();
 
     void RefreshDevices();
     bool SelectDevice(int32 Id);
@@ -84,6 +93,7 @@ private:
     uint32 Buttons = 0;
     ImperialRadio::Profile Calibration;
     ImperialRadio::Capture RangeCapture;
+    ImperialRadio::GuidedCapture Guided;
     bool bConnected = false;
     bool bEnabled = false;
     bool bCalibrationActive = false;
@@ -100,5 +110,6 @@ private:
     ImperialRadio::Axes CurrentSample() const;
     ImperialRadio::AxisMask AvailableAxes() const;
     ImperialRadio::Controls CurrentControls() const;
+    bool WriteProfile();
     FString ProfilePath() const;
 };

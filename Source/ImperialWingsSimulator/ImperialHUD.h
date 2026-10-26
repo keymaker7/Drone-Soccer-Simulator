@@ -14,6 +14,7 @@ public:
     virtual void NotifyHitBoxClick(FName BoxName) override;
     bool IsPointerOverUI(FVector2D Position) const;
     void ToggleRadioPanel();
+    void AdvanceRadioSetup();
     void ClickPointer();
     void ToggleCompactView() { bCompactView=!bCompactView; }
     bool IsRadioPanelOpen() const { return bRadioPanelOpen; }

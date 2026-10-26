@@ -12,7 +12,9 @@ Keep the target game window visible and do not use the mouse during this test.
 param(
     [int]$ProcessId = 0,
     [string]$OutputDirectory = (Join-Path $PSScriptRoot '..\Saved\Verification'),
-    [string]$ReportsDir = ''
+    [string]$ReportsDir = '',
+    [switch]$CheckGuidedSetup,
+    [string]$GuidedDeviceId = '1209:4F54'
 )
 
 Set-StrictMode -Version Latest
@@ -155,12 +157,13 @@ function Save-ClientScreenshot([string]$Name) {
     Write-Host "Screenshot: $path"
 }
 
-function Export-FleetSnapshot([string]$Label) {
+function Export-FleetSnapshot([string]$Label, [switch]$ViaShortcut) {
     $known = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
     if (Test-Path -LiteralPath $reportsDirectory) {
         foreach ($file in Get-ChildItem -LiteralPath $reportsDirectory -Filter '*-fleet.csv' -File) { [void]$known.Add($file.FullName) }
     }
-    Invoke-HudClick 694 171 # EXPORT CSV, x=636..752.
+    if ($ViaShortcut) { Invoke-NativeKey 0x74 } # F5 is a read-only export, also in the radio modal.
+    else { Invoke-HudClick 694 171 } # EXPORT CSV, x=636..752.
     $deadline = [DateTime]::UtcNow.AddSeconds(12)
     $selectedFile = $null
     $rows = @()
@@ -293,6 +296,42 @@ try {
         Assert-Check 'Uncalibrated radio activation is rejected' (@($radioClosed.Rows | Where-Object { $_.radio_enabled -ne '0' -or $_.radio_calibrated -ne '0' }).Count -eq 0) 'An explicit ENABLE RADIO attempt kept the real uncalibrated USB source disabled.'
     }
     Assert-MatchUiState $radioClosed 'IW-01' 1
+
+    if ($CheckGuidedSetup) {
+        # This exercises only the real device's idle/rejection/cancel path.
+        # It neither substitutes stick readings nor saves a calibration profile.
+        $profilePath = Join-Path (Split-Path -Parent $reportsDirectory) 'Config\RadioProfile.json'
+        $profileBefore = if (Test-Path -LiteralPath $profilePath) { (Get-FileHash -LiteralPath $profilePath -Algorithm SHA256).Hash } else { 'ABSENT' }
+        Invoke-NativeKey 0x43
+        $deviceState = Export-FleetSnapshot '01d-guided-device' -ViaShortcut
+        for ($attempt = 0; $attempt -lt 16 -and $deviceState.Rows[0].radio_device_id -ne $GuidedDeviceId; $attempt++) {
+            Invoke-HudClick 1198 222 # NEXT DEVICE, actual Windows enumeration only.
+            $deviceState = Export-FleetSnapshot "01d-guided-device-$attempt" -ViaShortcut
+        }
+        Assert-Check 'Guided setup uses selected physical device' ($deviceState.Rows[0].radio_connected -eq '1' -and $deviceState.Rows[0].radio_device_id -eq $GuidedDeviceId) "Actual selected driver ID is $GuidedDeviceId."
+        Invoke-HudClick 486 536 # STICK SETUP / MODE 2.
+        Save-ClientScreenshot '01e-guided-mode2-ready'
+        $guideReady = Export-FleetSnapshot '01e-guided-ready' -ViaShortcut
+        Assert-Check 'Guided setup opens at first ready step' ($guideReady.Rows[0].radio_setup_phase -eq '1' -and $guideReady.Rows[0].radio_setup_channel -eq '0') 'No channel assignment is inferred before actual physical movement.'
+        Invoke-NativeKey 0x0D # ENTER starts the calibration step, never AUTO FLEET.
+        Invoke-NativeKey 0x20 # SPACE must not arm while the radio modal is open.
+        Invoke-NativeKey 0x26 300 # UP must not accumulate hidden keyboard throttle.
+        Start-Sleep -Milliseconds 650
+        $guideCapture = Export-FleetSnapshot '01f-guided-capture' -ViaShortcut
+        Assert-Check 'Enter starts stick capture without launch' ($guideCapture.Rows[0].radio_setup_phase -eq '2' -and (Test-DisarmedFleet $guideCapture)) 'The setup shortcut did not launch or arm the ten-aircraft fleet.'
+        Assert-Check 'Guided capture receives actual input samples' ([int]$guideCapture.Rows[0].radio_setup_samples -gt 16) 'Samples came from the selected WinMM input device.'
+        Assert-Check 'Radio modal blocks keyboard throttle' ([double](Get-Aircraft $guideCapture 'IW-01').throttle -eq 0) 'The UP key did not leave hidden throttle while setting up USB.'
+        Invoke-NativeKey 0x0D # Idle stick cannot establish range and direction.
+        Save-ClientScreenshot '01g-guided-idle-range-refused'
+        $guideRefused = Export-FleetSnapshot '01g-guided-refused' -ViaShortcut
+        Assert-Check 'Stationary guide step remains unconfirmed' ($guideRefused.Rows[0].radio_setup_phase -eq '2' -and $guideRefused.Rows[0].radio_setup_channel -eq '0') 'Idle physical input was not accepted as a full stick sweep.'
+        Assert-Check 'Guided setup keeps USB disabled' (@($guideRefused.Rows | Where-Object { $_.radio_enabled -ne '0' -or $_.input_source -ne 'KEYBOARD' }).Count -eq 0) 'Setup does not supply flight controls before completion.'
+        Invoke-NativeKey 0x43 # CLOSE cancels the unfinished guide.
+        $guideCancel = Export-FleetSnapshot '01h-guided-cancelled'
+        Assert-Check 'Closing discards unfinished guide' ($guideCancel.Rows[0].radio_setup_phase -eq '0' -and (Test-DisarmedFleet $guideCancel)) 'Cancel returns to keyboard mode with all aircraft disarmed.'
+        $profileAfter = if (Test-Path -LiteralPath $profilePath) { (Get-FileHash -LiteralPath $profilePath -Algorithm SHA256).Hash } else { 'ABSENT' }
+        Assert-Check 'Unfinished guide preserves existing profile file' ($profileBefore -eq $profileAfter) 'The real calibration file was neither created nor changed by this test.'
+    }
 
     Invoke-NativeKey 0x20 # SPACE arms the possessed IW-01 at low throttle.
     $armed = Export-FleetSnapshot '02-manual-armed'

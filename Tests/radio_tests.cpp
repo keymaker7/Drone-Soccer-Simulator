@@ -47,6 +47,125 @@ Profile ReadyProfile()
     Check(Confirm(Value, AllAxes, true) == Error::None, "complete calibration confirmed");
     return Value;
 }
+
+// Timestamped mathematical fixtures, never connected to the native input service.
+struct GuidedFixture
+{
+    GuidedCapture Session;
+    Axes Sample{{0.5, 0.5, 0.0, 0.0, 0.0, 0.5}};
+    double Time = 0;
+    GuidedFixture() { Session.Begin(AllAxes, true); }
+    void Hold(int Count = 70)
+    {
+        for (int I = 0; I < Count; ++I) { Time += .01; Session.Observe(Sample, AllAxes, true, Time); }
+    }
+    void Sweep(int Axis, bool EndHigh)
+    {
+        Session.StartStep(true);
+        Sample[Axis] = 0.1; Hold();
+        Sample[Axis] = 0.9; Hold();
+        Sample[Axis] = EndHigh ? 0.9 : 0.1; Hold();
+    }
+    void FourSteps()
+    {
+        const int Mapping[] = {0, 1, 5, 2};
+        const bool EndHigh[] = {true, false, true, true};
+        for (int I = 0; I < 4; ++I)
+        {
+            Sweep(Mapping[I], EndHigh[I]);
+            Check(Session.FinishStep(true) == Error::None, "guided step discovers a distinct axis and held direction");
+            Sample[Mapping[I]] = I == 3 ? 0.9 : 0.5;
+            Hold(); // Ready observations cannot contaminate the following step.
+        }
+    }
+};
+
+void GuidedTests()
+{
+    GuidedFixture Ready;
+    Profile Output; Output.Deadzone = .17;
+    Check(Ready.Session.Phase() == GuidedPhase::Ready && Ready.Session.Candidate().Mapping[0] == -1, "guide begins without guessed channels");
+    Check(Ready.Session.ConfirmedProfile(Output, true) == Error::NotConfirmed && Near(Output.Deadzone, .17), "incomplete guide leaves caller profile unchanged");
+    Ready.FourSteps();
+    Check(Ready.Session.Phase() == GuidedPhase::Neutral && !Ready.Session.Candidate().Confirmed, "all endpoints still require neutral and explicit confirmation");
+    Check(Ready.Session.Candidate().Mapping == std::array<int, 4>{{0, 1, 5, 2}}, "nonconsecutive driver axes are found without defaults");
+    Check(Ready.Session.Candidate().Inverted[1] && Ready.Session.Candidate().Inverted[3], "negative driver pitch and physical low-at-high throttle are inferred");
+    Check(Ready.Session.FinishNeutral(true) == Error::None, "stable centered sticks and inverted minimum throttle pass");
+    Check(Ready.Session.Phase() == GuidedPhase::Review && !Ready.Session.Candidate().Confirmed, "review does not silently confirm");
+    Check(Ready.Session.ConfirmedProfile(Output, true) == Error::None && Output.Confirmed, "only review produces a validated candidate");
+    Check(CanEnable(Output, Ready.Sample, AllAxes, true), "guided candidate maps physical low throttle to zero");
+    Axes Positive = Ready.Sample; Positive[1] = .1;
+    Check(Near(MapControls(Output, Positive, AllAxes, true).Pitch, 1), "held forward pitch maps to positive control");
+    Ready.Session.MarkSaved();
+    Check(Ready.Session.Phase() == GuidedPhase::Complete && !Ready.Session.Active(), "successful save closes the guide");
+
+    GuidedFixture Stationary;
+    Stationary.Session.StartStep(true); Stationary.Hold();
+    Check(Stationary.Session.FinishStep(true) == Error::InsufficientRange, "stationary live device cannot pass a guide step");
+    GuidedFixture Short;
+    Short.Session.StartStep(true); Short.Hold(2);
+    Check(Short.Session.FinishStep(true) == Error::InsufficientSamples, "rapid confirmation without observations is rejected");
+    GuidedFixture Narrow;
+    Narrow.Session.StartStep(true); Narrow.Sample[0] = .4; Narrow.Hold(); Narrow.Sample[0] = .6; Narrow.Hold();
+    Check(Narrow.Session.FinishStep(true) == Error::InsufficientRange, "narrow sweep is rejected");
+
+    GuidedFixture Outlier;
+    Outlier.Session.StartStep(true);
+    Outlier.Hold();
+    Outlier.Sample[3] = .5; Outlier.Hold(1); Outlier.Sample[3] = 0;
+    Outlier.Sample[0] = .1; Outlier.Hold(); Outlier.Sample[0] = .9; Outlier.Hold();
+    Check(Outlier.Session.FinishStep(true) == Error::None && Outlier.Session.Candidate().Mapping[0] == 0, "isolated unrelated driver packet does not create another moving axis");
+    Check(Near(Outlier.Session.Candidate().Ranges[0].Minimum, .1), "only sustained endpoint values establish range");
+
+    GuidedFixture Diagonal;
+    Diagonal.Session.StartStep(true);
+    Diagonal.Sample[0] = .1; Diagonal.Sample[1] = .1; Diagonal.Hold();
+    Diagonal.Sample[0] = .9; Diagonal.Sample[1] = .9; Diagonal.Hold();
+    Check(Diagonal.Session.FinishStep(true) == Error::AmbiguousMovement, "diagonal stick movement requires retry instead of guessing");
+    Check(Diagonal.Session.Candidate().Mapping[0] == -1, "ambiguous step does not mutate mapping");
+    Diagonal.Sample[1] = .5; Diagonal.Sweep(0, true);
+    Check(Diagonal.Session.FinishStep(true) == Error::None, "retry clears contaminated range");
+    Diagonal.Sample[0] = .5; Diagonal.Sweep(0, true);
+    Check(Diagonal.Session.FinishStep(true) == Error::DuplicateAxis, "same physical axis cannot become two channels");
+
+    GuidedFixture Middle;
+    Middle.Sweep(0, true); Middle.Sample[0] = .5; Middle.Hold();
+    Check(Middle.Session.FinishStep(true) == Error::EndpointNotHeld, "centered final stick cannot establish its positive direction");
+    Middle.Sample[0] = .9; Middle.Hold();
+    Check(Middle.Session.FinishStep(true) == Error::None, "holding the endpoint allows correction without losing good range");
+    GuidedFixture Moving;
+    Moving.Sweep(0, true);
+    for (int I = 0; I < 60; ++I) { Moving.Sample[0] = I % 2 ? .1 : .9; Moving.Hold(1); }
+    Check(Moving.Session.FinishStep(true) == Error::InputNotStable, "moving final stick cannot establish inversion");
+
+    GuidedFixture Neutral;
+    Neutral.FourSteps(); Neutral.Sample[2] = .5; Neutral.Hold();
+    Check(Neutral.Session.FinishNeutral(true) == Error::ThrottleNotLow, "high throttle blocks guided neutral");
+    Neutral.Sample[2] = .9; Neutral.Sample[0] = .1; Neutral.Hold();
+    Check(Neutral.Session.FinishNeutral(true) == Error::InvalidCenter, "off-center attitude stick blocks guided neutral");
+    Neutral.Sample[0] = .5; Neutral.Hold();
+    Check(Neutral.Session.FinishNeutral(true) == Error::None, "neutral can be corrected without repeating all endpoints");
+    Check(Neutral.Session.ConfirmedProfile(Output, false) == Error::Disconnected, "disconnect at final confirmation blocks profile output");
+
+    GuidedFixture Lost;
+    Lost.Session.StartStep(true); Lost.Hold();
+    Check(Lost.Session.Observe(Lost.Sample, AllAxes, false, Lost.Time + .01) == Error::Disconnected && Lost.Session.Phase() == GuidedPhase::Interrupted, "disconnect interrupts guide");
+    Check(Lost.Session.StartStep(true) == Error::NotCapturing, "reconnect cannot resume an interrupted step");
+    Lost.Session.Begin(AllAxes, true); Lost.Session.StartStep(true);
+    AxisMask Changed = AllAxes; Changed[4] = false;
+    Check(Lost.Session.Observe(Lost.Sample, Changed, true, 1) == Error::UnavailableAxis, "device capability change interrupts guide");
+    Lost.Session.Begin(AllAxes, true); Lost.Session.StartStep(true);
+    Lost.Session.Observe(Lost.Sample, AllAxes, true, 1);
+    Check(Lost.Session.Observe(Lost.Sample, AllAxes, true, .9) == Error::InvalidSample, "backwards time cannot validate stable endpoints");
+    Lost.Session.Begin(AllAxes, true); Lost.Session.StartStep(true);
+    Lost.Sample[0] = std::numeric_limits<double>::quiet_NaN();
+    Check(Lost.Session.Observe(Lost.Sample, AllAxes, true, 1) == Error::InvalidSample, "invalid hardware sample interrupts guide");
+    Lost.Session.Cancel();
+    Check(Lost.Session.Phase() == GuidedPhase::Idle && !Lost.Session.Active(), "cancel discards candidate");
+    Check(Lost.Session.Begin(AllAxes, false) == Error::Disconnected, "guide requires a connected device");
+    Check(Lost.Session.Begin(AllAxes, true, .3) == Error::InvalidDeadzone, "guide checks deadzone");
+    Check(Lost.Session.Begin(AxisMask{{true, true, true, false, false, false}}, true) == Error::UnavailableAxis, "guide requires four available axes");
+}
 }
 
 int main()
@@ -170,6 +289,7 @@ int main()
         if (MapControls(Bad, Centered, AllAxes, true).Valid) SafeInvalidMappings = false;
     }
     Check(SafeInvalidMappings, "out of bounds mapping cannot index a control array");
+    GuidedTests();
     std::cout << "Radio calibration fixtures: " << Checks << " checks, " << Failures << " failures. No hardware calibration performed.\n";
     return Failures == 0 ? 0 : 1;
 }

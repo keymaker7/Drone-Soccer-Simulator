@@ -3,6 +3,7 @@
 // Portable, engine-independent calibration rules. No hardware input is synthesized here.
 #include <array>
 #include <cstddef>
+#include <deque>
 
 namespace ImperialRadio
 {
@@ -15,7 +16,8 @@ enum class Error
 {
     None, Disconnected, InvalidAxis, DuplicateAxis, UnavailableAxis, InvalidDeadzone,
     InsufficientSamples, InsufficientRange, InvalidCenter, ThrottleNotLow,
-    NotCapturing, MissingRange, MissingNeutral, NotConfirmed, InvalidSample
+    NotCapturing, MissingRange, MissingNeutral, NotConfirmed, InvalidSample,
+    AmbiguousMovement, EndpointNotHeld, InputNotStable
 };
 const char* ErrorText(Error Value);
 
@@ -67,4 +69,44 @@ Error Confirm(Profile& Value, const AxisMask& Available, bool Connected);
 Controls MapControls(const Profile& Value, const Axes& Sample, const AxisMask& Available, bool Connected);
 bool CanEnable(const Profile& Value, const Axes& Sample, const AxisMask& Available, bool Connected);
 double NormalizeDriverAxis(double Value, double Minimum, double Maximum);
+
+enum class GuidedPhase { Idle, Ready, Capturing, Neutral, Review, Complete, Interrupted };
+
+/** One physical stick at a time. Only sustained real readings define ranges.
+ *  Confirming a step records the held positive end (the low end for throttle).
+ *  Ready separates steps so returning the previous stick does not contaminate
+ *  the next measurement. This object never enables input or writes a profile.
+ */
+class GuidedCapture
+{
+public:
+    Error Begin(const AxisMask& Available, bool Connected, double Deadzone = 0.04);
+    Error StartStep(bool Connected);
+    Error Observe(const Axes& Sample, const AxisMask& Available, bool Connected, double TimeSeconds);
+    Error FinishStep(bool Connected);
+    Error FinishNeutral(bool Connected);
+    Error ConfirmedProfile(Profile& Output, bool Connected) const;
+    void MarkSaved();
+    void Cancel();
+    GuidedPhase Phase() const { return CurrentPhase; }
+    int Channel() const { return CurrentChannel; }
+    std::size_t SampleCount() const { return TotalSamples; }
+    bool Active() const;
+    const Profile& Candidate() const { return Value; }
+    double ObservedMinimum(int Axis) const;
+    double ObservedMaximum(int Axis) const;
+private:
+    struct TimedAxes { double Time; Axes Value; };
+    GuidedPhase CurrentPhase = GuidedPhase::Idle;
+    int CurrentChannel = 0;
+    Profile Value;
+    AxisMask Mask{};
+    Axes StableMinimum{}, StableMaximum{};
+    std::deque<TimedAxes> Window;
+    std::size_t TotalSamples = 0;
+    double LastTime = -1;
+    bool WindowStats(double Seconds, double MinimumDuration, Axes& Median, Axes& Spread) const;
+    void ResetStepSamples();
+    Error Interrupt(Error Reason);
+};
 }

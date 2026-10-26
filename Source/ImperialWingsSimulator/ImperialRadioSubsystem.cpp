@@ -183,6 +183,7 @@ void UImperialRadioSubsystem::CycleDevice()
 
 void UImperialRadioSubsystem::ClearLiveInput(const FString& Reason)
 {
+    if (Guided.Active()) Guided.Observe(CurrentSample(), AvailableAxes(), false, FPlatformTime::Seconds());
     bConnected = false;
     bEnabled = false;
     Buttons = 0;
@@ -239,6 +240,15 @@ void UImperialRadioSubsystem::PollSelectedDevice()
             SetCalibrationStatus(Error, FString());
         }
     }
+    if (Guided.Active())
+    {
+        const auto Error = Guided.Observe(CurrentSample(), AvailableAxes(), true, LastSampleTime);
+        if (Error != ImperialRadio::Error::None)
+        {
+            bEnabled = false;
+            SetCalibrationStatus(Error, FString());
+        }
+    }
 #else
     ClearLiveInput(TEXT("Native USB joystick input is available in the Windows build."));
 #endif
@@ -252,7 +262,7 @@ bool UImperialRadioSubsystem::IsConnected() const
 
 bool UImperialRadioSubsystem::IsCalibrated() const
 {
-    return IsConnected() && ImperialRadio::ValidateProfile(Calibration, AvailableAxes()) == ImperialRadio::Error::None;
+    return !Guided.Active() && IsConnected() && ImperialRadio::ValidateProfile(Calibration, AvailableAxes()) == ImperialRadio::Error::None;
 }
 
 bool UImperialRadioSubsystem::IsEnabled() const
@@ -284,7 +294,7 @@ ImperialRadio::AxisMask UImperialRadioSubsystem::AvailableAxes() const
 
 ImperialRadio::Controls UImperialRadioSubsystem::CurrentControls() const
 {
-    return ImperialRadio::MapControls(Calibration, CurrentSample(), AvailableAxes(), IsConnected());
+    return Guided.Active() ? ImperialRadio::Controls{} : ImperialRadio::MapControls(Calibration, CurrentSample(), AvailableAxes(), IsConnected());
 }
 
 float UImperialRadioSubsystem::GetNormalizedRoll() const { return static_cast<float>(CurrentControls().Roll); }
@@ -300,17 +310,18 @@ FString UImperialRadioSubsystem::GetStatus() const
 
 int32 UImperialRadioSubsystem::GetMappedAxis(int32 Channel) const
 {
-    return Channel >= 0 && Channel < 4 ? Calibration.Mapping[Channel] : INDEX_NONE;
+    return Channel >= 0 && Channel < 4 ? (Guided.Active() ? Guided.Candidate() : Calibration).Mapping[Channel] : INDEX_NONE;
 }
 
 bool UImperialRadioSubsystem::IsInverted(int32 Channel) const
 {
-    return Channel >= 0 && Channel < 4 && Calibration.Inverted[Channel];
+    return Channel >= 0 && Channel < 4 && (Guided.Active() ? Guided.Candidate() : Calibration).Inverted[Channel];
 }
 
 float UImperialRadioSubsystem::GetCapturedMinimum(int32 Axis) const
 {
     if (Axis < 0 || Axis >= 6) return 0;
+    if (Guided.Active()) return static_cast<float>(Guided.ObservedMinimum(Axis));
     if (RangeCapture.Samples > 0 && FMath::IsFinite(RangeCapture.Minimum[Axis])) return static_cast<float>(RangeCapture.Minimum[Axis]);
     return Calibration.RangeCaptured ? static_cast<float>(Calibration.Ranges[Axis].Minimum) : 0.0f;
 }
@@ -318,12 +329,14 @@ float UImperialRadioSubsystem::GetCapturedMinimum(int32 Axis) const
 float UImperialRadioSubsystem::GetCapturedMaximum(int32 Axis) const
 {
     if (Axis < 0 || Axis >= 6) return 0;
+    if (Guided.Active()) return static_cast<float>(Guided.ObservedMaximum(Axis));
     if (RangeCapture.Samples > 0 && FMath::IsFinite(RangeCapture.Maximum[Axis])) return static_cast<float>(RangeCapture.Maximum[Axis]);
     return Calibration.RangeCaptured ? static_cast<float>(Calibration.Ranges[Axis].Maximum) : 0.0f;
 }
 
 void UImperialRadioSubsystem::InvalidateCalibration()
 {
+    Guided.Cancel();
     bEnabled = false;
     bCalibrationActive = false;
     RangeCapture = ImperialRadio::Capture{};
@@ -335,6 +348,7 @@ void UImperialRadioSubsystem::InvalidateCalibration()
 
 bool UImperialRadioSubsystem::SetChannelMapping(int32 Channel, int32 Axis, bool bInvert)
 {
+    if (Guided.Active()) { Status = TEXT("Finish or cancel stick setup before editing channels."); return false; }
     if (Channel < 0 || Channel >= 4 || Axis < 0 || Axis >= 6)
         return SetCalibrationStatus(ImperialRadio::Error::InvalidAxis, FString());
     if (!AvailableAxes()[Axis]) return SetCalibrationStatus(ImperialRadio::Error::UnavailableAxis, FString());
@@ -367,6 +381,7 @@ void UImperialRadioSubsystem::ToggleInvert(int32 Channel)
 
 bool UImperialRadioSubsystem::SetDeadzone(float Deadzone)
 {
+    if (Guided.Active()) { Status = TEXT("Finish or cancel stick setup before changing deadzone."); return false; }
     if (!FMath::IsFinite(Deadzone) || Deadzone < 0.0f || Deadzone > 0.25f)
         return SetCalibrationStatus(ImperialRadio::Error::InvalidDeadzone, FString());
     bEnabled = false;
@@ -381,8 +396,70 @@ bool UImperialRadioSubsystem::SetCalibrationStatus(ImperialRadio::Error Result, 
     return Result == ImperialRadio::Error::None;
 }
 
+bool UImperialRadioSubsystem::BeginGuidedCalibration()
+{
+    bEnabled = false;
+    bCalibrationActive = false;
+    RangeCapture = ImperialRadio::Capture{};
+    PollSelectedDevice();
+    return SetCalibrationStatus(Guided.Begin(AvailableAxes(), IsConnected(), Calibration.Deadzone),
+        TEXT("Mode 2 setup ready. Center the sticks, lower throttle, then START THIS STEP."));
+}
+
+bool UImperialRadioSubsystem::StartGuidedStep()
+{
+    PollSelectedDevice();
+    bEnabled = false;
+    return SetCalibrationStatus(Guided.StartStep(IsConnected()),
+        TEXT("Move only the indicated direction. Hold both ends 1 second; hold the final end and confirm."));
+}
+
+bool UImperialRadioSubsystem::FinishGuidedStep()
+{
+    PollSelectedDevice();
+    const auto Result = Guided.FinishStep(IsConnected());
+    return SetCalibrationStatus(Result,
+        Guided.Phase() == ImperialRadio::GuidedPhase::Neutral ? TEXT("Last axis captured. Center roll/pitch/yaw and hold throttle fully down.")
+                            : TEXT("Axis captured. Return sticks to center and throttle low before starting the next step."));
+}
+
+bool UImperialRadioSubsystem::FinishGuidedNeutral()
+{
+    PollSelectedDevice();
+    return SetCalibrationStatus(Guided.FinishNeutral(IsConnected()),
+        TEXT("Neutral and low throttle captured. Check the four assignments above, then CONFIRM & SAVE."));
+}
+
+bool UImperialRadioSubsystem::SaveGuidedCalibration()
+{
+    PollSelectedDevice();
+    bEnabled = false;
+    ImperialRadio::Profile Candidate;
+    if (!SetCalibrationStatus(Guided.ConfirmedProfile(Candidate, IsConnected()), FString())) return false;
+    // Recheck the current throttle; the pilot may have moved it after neutral.
+    if (!ImperialRadio::CanEnable(Candidate, CurrentSample(), AvailableAxes(), IsConnected()))
+        return SetCalibrationStatus(ImperialRadio::Error::ThrottleNotLow, FString());
+    const ImperialRadio::Profile Previous = Calibration;
+    Calibration = Candidate;
+    if (!WriteProfile()) { Calibration = Previous; return false; }
+    Guided.MarkSaved();
+    UE_LOG(LogTemp, Display, TEXT("IMPERIAL_RADIO_GUIDED_SAVED mode=2 axes=%d,%d,%d,%d keyboard=1"),
+        Calibration.Mapping[0], Calibration.Mapping[1], Calibration.Mapping[2], Calibration.Mapping[3]);
+    Status = TEXT("Mode 2 setup saved. Keyboard active; ENABLE RADIO is a separate action at low throttle.");
+    return true;
+}
+
+void UImperialRadioSubsystem::CancelGuidedCalibration()
+{
+    if (!Guided.Active() && Guided.Phase() != ImperialRadio::GuidedPhase::Interrupted) return;
+    Guided.Cancel();
+    bEnabled = false;
+    Status = TEXT("Stick setup cancelled. Previous calibration retained; keyboard active.");
+}
+
 bool UImperialRadioSubsystem::BeginCalibration()
 {
+    Guided.Cancel();
     PollSelectedDevice();
     if (!IsConnected()) return SetCalibrationStatus(ImperialRadio::Error::Disconnected, FString());
     const auto MappingError = ImperialRadio::ValidateMapping(Calibration, AvailableAxes());
@@ -397,6 +474,7 @@ bool UImperialRadioSubsystem::BeginCalibration()
 
 bool UImperialRadioSubsystem::FinishRangeCapture()
 {
+    if (Guided.Active()) return false;
     PollSelectedDevice();
     if (!bCalibrationActive) return SetCalibrationStatus(IsConnected() ? ImperialRadio::Error::NotCapturing : ImperialRadio::Error::Disconnected, FString());
     return SetCalibrationStatus(RangeCapture.FinishRange(Calibration, AvailableAxes(), IsConnected()),
@@ -405,6 +483,7 @@ bool UImperialRadioSubsystem::FinishRangeCapture()
 
 bool UImperialRadioSubsystem::CaptureNeutral()
 {
+    if (Guided.Active()) return false;
     PollSelectedDevice();
     if (!bCalibrationActive) return SetCalibrationStatus(IsConnected() ? ImperialRadio::Error::NotCapturing : ImperialRadio::Error::Disconnected, FString());
     if (RangeCapture.Active && !FinishRangeCapture()) return false;
@@ -414,6 +493,7 @@ bool UImperialRadioSubsystem::CaptureNeutral()
 
 bool UImperialRadioSubsystem::FinishCalibration()
 {
+    if (Guided.Active()) return false;
     PollSelectedDevice();
     if (!bCalibrationActive)
     {
@@ -431,6 +511,7 @@ bool UImperialRadioSubsystem::EnableRadio()
 {
     PollSelectedDevice();
     bEnabled = false;
+    if (Guided.Active()) { Status = TEXT("Finish and save stick setup before enabling radio."); return false; }
     if (!IsConnected()) return SetCalibrationStatus(ImperialRadio::Error::Disconnected, FString());
     const auto Error = ImperialRadio::ValidateProfile(Calibration, AvailableAxes());
     if (Error != ImperialRadio::Error::None) return SetCalibrationStatus(Error, FString());
@@ -453,6 +534,12 @@ FString UImperialRadioSubsystem::ProfilePath() const
 }
 
 bool UImperialRadioSubsystem::SaveProfile()
+{
+    if (Guided.Active()) { Status = TEXT("Use CONFIRM & SAVE after completing stick setup."); return false; }
+    return WriteProfile();
+}
+
+bool UImperialRadioSubsystem::WriteProfile()
 {
     const FImperialRadioDevice* Device = GetSelectedDevice();
     if (!Device || !IsConnected()) return SetCalibrationStatus(ImperialRadio::Error::Disconnected, FString());
@@ -517,6 +604,7 @@ bool UImperialRadioSubsystem::SaveProfile()
 
 bool UImperialRadioSubsystem::LoadProfile()
 {
+    Guided.Cancel();
     bEnabled = false;
     bCalibrationActive = false;
     Calibration = ImperialRadio::Profile{};

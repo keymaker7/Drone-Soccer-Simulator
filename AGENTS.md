@@ -19,6 +19,9 @@
 - Default to keyboard and disarmed motors until the actual Boxer/USB device,
   channel mapping, ranges, neutral values, inversion, and low throttle are
   verified. Never fabricate physical controller input or calibration evidence.
+- The user confirmed Mode 2 (left vertical throttle). Preserve the staged stick
+  setup and its explicit review/save/enable steps. R5 tested idle rejection and
+  cancel with the actual Boxer, not completed physical mapping or USB flight.
 - The airframe is original procedural geometry informed by HELSEL STRIKER V3
   reference material. Do not copy manufacturer meshes, logos, manual pages or
   photographs into the repository. Use citations and distinguish visual

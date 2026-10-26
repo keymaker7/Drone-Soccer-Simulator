@@ -117,14 +117,15 @@ void AImperialPlayerController::SetupInputComponent()
 }
 void AImperialPlayerController::ZoomIn(){if(ActiveView==1){if(const auto* H=Cast<AImperialHUD>(GetHUD());H&&H->IsRadioPanelOpen())return;PilotFieldOfView=FMath::Clamp(PilotFieldOfView-5.f,40.f,85.f);UpdatePilotCamera();}}
 void AImperialPlayerController::ZoomOut(){if(ActiveView==1){if(const auto* H=Cast<AImperialHUD>(GetHUD());H&&H->IsRadioPanelOpen())return;PilotFieldOfView=FMath::Clamp(PilotFieldOfView+5.f,40.f,85.f);UpdatePilotCamera();}}
-void AImperialPlayerController::Fpv(){if(Match)Match->ChangeView(1);}
-void AImperialPlayerController::Chase(){if(Match)Match->ChangeView(2);}
-void AImperialPlayerController::Arena(){if(Match)Match->ChangeView(3);}
-void AImperialPlayerController::Next(){if(Match)Match->SelectNext();}
-void AImperialPlayerController::Auto(){if(Match)Match->LaunchSwarm();}
-void AImperialPlayerController::Hold(){if(Match)Match->HoldFleet();}
-void AImperialPlayerController::Return(){if(Match)Match->ReturnFleet();}
-void AImperialPlayerController::Reset(){if(Match)Match->ResetMatch();}
+bool AImperialPlayerController::HasRadioModal() const {const auto* H=Cast<AImperialHUD>(GetHUD());return H&&H->IsRadioPanelOpen();}
+void AImperialPlayerController::Fpv(){if(Match&&!HasRadioModal())Match->ChangeView(1);}
+void AImperialPlayerController::Chase(){if(Match&&!HasRadioModal())Match->ChangeView(2);}
+void AImperialPlayerController::Arena(){if(Match&&!HasRadioModal())Match->ChangeView(3);}
+void AImperialPlayerController::Next(){if(Match&&!HasRadioModal())Match->SelectNext();}
+void AImperialPlayerController::Auto(){if(HasRadioModal()){if(auto* H=Cast<AImperialHUD>(GetHUD()))H->AdvanceRadioSetup();return;}if(Match)Match->LaunchSwarm();}
+void AImperialPlayerController::Hold(){if(Match&&!HasRadioModal())Match->HoldFleet();}
+void AImperialPlayerController::Return(){if(Match&&!HasRadioModal())Match->ReturnFleet();}
+void AImperialPlayerController::Reset(){if(Match&&!HasRadioModal())Match->ResetMatch();}
 void AImperialPlayerController::Export(){if(Match)Match->ExportTelemetry();}
 void AImperialPlayerController::Radio(){if(auto* H=Cast<AImperialHUD>(GetHUD()))H->ToggleRadioPanel();}
 void AImperialPlayerController::ClickHUD(){if(auto* H=Cast<AImperialHUD>(GetHUD()))H->ClickPointer();}

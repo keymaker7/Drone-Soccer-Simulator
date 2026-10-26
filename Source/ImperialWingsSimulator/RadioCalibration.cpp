@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <vector>
 
 namespace ImperialRadio
 {
@@ -65,6 +66,9 @@ const char* ErrorText(Error Value)
     case Error::MissingNeutral: return "Capture centered roll/pitch/yaw with physical throttle at minimum.";
     case Error::NotConfirmed: return "Finish and save calibration before enabling USB input.";
     case Error::InvalidSample: return "Input contains an invalid value; calibration was rejected.";
+    case Error::AmbiguousMovement: return "More than one axis moved. Retry with only the indicated stick direction.";
+    case Error::EndpointNotHeld: return "Hold the indicated final end, then confirm this step.";
+    case Error::InputNotStable: return "Keep the sticks still for a moment before confirming.";
     }
     return "Unknown calibration error.";
 }
@@ -319,5 +323,188 @@ bool CanEnable(const Profile& Value, const Axes& Sample, const AxisMask& Availab
 {
     const Controls Mapped = MapControls(Value, Sample, Available, Connected);
     return Mapped.Valid && Mapped.Throttle <= 0.05;
+}
+
+bool GuidedCapture::Active() const
+{
+    return CurrentPhase == GuidedPhase::Ready || CurrentPhase == GuidedPhase::Capturing ||
+           CurrentPhase == GuidedPhase::Neutral || CurrentPhase == GuidedPhase::Review;
+}
+
+void GuidedCapture::ResetStepSamples()
+{
+    StableMinimum.fill(std::numeric_limits<double>::infinity());
+    StableMaximum.fill(-std::numeric_limits<double>::infinity());
+    Window.clear();
+    TotalSamples = 0;
+    LastTime = -1;
+}
+
+Error GuidedCapture::Interrupt(Error Reason)
+{
+    CurrentPhase = GuidedPhase::Interrupted;
+    Value.Confirmed = false;
+    Window.clear();
+    return Reason;
+}
+
+Error GuidedCapture::Begin(const AxisMask& Available, bool Connected, double Deadzone)
+{
+    Cancel();
+    if (!Connected) return Error::Disconnected;
+    if (std::count(Available.begin(), Available.end(), true) < 4) return Error::UnavailableAxis;
+    if (!std::isfinite(Deadzone) || Deadzone < 0 || Deadzone > 0.25) return Error::InvalidDeadzone;
+    Value = Profile{};
+    Value.Mapping.fill(-1);
+    Value.Deadzone = Deadzone;
+    Mask = Available;
+    CurrentChannel = 0;
+    CurrentPhase = GuidedPhase::Ready;
+    ResetStepSamples();
+    return Error::None;
+}
+
+Error GuidedCapture::StartStep(bool Connected)
+{
+    if (!Connected) return Interrupt(Error::Disconnected);
+    if (CurrentPhase != GuidedPhase::Ready && CurrentPhase != GuidedPhase::Capturing) return Error::NotCapturing;
+    ResetStepSamples();
+    CurrentPhase = GuidedPhase::Capturing;
+    return Error::None;
+}
+
+bool GuidedCapture::WindowStats(double Seconds, double MinimumDuration, Axes& Median, Axes& Spread) const
+{
+    if (Window.empty()) return false;
+    const double Cutoff = Window.back().Time - Seconds;
+    auto First = Window.begin();
+    while (First != Window.end() && First->Time < Cutoff) ++First;
+    const auto Count = static_cast<std::size_t>(std::distance(First, Window.end()));
+    if (Count < 6 || Window.back().Time - First->Time < MinimumDuration) return false;
+    for (std::size_t Axis = 0; Axis < AxisCount; ++Axis)
+    {
+        std::vector<double> Sorted;
+        Sorted.reserve(Count);
+        for (auto Item = First; Item != Window.end(); ++Item) Sorted.push_back(Item->Value[Axis]);
+        std::sort(Sorted.begin(), Sorted.end());
+        Median[Axis] = (Sorted[(Count - 1) / 2] + Sorted[Count / 2]) * 0.5;
+        // Isolated driver initialization/outlier packets must not become endpoints.
+        Spread[Axis] = Sorted[(Count - 1) * 9 / 10] - Sorted[(Count - 1) / 10];
+    }
+    return true;
+}
+
+Error GuidedCapture::Observe(const Axes& Sample, const AxisMask& Available, bool Connected, double TimeSeconds)
+{
+    if (!Active()) return Error::NotCapturing;
+    if (!Connected) return Interrupt(Error::Disconnected);
+    if (Available != Mask) return Interrupt(Error::UnavailableAxis);
+    if (!ValidSample(Sample, Available) || !std::isfinite(TimeSeconds) || TimeSeconds < 0 ||
+        (LastTime >= 0 && TimeSeconds <= LastTime)) return Interrupt(Error::InvalidSample);
+    LastTime = TimeSeconds;
+    if (CurrentPhase == GuidedPhase::Ready || CurrentPhase == GuidedPhase::Review) return Error::None;
+    Window.push_back({TimeSeconds, Sample});
+    while (!Window.empty() && (Window.front().Time < TimeSeconds - 1.0 || Window.size() > 256)) Window.pop_front();
+    ++TotalSamples;
+    Axes Median{}, Spread{};
+    if (CurrentPhase == GuidedPhase::Capturing && WindowStats(0.24, 0.18, Median, Spread))
+    {
+        for (std::size_t Axis = 0; Axis < AxisCount; ++Axis)
+        {
+            if (Mask[Axis] && Spread[Axis] <= 0.02)
+            {
+                StableMinimum[Axis] = std::min(StableMinimum[Axis], Median[Axis]);
+                StableMaximum[Axis] = std::max(StableMaximum[Axis], Median[Axis]);
+            }
+        }
+    }
+    return Error::None;
+}
+
+double GuidedCapture::ObservedMinimum(int Axis) const
+{
+    return Axis >= 0 && Axis < static_cast<int>(AxisCount) && std::isfinite(StableMinimum[Axis]) ? StableMinimum[Axis] : 0;
+}
+
+double GuidedCapture::ObservedMaximum(int Axis) const
+{
+    return Axis >= 0 && Axis < static_cast<int>(AxisCount) && std::isfinite(StableMaximum[Axis]) ? StableMaximum[Axis] : 0;
+}
+
+Error GuidedCapture::FinishStep(bool Connected)
+{
+    if (!Connected) return Interrupt(Error::Disconnected);
+    if (CurrentPhase != GuidedPhase::Capturing) return Error::NotCapturing;
+    if (TotalSamples < MinimumSamples) return Error::InsufficientSamples;
+    int Best = -1;
+    double Travel = 0;
+    for (int Axis = 0; Axis < static_cast<int>(AxisCount); ++Axis)
+    {
+        const double Span = ObservedMaximum(Axis) - ObservedMinimum(Axis);
+        if (Mask[Axis] && Span > Travel) { Best = Axis; Travel = Span; }
+    }
+    if (Best < 0 || Travel < MinimumTravel) return Error::InsufficientRange;
+    for (int Previous = 0; Previous < CurrentChannel; ++Previous)
+        if (Value.Mapping[Previous] == Best) return Error::DuplicateAxis;
+    for (int Axis = 0; Axis < static_cast<int>(AxisCount); ++Axis)
+        if (Axis != Best && Mask[Axis] && ObservedMaximum(Axis) - ObservedMinimum(Axis) > std::max(0.10, Travel * 0.25))
+            return Error::AmbiguousMovement;
+    Axes Median{}, Spread{};
+    if (!WindowStats(0.45, 0.35, Median, Spread)) return Error::InsufficientSamples;
+    if (Spread[Best] > 0.02) return Error::InputNotStable;
+    const double Position = (Median[Best] - ObservedMinimum(Best)) / Travel;
+    if (Position > 0.10 && Position < 0.90) return Error::EndpointNotHeld;
+    Value.Mapping[CurrentChannel] = Best;
+    // Attitude steps end at the positive stick end; throttle ends at physical low.
+    Value.Inverted[CurrentChannel] = CurrentChannel == 3 ? Position >= 0.90 : Position <= 0.10;
+    Value.Ranges[Best] = {ObservedMinimum(Best), ObservedMaximum(Best), (ObservedMinimum(Best) + ObservedMaximum(Best)) * 0.5};
+    ++CurrentChannel;
+    ResetStepSamples();
+    if (CurrentChannel == static_cast<int>(ChannelCount))
+    {
+        Value.RangeCaptured = true;
+        CurrentPhase = GuidedPhase::Neutral;
+    }
+    else CurrentPhase = GuidedPhase::Ready;
+    return Error::None;
+}
+
+Error GuidedCapture::FinishNeutral(bool Connected)
+{
+    if (!Connected) return Interrupt(Error::Disconnected);
+    if (CurrentPhase != GuidedPhase::Neutral) return Error::MissingRange;
+    Axes Median{}, Spread{};
+    if (!WindowStats(0.45, 0.35, Median, Spread)) return Error::InsufficientSamples;
+    for (int Axis : Value.Mapping) if (Spread[Axis] > 0.02) return Error::InputNotStable;
+    const Error Result = CaptureNeutral(Value, Median, Mask, true);
+    if (Result == Error::None) CurrentPhase = GuidedPhase::Review;
+    return Result;
+}
+
+Error GuidedCapture::ConfirmedProfile(Profile& Output, bool Connected) const
+{
+    if (!Connected) return Error::Disconnected;
+    if (CurrentPhase != GuidedPhase::Review) return Error::NotConfirmed;
+    Profile Candidate = Value;
+    const Error Result = Confirm(Candidate, Mask, true);
+    if (Result == Error::None) Output = Candidate;
+    return Result;
+}
+
+void GuidedCapture::MarkSaved()
+{
+    if (CurrentPhase == GuidedPhase::Review)
+    {
+        Value.Confirmed = true;
+        CurrentPhase = GuidedPhase::Complete;
+    }
+}
+
+void GuidedCapture::Cancel()
+{
+    CurrentPhase = GuidedPhase::Idle;
+    Value = Profile{};
+    CurrentChannel = 0;
+    ResetStepSamples();
 }
 }

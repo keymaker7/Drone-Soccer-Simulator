@@ -27,6 +27,7 @@ private:
     FVector2D LastHeadPointer=FVector2D::ZeroVector;
     void ConfigureInput();
     void UpdatePilotCamera();
+    bool HasRadioModal() const;
     void ZoomIn(); void ZoomOut();
     void ClickHUD(); void CompactHUD();
     void Fpv(); void Chase(); void Arena(); void Next(); void Auto(); void Hold(); void Return(); void Reset(); void Export(); void Radio();

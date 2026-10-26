@@ -83,6 +83,19 @@ void AImperialHUD::ToggleRadioPanel()
 {
     bRadioPanelOpen=!bRadioPanelOpen;
     if(bRadioPanelOpen)if(auto* Manager=FindMatch())Manager->ManualSelected();
+    if(!bRadioPanelOpen)if(auto* Radio=GetRadio())Radio->CancelGuidedCalibration();
+}
+
+void AImperialHUD::AdvanceRadioSetup()
+{
+    auto* Radio=GetRadio();if(!bRadioPanelOpen||!Radio)return;
+    switch(Radio->GetGuidedPhase())
+    {
+    case ImperialRadio::GuidedPhase::Ready:Radio->StartGuidedStep();break;
+    case ImperialRadio::GuidedPhase::Capturing:Radio->FinishGuidedStep();break;
+    case ImperialRadio::GuidedPhase::Neutral:Radio->FinishGuidedNeutral();break;
+    default:break; // Final saving remains a deliberate click on the review page.
+    }
 }
 
 void AImperialHUD::DrawHUD()
@@ -218,6 +231,7 @@ void AImperialHUD::DrawRadioPanel(AImperialMatchManager& Manager)
     if(!Radio){Text(TEXT("USB controller service is unavailable."),348,212,16,Amber);ButtonPriority=10;return;}
     const FImperialRadioDevice* Device=Radio->GetSelectedDevice();
     const bool Connected=Radio->IsConnected();
+    const bool Guided=Radio->IsGuidedActive();
     Rect(350,205,7,7,Connected?Green:Amber);
     Text(Connected?TEXT("CONNECTED"):TEXT("DISCONNECTED"),369,199,13,Connected?Green:Amber);
     Text(Fit(Device?Device->Name:TEXT("No USB joystick detected. Connect the radio in USB joystick mode."),16,650),348,224,16,White);
@@ -257,14 +271,77 @@ void AImperialHUD::DrawRadioPanel(AImperialMatchManager& Manager)
     {
         const float Y=321+I*44.f;const int32 Axis=Radio->GetMappedAxis(I);UsedAxes.Add(Axis);
         Text(Channels[I],830,Y+10,11,White);
-        Button(FName(*FString::Printf(TEXT("Radio_Axis_%d"),I)),FString::Printf(TEXT("AXIS %s"),Axis>=0&&Axis<6?AxisNames[Axis]:TEXT("?")),919,Y,99,32);
-        Button(FName(*FString::Printf(TEXT("Radio_Invert_%d"),I)),Radio->IsInverted(I)?TEXT("INVERTED"):TEXT("NORMAL"),1028,Y,105,32,Radio->IsInverted(I));
+        if(Guided)
+        {
+            Text(Axis>=0&&Axis<6?FString::Printf(TEXT("%s  /  %s"),AxisNames[Axis],Radio->IsInverted(I)?TEXT("INVERTED"):TEXT("NORMAL")):TEXT("WAITING FOR STICK"),927,Y+10,11,Axis>=0?Cyan:Muted);
+        }
+        else
+        {
+            Button(FName(*FString::Printf(TEXT("Radio_Axis_%d"),I)),FString::Printf(TEXT("AXIS %s"),Axis>=0&&Axis<6?AxisNames[Axis]:TEXT("?")),919,Y,99,32);
+            Button(FName(*FString::Printf(TEXT("Radio_Invert_%d"),I)),Radio->IsInverted(I)?TEXT("INVERTED"):TEXT("NORMAL"),1028,Y,105,32,Radio->IsInverted(I));
+        }
         const float V=FMath::Clamp(Values[I],I==3?0.f:-1.f,1.f);
         Text(FString::Printf(TEXT("%+.2f"),V),1251,Y+8,12,Radio->IsCalibrated()?Green:Muted,true);
         Rect(1150,Y+28,101,2,Edge);
         if(Radio->IsCalibrated())Rect(1150,Y+28,101*(I==3?V:(V+1)*.5f),2,Green);
     }
-    Text(UsedAxes.Num()==4?TEXT("FOUR DISTINCT AXES ASSIGNED"):TEXT("ASSIGN FOUR DIFFERENT AXES"),830,506,10,UsedAxes.Num()==4?Muted:Amber);
+    const bool FourAxes=UsedAxes.Num()==4&&!UsedAxes.Contains(INDEX_NONE);
+    Text(FourAxes?TEXT("FOUR DISTINCT AXES ASSIGNED"):TEXT("ASSIGN FOUR DIFFERENT AXES"),830,506,10,FourAxes?Muted:Amber);
+    if(Guided)
+    {
+        Button(TEXT("Radio_GuidedCancel"),TEXT("CANCEL SETUP"),1090,522,162,28);
+        Rect(348,562,904,1,Edge);
+        const auto Phase=Radio->GetGuidedPhase();
+        const int32 Channel=FMath::Clamp(Radio->GetGuidedChannel(),0,3);
+        const TCHAR* Titles[]={TEXT("1 / 5  ROLL - RIGHT STICK LEFT / RIGHT"),TEXT("2 / 5  PITCH - RIGHT STICK FORWARD / BACK"),TEXT("3 / 5  YAW - LEFT STICK LEFT / RIGHT"),TEXT("4 / 5  THROTTLE - LEFT STICK UP / DOWN")};
+        const TCHAR* Endpoints[]={TEXT("Finish by holding the RIGHT stick fully RIGHT."),TEXT("Finish by holding the RIGHT stick fully FORWARD."),TEXT("Finish by holding the LEFT stick fully RIGHT."),TEXT("Finish by holding the LEFT stick fully DOWN (minimum).")} ;
+        Text(Phase==ImperialRadio::GuidedPhase::Neutral?TEXT("5 / 5  NEUTRAL AND MINIMUM THROTTLE"):(Phase==ImperialRadio::GuidedPhase::Review?TEXT("REVIEW MODE 2 ASSIGNMENTS"):Titles[Channel]),348,580,16,White);
+        if(Phase==ImperialRadio::GuidedPhase::Ready)
+        {
+            Text(TEXT("Center the other sticks and lower throttle before starting this step."),348,609,12,Muted);
+            Text(TEXT("Press START THIS STEP or ENTER when ready."),348,631,12,Cyan);
+            Button(TEXT("Radio_GuidedStart"),TEXT("START THIS STEP"),931,667,285,38);
+        }
+        else if(Phase==ImperialRadio::GuidedPhase::Capturing)
+        {
+            Text(TEXT("Move only this direction through its full travel. Hold EACH end for 1 second."),348,609,12,Muted);
+            Text(Endpoints[Channel],348,631,12,Cyan);
+            Button(TEXT("Radio_GuidedStep"),TEXT("CONFIRM HELD END / ENTER"),897,666,319,38);
+            Button(TEXT("Radio_GuidedStart"),TEXT("RETRY THIS STEP"),997,715,219,32);
+        }
+        else if(Phase==ImperialRadio::GuidedPhase::Neutral)
+        {
+            Text(TEXT("Release roll / pitch / yaw to their centers. Hold LEFT throttle fully DOWN."),348,609,12,Muted);
+            Text(TEXT("Keep still for 1 second, then CAPTURE NEUTRAL or ENTER."),348,631,12,Cyan);
+            Button(TEXT("Radio_GuidedNeutral"),TEXT("CAPTURE NEUTRAL"),931,667,285,38);
+        }
+        else
+        {
+            Text(TEXT("The measured axes and directions appear above. Keep throttle fully down."),348,609,12,Muted);
+            Text(TEXT("CONFIRM & SAVE stores this device profile. ENABLE RADIO follows separately."),348,631,12,Cyan);
+            Button(TEXT("Radio_GuidedSave"),TEXT("CONFIRM & SAVE"),931,667,285,38);
+        }
+        // Mode 2 hand placement; the accent marks the physical stick for this step.
+        for(int32 Stick=0;Stick<2;++Stick)
+        {
+            const float CX=437+Stick*176.f,CY=704;
+            const bool Active=Phase==ImperialRadio::GuidedPhase::Neutral||(Phase!=ImperialRadio::GuidedPhase::Review&&((Channel<2)==(Stick==1)));
+            const auto Color=Active?Cyan:Muted;
+            Rect(CX-38,CY-38,76,76,Edge);Rect(CX-37,CY-37,74,74,Navy);
+            Rect(CX-31,CY,62,1,Color);Rect(CX,CY-31,1,62,Color);
+            float PX=CX,PY=CY;
+            if(Active&&Phase==ImperialRadio::GuidedPhase::Capturing){if(Channel==0||Channel==2)PX+=28;else PY+=Channel==3?28:-28;}
+            else if(Stick==0)PY+=28;
+            Rect(PX-4,PY-4,8,8,Color);
+            Text(Stick==0?TEXT("LEFT / THROTTLE + YAW"):TEXT("RIGHT / PITCH + ROLL"),CX-70,CY+44,10,Color);
+        }
+        Text(FString::Printf(TEXT("MODE 2  /  %d CURRENT-STEP SAMPLES"),Radio->GetCaptureSampleCount()),741,738,9,Muted);
+        Rect(348,778,904,49,FLinearColor(.035f,.065f,.09f,1));
+        Text(Fit(Radio->GetStatus(),12,871),364,796,12,Amber);
+        Text(TEXT("CLOSE cancels unfinished setup. Previous saved calibration is retained until final save."),348,844,11,Muted);
+        ButtonPriority=10;return;
+    }
+    Button(TEXT("Radio_GuidedBegin"),TEXT("STICK SETUP / MODE 2"),348,522,292,28);
     Text(FString::Printf(TEXT("DEADZONE  %.0f %%"),Radio->GetDeadzone()*100),830,532,11,Muted);
     Button(TEXT("Radio_DeadzoneDown"),TEXT("-"),1104,522,44,28);
     Button(TEXT("Radio_DeadzoneUp"),TEXT("+"),1158,522,44,28);
@@ -294,7 +371,7 @@ void AImperialHUD::NotifyHitBoxClick(FName BoxName)
     if(N==TEXT("RadioOpen")){ToggleRadioPanel();return;}
     if(bRadioPanelOpen)
     {
-        if(N==TEXT("Radio_Close")){bRadioPanelOpen=false;return;}
+        if(N==TEXT("Radio_Close")){ToggleRadioPanel();return;}
         auto* R=GetRadio();if(!R)return;
         if(N==TEXT("Radio_Refresh"))R->RefreshDevices();
         else if(N==TEXT("Radio_Device"))R->CycleDevice();
@@ -303,6 +380,12 @@ void AImperialHUD::NotifyHitBoxClick(FName BoxName)
         else if(N==TEXT("Radio_DeadzoneDown"))R->SetDeadzone(R->GetDeadzone()-.01f);
         else if(N==TEXT("Radio_DeadzoneUp"))R->SetDeadzone(R->GetDeadzone()+.01f);
         else if(N==TEXT("Radio_Begin")){M->ManualSelected();R->BeginCalibration();}
+        else if(N==TEXT("Radio_GuidedBegin")){M->ManualSelected();R->BeginGuidedCalibration();}
+        else if(N==TEXT("Radio_GuidedStart"))R->StartGuidedStep();
+        else if(N==TEXT("Radio_GuidedStep"))R->FinishGuidedStep();
+        else if(N==TEXT("Radio_GuidedNeutral"))R->FinishGuidedNeutral();
+        else if(N==TEXT("Radio_GuidedSave"))R->SaveGuidedCalibration();
+        else if(N==TEXT("Radio_GuidedCancel"))R->CancelGuidedCalibration();
         else if(N==TEXT("Radio_Range"))R->FinishRangeCapture();
         else if(N==TEXT("Radio_Neutral"))R->CaptureNeutral();
         else if(N==TEXT("Radio_Finish"))R->FinishCalibration();

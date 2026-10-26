@@ -1,6 +1,7 @@
 #include "SoccerDronePawn.h"
 #include "ImperialRadioSubsystem.h"
 #include "ImperialMatchManager.h"
+#include "ImperialHUD.h"
 #include "Engine/GameInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/App.h"
@@ -14,6 +15,7 @@
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/PlayerController.h"
 #include "InputCoreTypes.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
@@ -441,6 +443,8 @@ bool ASoccerDronePawn::SetArmed(bool bShouldArm)
 
 void ASoccerDronePawn::ToggleArm()
 {
+    if (const auto* Pilot=Cast<APlayerController>(GetController()))
+        if (const auto* HUD=Cast<AImperialHUD>(Pilot->GetHUD()); HUD&&HUD->IsRadioPanelOpen()) return;
     if (bAutonomousEnabled)
     {
         SetAutonomousEnabled(false);
@@ -615,7 +619,11 @@ void ASoccerDronePawn::Tick(float Dt)
     }
     if (!bAutonomousEnabled)
     {
-        KeyboardThrottle = FMath::Clamp(KeyboardThrottle + KeyboardThrottleStep * Dt * 0.35f, 0.0f, 1.0f);
+        bool Modal=false;
+        if(const auto* Pilot=Cast<APlayerController>(GetController()))
+            if(const auto* HUD=Cast<AImperialHUD>(Pilot->GetHUD()))Modal=HUD->IsRadioPanelOpen();
+        if(Modal){KeyboardThrottle=KeyboardThrottleStep=KeyRoll=KeyPitch=KeyYaw=0;}
+        else KeyboardThrottle = FMath::Clamp(KeyboardThrottle + KeyboardThrottleStep * Dt * 0.35f, 0.0f, 1.0f);
     }
     ApplyFlightForces(Dt);
     RotorAngle = FMath::Fmod(RotorAngle + (bArmed ? 1400.0f + 5000.0f * GetThrottle() : 0.0f) * Dt, 360.0f);
