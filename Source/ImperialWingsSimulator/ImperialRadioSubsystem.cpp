@@ -1,0 +1,576 @@
+#include "ImperialRadioSubsystem.h"
+
+#include "Dom/JsonObject.h"
+#include "Engine/GameInstance.h"
+#include "Engine/World.h"
+#include "HAL/FileManager.h"
+#include "HAL/PlatformTime.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+#include "Serialization/JsonReader.h"
+#include "Serialization/JsonSerializer.h"
+#include "Serialization/JsonWriter.h"
+
+#if PLATFORM_WINDOWS
+#include "Windows/WindowsHWrapper.h"
+#include <mmsystem.h>
+#endif
+
+namespace
+{
+constexpr double FreshInputSeconds = 0.25;
+constexpr double PollInterval = 1.0 / 120.0;
+
+bool ReadJsonFile(const FString& Path, TSharedPtr<FJsonObject>& Object)
+{
+    FString Text;
+    if (!FFileHelper::LoadFileToString(Text, *Path)) return false;
+    return FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Text), Object) && Object.IsValid();
+}
+
+bool ReadFinite(const TSharedPtr<FJsonObject>& Object, const TCHAR* Key, double& Value)
+{
+    return Object.IsValid() && Object->TryGetNumberField(Key, Value) && FMath::IsFinite(Value);
+}
+
+TArray<FImperialRadioDevice> EnumerateWinMmDevices()
+{
+    TArray<FImperialRadioDevice> Result;
+#if PLATFORM_WINDOWS
+    // joyGetNumDevs is a driver slot count, not the number physically connected.
+    const UINT Slots = FMath::Min<UINT>(16, joyGetNumDevs());
+    for (UINT Id = 0; Id < Slots; ++Id)
+    {
+        JOYCAPSW Caps{};
+        JOYINFOEX Position{};
+        Position.dwSize = sizeof(Position);
+        Position.dwFlags = JOY_RETURNALL;
+        if (joyGetDevCapsW(Id, &Caps, sizeof(Caps)) != JOYERR_NOERROR ||
+            joyGetPosEx(Id, &Position) != JOYERR_NOERROR) continue;
+
+        FImperialRadioDevice Device;
+        Device.Id = static_cast<int32>(Id);
+        Device.Name = FString(Caps.szPname);
+        Device.RegistryKey = FString(Caps.szRegKey);
+        Device.OemName = FString(Caps.szOEMVxD);
+        Device.ManufacturerId = Caps.wMid;
+        Device.ProductId = Caps.wPid;
+        Device.AxisCount = static_cast<int32>(Caps.wNumAxes);
+        Device.ButtonCount = static_cast<int32>(Caps.wNumButtons);
+        Device.AxisAvailable = {Caps.wNumAxes >= 1, Caps.wNumAxes >= 2,
+            (Caps.wCaps & JOYCAPS_HASZ) != 0, (Caps.wCaps & JOYCAPS_HASR) != 0,
+            (Caps.wCaps & JOYCAPS_HASU) != 0, (Caps.wCaps & JOYCAPS_HASV) != 0};
+        Device.AxisMinimum = {Caps.wXmin, Caps.wYmin, Caps.wZmin, Caps.wRmin, Caps.wUmin, Caps.wVmin};
+        Device.AxisMaximum = {Caps.wXmax, Caps.wYmax, Caps.wZmax, Caps.wRmax, Caps.wUmax, Caps.wVmax};
+        // WinMM does not expose a serial number. Include slot and complete reported
+        // capabilities to avoid silently sharing calibration between similar devices.
+        // A slot change requires selection/calibration again; no brand is inferred.
+        Device.Identity = FString::Printf(TEXT("winmm-v1|slot=%u|mid=%04X|pid=%04X|name=%s|reg=%s|oem=%s|axes=%u|buttons=%u|caps=%u"),
+            Id, Caps.wMid, Caps.wPid, *Device.Name, *Device.RegistryKey, *Device.OemName,
+            Caps.wNumAxes, Caps.wNumButtons, Caps.wCaps);
+        for (int32 Axis = 0; Axis < 6; ++Axis)
+        {
+            if (Device.AxisMaximum[Axis] <= Device.AxisMinimum[Axis]) Device.AxisAvailable[Axis] = false;
+            Device.Identity += FString::Printf(TEXT("|a%d=%u,%u"), Axis, Device.AxisMinimum[Axis], Device.AxisMaximum[Axis]);
+        }
+        Result.Add(MoveTemp(Device));
+    }
+#endif
+    return Result;
+}
+}
+
+void UImperialRadioSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+{
+    Super::Initialize(Collection);
+    RawAxes.Init(0.0f, 6);
+    EmptyAxes.Init(0.0f, 6);
+    bInitialized = true;
+    bEnabled = false;
+    RefreshDevices();
+    UE_LOG(LogTemp, Display, TEXT("IMPERIAL_RADIO_READY devices=%d mode=KEYBOARD native=WinMM"), Devices.Num());
+}
+
+void UImperialRadioSubsystem::Deinitialize()
+{
+    bInitialized = false;
+    ClearLiveInput(TEXT("USB input stopped."));
+    Devices.Empty();
+    Super::Deinitialize();
+}
+
+bool UImperialRadioSubsystem::IsTickable() const
+{
+    return bInitialized && !HasAnyFlags(RF_ClassDefaultObject) && GetGameInstance() && GetWorld() && GetWorld()->IsGameWorld();
+}
+
+TStatId UImperialRadioSubsystem::GetStatId() const
+{
+    RETURN_QUICK_DECLARE_CYCLE_STAT(UImperialRadioSubsystem, STATGROUP_Tickables);
+}
+
+void UImperialRadioSubsystem::Tick(float DeltaTime)
+{
+    const double Now = FPlatformTime::Seconds();
+    // A long paused/stalled game frame may recover with a successful poll. It still
+    // invalidates the previous enable command, so reconnect never resumes throttle.
+    if (bConnected && Now - LastSampleTime > FreshInputSeconds)
+        ClearLiveInput(TEXT("Joystick input timed out. USB disabled; lower throttle and enable again."));
+    if (Now - LastEnumerationTime >= 1.0) RefreshDevices();
+    if (SelectedId != INDEX_NONE && Now - LastPollTime >= PollInterval) PollSelectedDevice();
+}
+
+const FImperialRadioDevice* UImperialRadioSubsystem::GetSelectedDevice() const
+{
+    return Devices.FindByPredicate([this](const FImperialRadioDevice& Device)
+        { return Device.Id == SelectedId && Device.Identity == SelectedIdentity; });
+}
+
+void UImperialRadioSubsystem::RefreshDevices()
+{
+    LastEnumerationTime = FPlatformTime::Seconds();
+    Devices = EnumerateWinMmDevices();
+    if (SelectedId != INDEX_NONE)
+    {
+        const FImperialRadioDevice* Slot = Devices.FindByPredicate([this](const FImperialRadioDevice& Device) { return Device.Id == SelectedId; });
+        if (!Slot)
+        {
+            ClearLiveInput(TEXT("Selected joystick disconnected. USB disabled; reconnect then enable explicitly."));
+        }
+        else if (Slot->Identity != SelectedIdentity)
+        {
+            ClearLiveInput(TEXT("Joystick identity changed. Select the device and calibrate again."));
+            SelectedId = INDEX_NONE;
+            SelectedIdentity.Empty();
+            Calibration = ImperialRadio::Profile{};
+        }
+    }
+    else
+    {
+        Status = Devices.IsEmpty() ? TEXT("No connected USB joystick. Keyboard input remains active.")
+            : TEXT("USB joystick found. Select the actual device; keyboard input remains active.");
+    }
+}
+
+bool UImperialRadioSubsystem::SelectDevice(int32 Id)
+{
+    RefreshDevices();
+    const FImperialRadioDevice* Device = Devices.FindByPredicate([Id](const FImperialRadioDevice& Candidate) { return Candidate.Id == Id; });
+    if (!Device)
+    {
+        ClearLiveInput(TEXT("The requested joystick is not connected. Keyboard input remains active."));
+        return false;
+    }
+    const FString Identity = Device->Identity;
+    ClearLiveInput(TEXT("Selecting joystick. Keyboard input remains active."));
+    SelectedId = Id;
+    SelectedIdentity = Identity;
+    Calibration = ImperialRadio::Profile{};
+    RangeCapture = ImperialRadio::Capture{};
+    PollSelectedDevice();
+    if (!IsConnected()) return false;
+    LoadProfile(); // Strictly loads calibration; never enables radio on its own.
+    return true;
+}
+
+void UImperialRadioSubsystem::CycleDevice()
+{
+    RefreshDevices();
+    if (Devices.IsEmpty()) return;
+    const int32 Current = Devices.IndexOfByPredicate([this](const FImperialRadioDevice& Device) { return Device.Id == SelectedId; });
+    SelectDevice(Devices[(Current + 1) % Devices.Num()].Id);
+}
+
+void UImperialRadioSubsystem::ClearLiveInput(const FString& Reason)
+{
+    bConnected = false;
+    bEnabled = false;
+    Buttons = 0;
+    LastSampleTime = 0.0;
+    RawAxes.Init(0.0f, 6);
+    if (bCalibrationActive)
+    {
+        RangeCapture.Interrupted = true;
+        RangeCapture.Active = false;
+        Calibration.Confirmed = false;
+        bCalibrationActive = false;
+    }
+    Status = Reason;
+}
+
+void UImperialRadioSubsystem::PollSelectedDevice()
+{
+    LastPollTime = FPlatformTime::Seconds();
+    const FImperialRadioDevice* Device = GetSelectedDevice();
+    if (!Device)
+    {
+        ClearLiveInput(TEXT("Selected joystick unavailable. USB disabled."));
+        return;
+    }
+#if PLATFORM_WINDOWS
+    JOYINFOEX Position{};
+    Position.dwSize = sizeof(Position);
+    Position.dwFlags = JOY_RETURNALL;
+    const MMRESULT Result = joyGetPosEx(static_cast<UINT>(SelectedId), &Position);
+    if (Result != JOYERR_NOERROR)
+    {
+        ClearLiveInput(FString::Printf(TEXT("Joystick read failed (%u). USB disabled; reconnect and enable explicitly."), Result));
+        return;
+    }
+    const DWORD Values[6] = {Position.dwXpos, Position.dwYpos, Position.dwZpos, Position.dwRpos, Position.dwUpos, Position.dwVpos};
+    for (int32 Axis = 0; Axis < 6; ++Axis)
+    {
+        // Driver coordinates, normalized using JOYCAPS; these are not raw HID packets.
+        RawAxes[Axis] = Device->AxisAvailable[Axis]
+            ? static_cast<float>(ImperialRadio::NormalizeDriverAxis(Values[Axis], Device->AxisMinimum[Axis], Device->AxisMaximum[Axis])) : 0.0f;
+    }
+    const bool bWasConnected = bConnected;
+    Buttons = static_cast<uint32>(Position.dwButtons);
+    LastSampleTime = FPlatformTime::Seconds();
+    bConnected = true;
+    if (!bWasConnected) Status = TEXT("Joystick live. USB disabled; calibrate or lower throttle and enable explicitly.");
+    if (bCalibrationActive && RangeCapture.Active)
+    {
+        const auto Error = RangeCapture.Observe(CurrentSample(), AvailableAxes(), true);
+        if (Error != ImperialRadio::Error::None)
+        {
+            bCalibrationActive = false;
+            bEnabled = false;
+            SetCalibrationStatus(Error, FString());
+        }
+    }
+#else
+    ClearLiveInput(TEXT("Native USB joystick input is available in the Windows build."));
+#endif
+}
+
+bool UImperialRadioSubsystem::IsConnected() const
+{
+    return bConnected && GetSelectedDevice() && LastSampleTime > 0.0 &&
+           FPlatformTime::Seconds() - LastSampleTime <= FreshInputSeconds;
+}
+
+bool UImperialRadioSubsystem::IsCalibrated() const
+{
+    return IsConnected() && ImperialRadio::ValidateProfile(Calibration, AvailableAxes()) == ImperialRadio::Error::None;
+}
+
+bool UImperialRadioSubsystem::IsEnabled() const
+{
+    return bEnabled && IsCalibrated();
+}
+
+const TArray<float>& UImperialRadioSubsystem::GetRawAxes() const
+{
+    return IsConnected() ? RawAxes : EmptyAxes;
+}
+
+uint32 UImperialRadioSubsystem::GetButtons() const { return IsConnected() ? Buttons : 0; }
+
+ImperialRadio::Axes UImperialRadioSubsystem::CurrentSample() const
+{
+    ImperialRadio::Axes Sample{};
+    for (int32 Axis = 0; Axis < FMath::Min(6, RawAxes.Num()); ++Axis) Sample[Axis] = RawAxes[Axis];
+    return Sample;
+}
+
+ImperialRadio::AxisMask UImperialRadioSubsystem::AvailableAxes() const
+{
+    ImperialRadio::AxisMask Mask{};
+    if (const auto* Device = GetSelectedDevice())
+        for (int32 Axis = 0; Axis < 6; ++Axis) Mask[Axis] = Device->AxisAvailable.IsValidIndex(Axis) && Device->AxisAvailable[Axis];
+    return Mask;
+}
+
+ImperialRadio::Controls UImperialRadioSubsystem::CurrentControls() const
+{
+    return ImperialRadio::MapControls(Calibration, CurrentSample(), AvailableAxes(), IsConnected());
+}
+
+float UImperialRadioSubsystem::GetNormalizedRoll() const { return static_cast<float>(CurrentControls().Roll); }
+float UImperialRadioSubsystem::GetNormalizedPitch() const { return static_cast<float>(CurrentControls().Pitch); }
+float UImperialRadioSubsystem::GetNormalizedYaw() const { return static_cast<float>(CurrentControls().Yaw); }
+float UImperialRadioSubsystem::GetThrottle() const { return static_cast<float>(CurrentControls().Throttle); }
+
+FString UImperialRadioSubsystem::GetStatus() const
+{
+    if (SelectedId != INDEX_NONE && !IsConnected()) return TEXT("Joystick disconnected or stale. USB disabled; keyboard input required.");
+    return Status;
+}
+
+int32 UImperialRadioSubsystem::GetMappedAxis(int32 Channel) const
+{
+    return Channel >= 0 && Channel < 4 ? Calibration.Mapping[Channel] : INDEX_NONE;
+}
+
+bool UImperialRadioSubsystem::IsInverted(int32 Channel) const
+{
+    return Channel >= 0 && Channel < 4 && Calibration.Inverted[Channel];
+}
+
+float UImperialRadioSubsystem::GetCapturedMinimum(int32 Axis) const
+{
+    if (Axis < 0 || Axis >= 6) return 0;
+    if (RangeCapture.Samples > 0 && FMath::IsFinite(RangeCapture.Minimum[Axis])) return static_cast<float>(RangeCapture.Minimum[Axis]);
+    return Calibration.RangeCaptured ? static_cast<float>(Calibration.Ranges[Axis].Minimum) : 0.0f;
+}
+
+float UImperialRadioSubsystem::GetCapturedMaximum(int32 Axis) const
+{
+    if (Axis < 0 || Axis >= 6) return 0;
+    if (RangeCapture.Samples > 0 && FMath::IsFinite(RangeCapture.Maximum[Axis])) return static_cast<float>(RangeCapture.Maximum[Axis]);
+    return Calibration.RangeCaptured ? static_cast<float>(Calibration.Ranges[Axis].Maximum) : 0.0f;
+}
+
+void UImperialRadioSubsystem::InvalidateCalibration()
+{
+    bEnabled = false;
+    bCalibrationActive = false;
+    RangeCapture = ImperialRadio::Capture{};
+    Calibration.RangeCaptured = false;
+    Calibration.NeutralCaptured = false;
+    Calibration.ThrottleMinimumConfirmed = false;
+    Calibration.Confirmed = false;
+}
+
+bool UImperialRadioSubsystem::SetChannelMapping(int32 Channel, int32 Axis, bool bInvert)
+{
+    if (Channel < 0 || Channel >= 4 || Axis < 0 || Axis >= 6)
+        return SetCalibrationStatus(ImperialRadio::Error::InvalidAxis, FString());
+    if (!AvailableAxes()[Axis]) return SetCalibrationStatus(ImperialRadio::Error::UnavailableAxis, FString());
+    if (Calibration.Mapping[Channel] != Axis || Calibration.Inverted[Channel] != bInvert)
+    {
+        InvalidateCalibration();
+        Calibration.Mapping[Channel] = Axis;
+        Calibration.Inverted[Channel] = bInvert;
+        Status = TEXT("Mapping changed. USB disabled; capture full ranges and neutral again.");
+    }
+    // Temporary duplicates are allowed while editing; BeginCalibration rejects them.
+    return true;
+}
+
+void UImperialRadioSubsystem::CycleAxis(int32 Channel)
+{
+    if (Channel < 0 || Channel >= 4) return;
+    const auto Available = AvailableAxes();
+    for (int32 Offset = 1; Offset <= 6; ++Offset)
+    {
+        const int32 Axis = (Calibration.Mapping[Channel] + Offset) % 6;
+        if (Available[Axis]) { SetChannelMapping(Channel, Axis, Calibration.Inverted[Channel]); return; }
+    }
+}
+
+void UImperialRadioSubsystem::ToggleInvert(int32 Channel)
+{
+    if (Channel >= 0 && Channel < 4) SetChannelMapping(Channel, Calibration.Mapping[Channel], !Calibration.Inverted[Channel]);
+}
+
+bool UImperialRadioSubsystem::SetDeadzone(float Deadzone)
+{
+    if (!FMath::IsFinite(Deadzone) || Deadzone < 0.0f || Deadzone > 0.25f)
+        return SetCalibrationStatus(ImperialRadio::Error::InvalidDeadzone, FString());
+    bEnabled = false;
+    Calibration.Deadzone = Deadzone;
+    Status = TEXT("Deadzone updated. USB disabled; save the profile and enable explicitly.");
+    return true;
+}
+
+bool UImperialRadioSubsystem::SetCalibrationStatus(ImperialRadio::Error Result, const FString& Success)
+{
+    Status = Result == ImperialRadio::Error::None ? Success : FString(UTF8_TO_TCHAR(ImperialRadio::ErrorText(Result)));
+    return Result == ImperialRadio::Error::None;
+}
+
+bool UImperialRadioSubsystem::BeginCalibration()
+{
+    PollSelectedDevice();
+    if (!IsConnected()) return SetCalibrationStatus(ImperialRadio::Error::Disconnected, FString());
+    const auto MappingError = ImperialRadio::ValidateMapping(Calibration, AvailableAxes());
+    if (MappingError != ImperialRadio::Error::None) return SetCalibrationStatus(MappingError, FString());
+    bEnabled = false;
+    RangeCapture.Begin(Calibration);
+    bCalibrationActive = true;
+    RangeCapture.Observe(CurrentSample(), AvailableAxes(), true);
+    Status = TEXT("Capturing ranges: sweep every mapped stick fully both ways, then CAPTURE RANGE.");
+    return true;
+}
+
+bool UImperialRadioSubsystem::FinishRangeCapture()
+{
+    PollSelectedDevice();
+    if (!bCalibrationActive) return SetCalibrationStatus(IsConnected() ? ImperialRadio::Error::NotCapturing : ImperialRadio::Error::Disconnected, FString());
+    return SetCalibrationStatus(RangeCapture.FinishRange(Calibration, AvailableAxes(), IsConnected()),
+        TEXT("Ranges captured. Center roll/pitch/yaw, hold throttle minimum, then CAPTURE NEUTRAL."));
+}
+
+bool UImperialRadioSubsystem::CaptureNeutral()
+{
+    PollSelectedDevice();
+    if (!bCalibrationActive) return SetCalibrationStatus(IsConnected() ? ImperialRadio::Error::NotCapturing : ImperialRadio::Error::Disconnected, FString());
+    if (RangeCapture.Active && !FinishRangeCapture()) return false;
+    return SetCalibrationStatus(ImperialRadio::CaptureNeutral(Calibration, CurrentSample(), AvailableAxes(), IsConnected()),
+        TEXT("Neutral and physical minimum throttle captured. FINISH & SAVE to confirm calibration."));
+}
+
+bool UImperialRadioSubsystem::FinishCalibration()
+{
+    PollSelectedDevice();
+    if (!bCalibrationActive)
+    {
+        if (IsCalibrated()) return SaveProfile();
+        return SetCalibrationStatus(IsConnected() ? ImperialRadio::Error::NotCapturing : ImperialRadio::Error::Disconnected, FString());
+    }
+    if (!SetCalibrationStatus(ImperialRadio::Confirm(Calibration, AvailableAxes(), IsConnected()), FString())) return false;
+    if (!SaveProfile()) { Calibration.Confirmed = false; return false; }
+    bCalibrationActive = false;
+    Status = TEXT("Calibration saved for this device. Keyboard active; lower throttle and ENABLE USB explicitly.");
+    return true;
+}
+
+bool UImperialRadioSubsystem::EnableRadio()
+{
+    PollSelectedDevice();
+    bEnabled = false;
+    if (!IsConnected()) return SetCalibrationStatus(ImperialRadio::Error::Disconnected, FString());
+    const auto Error = ImperialRadio::ValidateProfile(Calibration, AvailableAxes());
+    if (Error != ImperialRadio::Error::None) return SetCalibrationStatus(Error, FString());
+    if (!ImperialRadio::CanEnable(Calibration, CurrentSample(), AvailableAxes(), true))
+        return SetCalibrationStatus(ImperialRadio::Error::ThrottleNotLow, FString());
+    bEnabled = true;
+    Status = TEXT("USB input enabled. Aircraft remains disarmed until the pilot explicitly arms at low throttle.");
+    return true;
+}
+
+void UImperialRadioSubsystem::DisableRadio()
+{
+    bEnabled = false;
+    Status = TEXT("Keyboard input selected. USB calibration retained; enabling requires low throttle.");
+}
+
+FString UImperialRadioSubsystem::ProfilePath() const
+{
+    return FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("Config/RadioProfile.json"));
+}
+
+bool UImperialRadioSubsystem::SaveProfile()
+{
+    const FImperialRadioDevice* Device = GetSelectedDevice();
+    if (!Device || !IsConnected()) return SetCalibrationStatus(ImperialRadio::Error::Disconnected, FString());
+    const auto Error = ImperialRadio::ValidateProfile(Calibration, AvailableAxes());
+    if (Error != ImperialRadio::Error::None) return SetCalibrationStatus(Error, FString());
+    const FString Path = ProfilePath();
+    TSharedPtr<FJsonObject> Root;
+    if (IFileManager::Get().FileExists(*Path))
+    {
+        double Version = 0;
+        if (!ReadJsonFile(Path, Root) || !ReadFinite(Root, TEXT("version"), Version) || Version != 1.0)
+        {
+            Status = TEXT("Existing radio profile file is malformed or unsupported; it was left unchanged.");
+            return false;
+        }
+    }
+    else Root = MakeShared<FJsonObject>();
+    Root->SetNumberField(TEXT("version"), 1);
+    const TSharedPtr<FJsonObject>* StoredProfiles = nullptr;
+    TSharedPtr<FJsonObject> Profiles = Root->TryGetObjectField(TEXT("profiles"), StoredProfiles) && StoredProfiles && StoredProfiles->IsValid()
+        ? *StoredProfiles : MakeShared<FJsonObject>();
+    auto Entry = MakeShared<FJsonObject>();
+    Entry->SetStringField(TEXT("identity"), Device->Identity);
+    Entry->SetStringField(TEXT("device_name"), Device->Name);
+    Entry->SetNumberField(TEXT("manufacturer_id"), Device->ManufacturerId);
+    Entry->SetNumberField(TEXT("product_id"), Device->ProductId);
+    Entry->SetNumberField(TEXT("deadzone"), Calibration.Deadzone);
+    Entry->SetBoolField(TEXT("ranges_captured"), Calibration.RangeCaptured);
+    Entry->SetBoolField(TEXT("neutral_captured"), Calibration.NeutralCaptured);
+    Entry->SetBoolField(TEXT("throttle_min_confirmed"), Calibration.ThrottleMinimumConfirmed);
+    Entry->SetBoolField(TEXT("confirmed"), Calibration.Confirmed);
+    TArray<TSharedPtr<FJsonValue>> Mapping;
+    for (int32 Channel = 0; Channel < 4; ++Channel)
+    {
+        auto Item = MakeShared<FJsonObject>();
+        Item->SetNumberField(TEXT("axis"), Calibration.Mapping[Channel]);
+        Item->SetBoolField(TEXT("invert"), Calibration.Inverted[Channel]);
+        Mapping.Add(MakeShared<FJsonValueObject>(Item));
+    }
+    Entry->SetArrayField(TEXT("mapping"), Mapping);
+    TArray<TSharedPtr<FJsonValue>> Ranges;
+    for (const auto& Range : Calibration.Ranges)
+    {
+        auto Item = MakeShared<FJsonObject>();
+        Item->SetNumberField(TEXT("min"), Range.Minimum);
+        Item->SetNumberField(TEXT("max"), Range.Maximum);
+        Item->SetNumberField(TEXT("center"), Range.Center);
+        Ranges.Add(MakeShared<FJsonValueObject>(Item));
+    }
+    Entry->SetArrayField(TEXT("ranges"), Ranges);
+    Profiles->SetObjectField(Device->Identity, Entry);
+    Root->SetObjectField(TEXT("profiles"), Profiles);
+    FString Json;
+    if (!FJsonSerializer::Serialize(Root.ToSharedRef(), TJsonWriterFactory<>::Create(&Json))) return false;
+    IFileManager::Get().MakeDirectory(*FPaths::GetPath(Path), true);
+    const FString TempPath = Path + TEXT(".tmp");
+    const bool bSaved = FFileHelper::SaveStringToFile(Json, *TempPath, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM) &&
+        IFileManager::Get().Move(*Path, *TempPath, true, true, false, true);
+    Status = bSaved ? TEXT("Device calibration saved. USB activation is never saved.") : TEXT("Could not save radio calibration to Saved/Config.");
+    return bSaved;
+}
+
+bool UImperialRadioSubsystem::LoadProfile()
+{
+    bEnabled = false;
+    bCalibrationActive = false;
+    Calibration = ImperialRadio::Profile{};
+    RangeCapture = ImperialRadio::Capture{};
+    const auto* Device = GetSelectedDevice();
+    if (!Device || !IsConnected()) return SetCalibrationStatus(ImperialRadio::Error::Disconnected, FString());
+    TSharedPtr<FJsonObject> Root;
+    if (!IFileManager::Get().FileExists(*ProfilePath()))
+    {
+        Status = TEXT("No saved calibration for this device. Keyboard active; map channels and start range capture.");
+        return false;
+    }
+    const auto Reject = [this]() { Status = TEXT("Saved profile invalid or belongs to another device. Keyboard active; calibrate this device."); return false; };
+    double Version = 0;
+    if (!ReadJsonFile(ProfilePath(), Root) || !ReadFinite(Root, TEXT("version"), Version) || Version != 1.0) return Reject();
+    const TSharedPtr<FJsonObject>* Profiles = nullptr;
+    const TSharedPtr<FJsonObject>* EntryPtr = nullptr;
+    if (!Root->TryGetObjectField(TEXT("profiles"), Profiles) || !Profiles || !Profiles->IsValid() ||
+        !(*Profiles)->TryGetObjectField(Device->Identity, EntryPtr) || !EntryPtr || !EntryPtr->IsValid()) return Reject();
+    const TSharedPtr<FJsonObject> Entry = *EntryPtr;
+    FString Identity;
+    ImperialRadio::Profile Candidate;
+    if (!Entry->TryGetStringField(TEXT("identity"), Identity) || Identity != Device->Identity ||
+        !ReadFinite(Entry, TEXT("deadzone"), Candidate.Deadzone) ||
+        !Entry->TryGetBoolField(TEXT("ranges_captured"), Candidate.RangeCaptured) ||
+        !Entry->TryGetBoolField(TEXT("neutral_captured"), Candidate.NeutralCaptured) ||
+        !Entry->TryGetBoolField(TEXT("throttle_min_confirmed"), Candidate.ThrottleMinimumConfirmed) ||
+        !Entry->TryGetBoolField(TEXT("confirmed"), Candidate.Confirmed)) return Reject();
+    const TArray<TSharedPtr<FJsonValue>>* Mapping = nullptr;
+    const TArray<TSharedPtr<FJsonValue>>* Ranges = nullptr;
+    if (!Entry->TryGetArrayField(TEXT("mapping"), Mapping) || !Mapping || Mapping->Num() != 4 ||
+        !Entry->TryGetArrayField(TEXT("ranges"), Ranges) || !Ranges || Ranges->Num() != 6) return Reject();
+    for (int32 Channel = 0; Channel < 4; ++Channel)
+    {
+        const auto& Value = (*Mapping)[Channel];
+        if (!Value.IsValid() || Value->Type != EJson::Object) return Reject();
+        const auto Item = Value->AsObject();
+        double Axis = 0;
+        if (!ReadFinite(Item, TEXT("axis"), Axis) || Axis < 0 || Axis > 5 || Axis != FMath::FloorToDouble(Axis) ||
+            !Item->TryGetBoolField(TEXT("invert"), Candidate.Inverted[Channel])) return Reject();
+        Candidate.Mapping[Channel] = static_cast<int>(Axis);
+    }
+    for (int32 Axis = 0; Axis < 6; ++Axis)
+    {
+        const auto& Value = (*Ranges)[Axis];
+        if (!Value.IsValid() || Value->Type != EJson::Object) return Reject();
+        const auto Item = Value->AsObject();
+        auto& Range = Candidate.Ranges[Axis];
+        if (!ReadFinite(Item, TEXT("min"), Range.Minimum) || !ReadFinite(Item, TEXT("max"), Range.Maximum) ||
+            !ReadFinite(Item, TEXT("center"), Range.Center) || Range.Minimum < 0 || Range.Maximum > 1 ||
+            Range.Minimum > Range.Maximum || Range.Center < 0 || Range.Center > 1) return Reject();
+    }
+    if (ImperialRadio::ValidateProfile(Candidate, AvailableAxes()) != ImperialRadio::Error::None) return Reject();
+    Calibration = Candidate;
+    Status = TEXT("Matching device calibration loaded. Keyboard active; minimum throttle and explicit ENABLE USB required.");
+    return true;
+}

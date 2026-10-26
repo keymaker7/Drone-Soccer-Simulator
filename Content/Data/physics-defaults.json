@@ -1,0 +1,14 @@
+{
+  "model": "STRIKER V3 reference-inspired, experimental coefficients",
+  "measured_airframe_data": false,
+  "motor_pwm_exponent": 2.0,
+  "motor_response_s": 0.035,
+  "battery_capacity_ah": 1.5,
+  "battery_internal_resistance_ohm": 0.035,
+  "drag_effective_cd_area_m2": 0.015,
+  "sensor_latency_s": 0.005,
+  "gyro_noise_rad_s": 0.0005,
+  "wake_coupling": 0.18,
+  "net_stiffness_n_per_m": 300,
+  "net_damping_ns_per_m": 22
+}

@@ -1,0 +1,138 @@
+#include "DroneSoccerRules.h"
+#include <cmath>
+#include <iostream>
+#include <limits>
+#include <stdexcept>
+
+using namespace drone_soccer;
+namespace
+{
+int checks=0;
+void Check(bool value,const char* message){++checks;if(!value)throw std::runtime_error(message);}
+bool Near(double a,double b){return std::abs(a-b)<1e-7;}
+std::array<Vec3,10> Homes()
+{
+    std::array<Vec3,10> p{};
+    for(int i=0;i<10;++i)p[i]={i<5?-6.5:6.5,-2.4+(i%5)*1.2,0.2};
+    return p;
+}
+void At(MatchRules& m,std::array<Vec3,10>& p,int id,double x,double y=0,double z=3,double dt=.01)
+{
+    p[id]={x,y,z};m.Update(p,dt);
+}
+void Forward(MatchRules& m,std::array<Vec3,10>& p,int team)
+{
+    const int id=team*5;const double sign=team==0?1.0:-1.0;
+    At(m,p,id,sign*6.1);At(m,p,id,sign*6.9);
+}
+void TestProfileAndPractice()
+{
+    Check(Near(RuleProfileFIDA40::Length,16)&&Near(RuleProfileFIDA40::Width,7)&&Near(RuleProfileFIDA40::Height,4.5),"Incorrect recommended FIDA arena");
+    Check(Near(RuleProfileFIDA40::GoalX,6.5)&&Near(RuleProfileFIDA40::GoalHeight,3),"Incorrect legal goal position");
+    Check(Near(RuleProfileFIDA40::GoalInnerRadius-RuleProfileFIDA40::BallRadius,.1),"Whole-ball aperture clearance missing");
+    MatchRules m;auto p=Homes();
+    Check(m.GetPhase()==Phase::Practice&&m.CurrentSet()==0&&m.IsArmingAllowed(),"Practice defaults incorrect");
+    At(m,p,0,6.1);At(m,p,0,6.9);
+    Check(m.Score(0)==1&&m.GetPhase()==Phase::Practice,"Practice scoring should use the same geometry without match clock");
+}
+void TestFullPassAndBounce()
+{
+    MatchRules m;auto p=Homes();At(m,p,0,6.1);At(m,p,0,6.5);
+    Check(m.Score(0)==0,"Centre-plane crossing counted before entire ball cleared");
+    At(m,p,0,6.77);Check(m.Score(0)==0,"Ball touching the rear hoop slab counted too early");
+    At(m,p,0,6.79);Check(m.Score(0)==1&&m.IsOffside(0),"Complete forward transit should score and set team offside");
+    At(m,p,0,7.2);Check(m.Score(0)==1,"Remaining behind goal scored twice");
+    m.Reset();p=Homes();At(m,p,0,6.1);At(m,p,0,6.6);At(m,p,0,6.1);
+    Check(m.Score(0)==0,"A ball bouncing back before fully exiting scored");
+    m.Reset();p=Homes();At(m,p,0,6.5);At(m,p,0,6.9);
+    Check(m.Score(0)==0,"First observation inside a hoop invented an entry");
+    m.Reset();p=Homes();At(m,p,5,-6.1);At(m,p,5,-6.9);
+    Check(m.Score(1)==1&&m.Score(0)==0,"Mirrored team scoring direction is wrong");
+}
+void TestRolesAndEdges()
+{
+    for(double y:{0.0,.099,.1,.101,.3})
+    {
+        MatchRules m;auto p=Homes();At(m,p,0,6.1,y);At(m,p,0,6.9,y);
+        Check(m.Score(0)==(y<.1?1:0),"Sphere clearance or edge-grazing decision incorrect");
+    }
+    MatchRules m;auto p=Homes();At(m,p,0,6.1,0,3.101);At(m,p,0,6.9,0,3.101);
+    Check(m.Score(0)==0,"Vertical ball surface intersected hoop but still scored");
+    m.Reset();p=Homes();At(m,p,1,6.1);At(m,p,1,6.9);
+    Check(m.Score(0)==0&&!m.IsOffside(0),"Non-striker scored or created striker offside");
+    m.Reset();p=Homes();m.SetActive(0,false);At(m,p,0,6.1);At(m,p,0,6.9);
+    Check(m.Score(0)==0,"Inactive striker scored");
+}
+void TestOffsideAndPenalties()
+{
+    MatchRules m;auto p=Homes();At(m,p,0,6.9);At(m,p,0,6.1);
+    Check(m.Score(0)==0&&m.IsOffside(0),"Reverse opponent-goal passage must set offside without scoring");
+    At(m,p,0,6.9);Check(m.Score(0)==0&&m.Penalties(0)==1,"Ignoring offside must not produce a consecutive score");
+    p[1].x=.1;At(m,p,0,-.5);
+    Check(m.IsOffside(0),"Striker alone returning incorrectly cleared team offside");
+    p[1].x=-.1;m.Update(p,.01);
+    Check(m.IsOffside(0),"A teammate's body still overlapping centre line cleared offside");
+    p[1].x=-.21;m.Update(p,.01);Check(!m.IsOffside(0),"All five complete bodies retreated but offside remained");
+    Forward(m,p,0);Check(m.Score(0)==1,"Goal after valid team retreat did not score");
+    p[1].x=1;At(m,p,0,-.5);m.SetActive(1,false);m.Update(p,.01);
+    Check(!m.IsOffside(0),"A formally inactive withdrawn player blocked active-team retreat");
+    m.Reset();p=Homes();At(m,p,2,-6.9);At(m,p,2,-6.7);
+    Check(m.Penalties(0)==1,"Partial reverse entry into own goal was not penalized");
+    At(m,p,2,-6.65);Check(m.Penalties(0)==1,"A single reverse entry generated repeated penalties");
+    At(m,p,2,-6.9);At(m,p,2,-6.7);Check(m.Penalties(0)==2,"A separate reverse entry was not tracked");
+    m.Reset();p=Homes();At(m,p,2,-6.1);At(m,p,2,-6.9);
+    Check(m.Penalties(0)==0,"Legal own-goal front-to-back transit was penalized");
+}
+void TestClockAndSetWins()
+{
+    MatchRules m;auto p=Homes();m.StartMatch();
+    Check(m.GetPhase()==Phase::Ready&&Near(m.Remaining(),10)&&m.CurrentSet()==1&&!m.IsArmingAllowed(),"Ready gate incorrect");
+    At(m,p,0,6.1);At(m,p,0,6.9);
+    Check(m.Score(0)==0,"Ready phase allowed scoring");
+    m.Update(p,m.Remaining());Check(m.GetPhase()==Phase::Playing&&Near(m.Remaining(),180)&&m.IsArmingAllowed(),"Playing did not start after ten seconds");
+    At(m,p,0,6.1);At(m,p,0,6.9); // reverse then forward: reset offside by full team retreat first.
+    m.StartMatch();p=Homes();m.Update(p,10);Forward(m,p,0);m.Update(p,m.Remaining());
+    Check(m.SetWins(0)==1&&m.CurrentSet()==1&&m.GetPhase()==Phase::Break&&Near(m.Remaining(),300),"First set winner or maintenance interval incorrect");
+    Check(!m.IsArmingAllowed(),"Maintenance break allowed arming");
+    const int scored=m.Score(0);Forward(m,p,1);Check(m.Score(0)==scored&&m.Score(1)==0,"Break phase allowed goals");
+    m.Update(p,m.Remaining());Check(m.CurrentSet()==2&&m.GetPhase()==Phase::Ready&&m.Score(0)==0,"New set did not clear set score");
+    m.Update(p,10);p=Homes();m.Update(p,.01);Forward(m,p,0);m.Update(p,m.Remaining());
+    Check(m.GetPhase()==Phase::Finished&&m.SetWins(0)==2&&m.CurrentSet()==2&&!m.IsArmingAllowed(),"Best-of-three match did not finish after two set wins");
+    Forward(m,p,1);Check(m.Score(1)==0,"Finished match still scored goals");
+    m.StartPractice();Check(m.GetPhase()==Phase::Practice&&m.SetWins(0)==0&&m.Penalties(0)==0,"Practice reset retained match sanctions or wins");
+}
+void TestDrawsCarryAndWhistle()
+{
+    MatchRules m;auto p=Homes();m.StartMatch();m.Update(p,300);
+    Check(m.GetPhase()==Phase::Break&&Near(m.Remaining(),190)&&m.CurrentSet()==1,"Large dt lost state-transition carry");
+    m.StartMatch();m.Update(p,1e12);
+    Check(m.GetPhase()==Phase::Finished&&m.CurrentSet()==3&&m.SetWins(0)==0&&m.SetWins(1)==0,"Three draws should finish as a draw without an invented winner");
+    m.StartMatch();p=Homes();m.Update(p,10);Forward(m,p,0);m.Update(p,m.Remaining());
+    m.Update(p,300+10+180+300+10+180);
+    Check(m.GetPhase()==Phase::Finished&&m.SetWins(0)==1&&m.SetWins(1)==0,"One set win plus two draws should preserve the winning set total");
+    m.StartMatch();p=Homes();m.Update(p,10);At(m,p,0,6.1,0,3,179.9);At(m,p,0,6.9,0,3,1.0);
+    Check(m.Score(0)==0&&m.GetPhase()==Phase::Break,"A full crossing after the end whistle was counted");
+    m.StartMatch();p=Homes();m.Update(p,10);At(m,p,0,6.1,0,3,179.1);At(m,p,0,6.9,0,3,1.0);
+    Check(m.Score(0)==1&&m.SetWins(0)==1,"A full crossing before the end whistle was discarded");
+}
+void TestInvalidInputsAndReset()
+{
+    MatchRules m;auto p=Homes();m.StartMatch();m.Update(p,-1);m.Update(p,0);m.Update(p,std::numeric_limits<double>::infinity());m.Update(p,std::numeric_limits<double>::quiet_NaN());
+    Check(Near(m.Remaining(),10),"Invalid dt changed clock");
+    p[0].x=std::numeric_limits<double>::quiet_NaN();m.Update(p,3);Check(Near(m.Remaining(),10),"Invalid pose changed clock");
+    m.SetActive(-1,false);m.SetActive(10,false);Check(m.Score(-1)==0&&m.Penalties(3)==0&&!m.IsOffside(5)&&m.SetWins(-1)==0,"Invalid IDs caused an invalid result");
+    m.Reset();p=Homes();Forward(m,p,0);Check(m.Score(0)==1,"Reset did not restore all active players");
+    m.Reset();Check(m.Score(0)==0&&!m.IsOffside(0)&&m.Penalties(0)==0&&m.CurrentSet()==0,"Reset did not clear rule state");
+}
+}
+int main()
+{
+    try
+    {
+        TestProfileAndPractice();TestFullPassAndBounce();TestRolesAndEdges();TestOffsideAndPenalties();
+        TestClockAndSetWins();TestDrawsCarryAndWhistle();TestInvalidInputsAndReset();
+        std::cout<<"PASS: "<<checks<<" FIDA rule checks (whole-ball goals, roles, offside, penalties, clock, sets and invalid inputs).\n";
+        return 0;
+    }
+    catch(const std::exception& e){std::cerr<<"FAIL after "<<checks<<" checks: "<<e.what()<<"\n";return 1;}
+}
