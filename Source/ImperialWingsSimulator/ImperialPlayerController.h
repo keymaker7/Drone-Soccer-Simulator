@@ -13,6 +13,13 @@ public:
     virtual void BeginPlay() override;
     virtual void SetupInputComponent() override;
     virtual void PlayerTick(float Dt) override;
+    virtual void OnPossess(APawn* InPawn) override;
+    virtual void FlushPressedKeys() override;
+    virtual bool ShouldFlushKeysWhenViewportFocusChanges() const override { return true; }
+    virtual bool InputKey(const FInputKeyEventArgs& Params) override;
+    /** Menu/aircraft changes clear flight keys without undoing explicit USB enable. */
+    void FlushPilotContextKeys();
+    bool IsInputResetThisFrame() const;
     void SetView(int32 View);
     FVector GetPilotStationPosition() const;
     void ToggleEquipmentInspection();
@@ -40,6 +47,10 @@ private:
     FRotator AudienceHead=FRotator::ZeroRotator,RefereeHead=FRotator::ZeroRotator;
     float AudienceFov=70,RefereeFov=100;
     bool bHeadDragging=false;
+    bool bPreserveRadioWhileFlushing=false;
+    uint64 InputResetAtCycles=0;
+    uint64 InputResetFrame=MAX_uint64;
+    TSet<FKey> FreshFlightKeys;
     FVector2D LastHeadPointer=FVector2D::ZeroVector;
     void ConfigureInput();
     void UpdatePilotCamera();

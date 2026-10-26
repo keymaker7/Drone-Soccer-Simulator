@@ -52,7 +52,10 @@ while ($pending.Count -gt 0) {
         }
         $relative = $absolute.Substring($rootPrefix.Length)
         if ($item.PSIsContainer) {
-            if ($excludedDirectories -contains $item.Name) { continue }
+            # Public, sanitized QA summaries are authored documentation. Keep
+            # docs/verification while excluding generated Verification elsewhere.
+            $publicVerification = $relative -match '^docs[\\/]verification$'
+            if (($excludedDirectories -contains $item.Name) -and -not $publicVerification) { continue }
             if ($directory -eq $sourceRoot -and $sourceFolders -notcontains $item.Name) { continue }
             if ($relative -match '^Tests[\\/]build(?:-rules|-radio|-physics)?$') { continue }
             if ($relative -match '^Content[\\/]Developers(?:[\\/]|$)') { continue }

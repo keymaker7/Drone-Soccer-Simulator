@@ -445,6 +445,13 @@ void ASoccerDronePawn::SetupPlayerInputComponent(UInputComponent* IC)
     IC->BindKey(EKeys::V, IE_Pressed, this, &ASoccerDronePawn::ToggleCamera);
 }
 
+void ASoccerDronePawn::ClearManualPilotInput(const FString& Reason)
+{
+    const bool HadManualInput=KeyboardThrottle>0||KeyboardThrottleStep!=0||KeyRoll!=0||KeyPitch!=0||KeyYaw!=0||(!bAutonomousEnabled&&bArmed);
+    KeyboardThrottle=KeyboardThrottleStep=KeyRoll=KeyPitch=KeyYaw=0;
+    // Raw controller samples/calibration are never fabricated or overwritten.
+    if(!bAutonomousEnabled){SetArmed(false);if(HadManualInput)LastSafetyMessage=Reason;}
+}
 void ASoccerDronePawn::UnPossessed()
 {
     Super::UnPossessed();
@@ -588,6 +595,7 @@ bool ASoccerDronePawn::SetArmed(bool bShouldArm)
 
 void ASoccerDronePawn::ToggleArm()
 {
+    if(const auto* Pilot=Cast<AImperialPlayerController>(GetController());Pilot&&Pilot->IsInputResetThisFrame())return;
     if (const auto* Pilot=Cast<APlayerController>(GetController()))
         if (const auto* HUD=Cast<AImperialHUD>(Pilot->GetHUD()); HUD&&HUD->IsRadioPanelOpen()) return;
     if (bAutonomousEnabled)
@@ -771,6 +779,7 @@ void ASoccerDronePawn::ResetFromPilotInput()
     if(const auto* Pilot=Cast<AImperialPlayerController>(GetController());Pilot&&(Pilot->IsReadOnlyView()||Pilot->IsEquipmentInspection()))return;
     if(const auto* Pilot=Cast<APlayerController>(GetController()))if(const auto* HUD=Cast<AImperialHUD>(Pilot->GetHUD());HUD&&HUD->IsRadioPanelOpen())return;
     ResetDrone();
+    if(auto* Pilot=Cast<AImperialPlayerController>(GetController()))Pilot->FlushPilotContextKeys();
 }
 
 void ASoccerDronePawn::Tick(float Dt)
@@ -804,7 +813,9 @@ void ASoccerDronePawn::Tick(float Dt)
         if(const auto* Pilot=Cast<APlayerController>(GetController()))
             if(const auto* HUD=Cast<AImperialHUD>(Pilot->GetHUD()))Modal=HUD->IsRadioPanelOpen();
         const auto* RolePilot=Cast<AImperialPlayerController>(GetController());
-        if(Modal||(RolePilot&&RolePilot->IsReadOnlyView())){KeyboardThrottle=KeyboardThrottleStep=KeyRoll=KeyPitch=KeyYaw=0;}
+        // EvaluateInputDelegates may already have cached axes when a reset action
+        // flushes keys mid-frame. Discard that frame's cached axis callbacks too.
+        if(Modal||(RolePilot&&(RolePilot->IsInputResetThisFrame()||RolePilot->IsReadOnlyView()||RolePilot->IsEquipmentInspection()))){KeyboardThrottle=KeyboardThrottleStep=KeyRoll=KeyPitch=KeyYaw=0;}
         else KeyboardThrottle = FMath::Clamp(KeyboardThrottle + KeyboardThrottleStep * Dt * 0.35f, 0.0f, 1.0f);
     }
     ApplyFlightForces(Dt);

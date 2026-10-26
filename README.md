@@ -1,9 +1,9 @@
 # Imperial Wings Drone Soccer Simulator
 
 <a id="windows-run"></a>
-## Windows 실행파일 다운로드 — v0.7.0
+## Windows 실행파일 다운로드 — v0.7.1
 
-[Windows x64 실행용 ZIP](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/download/v0.7.0/ImperialWings-Windows-v0.7.0-r3.zip)을 **전체 압축 해제**한 뒤 `ImperialWingsLauncher.exe`를 실행합니다. Unreal Engine·Python·Git을 설치할 필요가 없습니다. GitHub의 Source code ZIP은 개발 소스이며 실행용 ZIP과 다릅니다.
+[Windows x64 실행용 ZIP](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/download/v0.7.1/ImperialWings-Windows-v0.7.1-r1.zip)을 **전체 압축 해제**한 뒤 `ImperialWingsLauncher.exe`를 실행합니다. Unreal Engine·Python·Git을 설치할 필요가 없습니다. GitHub의 Source code ZIP은 개발 소스이며 실행용 ZIP과 다릅니다.
 
 첫 실행의 간소 조종기 화면에서 **실제 장치 카드 선택 → STICK SETUP / MODE 2 → CONFIRM & SAVE → ENABLE RADIO** 순서로 보정합니다. 상단 STEP 안내로 다음 행동을 확인합니다. 이미 보정한 장치는 **CONNECT SAVED RADIO / F8**로 연결할 수 있습니다. 스로틀 최저에서 패널을 닫고 Space로 ARM합니다. 보정값은 각 Windows 사용자의 `%LOCALAPPDATA%\ImperialWingsSimulator\Saved`에 저장하고 다른 사람의 보정값을 배포하지 않습니다.
 
@@ -22,6 +22,10 @@ v0.7은 FC/ESC·수신기·모터 권선·배터리·커넥터·배선과 비틀
 **접촉 반응:** 충격량으로 가드 상태를 낮추고 마모 흔적·작은 파편 효과·이벤트·GUARD %를 표시합니다. 강체 충돌 형상은 유지하며 실제 부품 파단·모터 고장을 뜻하지 않습니다. Backspace/전체 RESET은 상태를 복원합니다. 골대는 규정 범위의12.5kg이며 연습에서 작은 앞뒤 충격 반응, 정규 경기에서 고정 지지를 사용합니다. 계수는 실험값입니다.
 
 **경기/연습 구분:** AUTO·HOLD·RETURN과 기체 API의 자율 활성화는 Practice에서만 허용합니다. 정규 경기 종료는 자동 귀환을 시작하지 않으며 이미 비행 중인 수동 기체의 착륙 조종을 유지합니다. 정비·종료 단계의 새 ARM은 차단합니다.
+
+**v0.7.1 입력 복구:** 창 포커스를 잃으면 수동 기체를 DISARM하고 누적 키보드 스로틀·축 입력과 USB 활성화를 해제합니다. 복귀 후 키 자동 반복으로 다시 움직이거나 ARM하지 않으며 새 키 누름/ARM 클릭이 필요합니다. USB 조종은 실제 최저 스로틀에서 F8로 다시 연결합니다. 메뉴·장비 보기·기체 전환·초기화에서도 남은 키보드 입력을 제거합니다. 메뉴에서 직접 활성화한 USB 연결은 메뉴를 닫아도 유지하며 원시 축·보정값은 바꾸지 않습니다. 명시적으로 시작한 연습 자율비행은 포커스 전환에도 계속됩니다.
+
+[v0.7.1 입력 시험과 범위](docs/releases/v0.7.1.md)에서 엔진 내부 키 이벤트 시험과 실제 키보드/USB 현장 시험을 구분합니다.
 
 [v0.7 변경·시험 결과](docs/releases/v0.7.0.md) · [실제 기능과 미완료 항목](docs/feature-inventory-2026-10-26.md) · [자율 시험에서 찾은 문제와 수정](docs/autonomy-feedback-v07.md)
 
@@ -371,7 +375,7 @@ HOLD/RETURN의 연습 전용 강제 차단과 세트 종료 처리에는 [정밀
 <a id="verification"></a>
 ## 이전 버전의 실행·검증 기록
 
-아래 R4~R6 수치는 당시 기록입니다. 최신 [v0.7 빌드·모델·접촉·시점·자율 시험](docs/releases/v0.7.0.md), [v0.6.1 기록](docs/releases/v0.6.1.md)과 [누적 검증 기록](docs/verification.md)을 확인합니다. 수집 절차 문서 추가와 실제 USB 비행·성능 측정 결과를 구분합니다.
+아래 R4~R6 수치는 당시 기록입니다. 최신 [v0.7.1 입력·회귀·배포 시험](docs/releases/v0.7.1.md), [v0.7 모델·접촉·시점·자율 시험](docs/releases/v0.7.0.md), [v0.6.1 기록](docs/releases/v0.6.1.md)과 [누적 검증 기록](docs/verification.md)을 확인합니다. 수집 절차 문서 추가와 실제 USB 비행·성능 측정 결과를 구분합니다.
 
 ![Unreal 실제 경기장 렌더](docs/images/arena-r4.png)
 

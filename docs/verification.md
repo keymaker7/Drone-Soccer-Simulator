@@ -261,3 +261,19 @@ Shipping build/cook/stage/package/archive 성공. 최종 배포 입력SHA-256은
 - 규칙57·물리104·USB 보정 수학161·요청 순서16·실제 APF HTTP11·보호구 기하4·비행 기록 판정5개 통과. 제조사 실측 계수를 얻은 시험이 아니다.
 
 중간 시험에서는 실제 용접 골대 질량93.26kg,초기 낙하 마모,심판 기둥 가림,낮은 기체의 APF 경로,귀환 잔여 오차/과도하게 높은 DISARM을 발견했다. 해당 기록을 성공으로 재분류하지 않고 수정 후 위 최종 결과로 확인했다. 실제 조종기·다른 물리PC·정밀 연성체/파단·전체 심판·온라인 기능과 전체326개 기능은 미완료 범위로 유지한다.
+
+## 2026-10-27 v0.7.1 입력 복구·회귀 검증
+
+[변경과 범위](releases/v0.7.1.md), [공개 수치 요약](verification/v0.7.1-summary.json). 입력 지문 `fc4a4ad9f3e63acc99e9170cb316c2e1888a31df1812c34090a4f3cf7d962921`(110개).
+
+- 기준 버전은 시험 액터만 추가한 상태에서22개 중7개 실패: `Saved/Verification/input-safety-20261026-185213-561`.
+- 최초 수정22개 통과 뒤 확장 검사에서 Reset 프레임의 잔류 스로틀0.002917을 발견했고 프레임 단위 억제로 수정했다. 이 중간 실패를 성공으로 재분류하지 않는다.
+- 최종 Editor29개: `Saved/Verification/input-safety-20261026-190853-282`.
+- 최종 Shipping29개: `Saved/Verification/input-safety-20261026-191424-223`. 빌드 `Saved/v071-final-shipping-build.log`, ExitCode0.
+- 실제 ZIP을 한글/공백 경로에 새로 풀어29개: `Saved/Verification/input-safety-20261026-192034-432`, 전부 통과.
+- Shipping ANGLE5개 계산 간격: `Saved/Verification/angle-20261026-191613-146`; 물리3개 간격: `Saved/Verification/runtime-20261026-191623-195`, 호버 오차3.297/3.150/2.988cm와 접촉·득점 통과.
+- 가드/골대3개 간격·6개 보기: `Saved/Verification/contact-view-20261026-191614-061`;10대 모델/배치: `Saved/Verification/role-layout-20261026-191621-667`, 통과.
+- 실제 APF/Chaos10대 출발·HOLD·통신 장애/복구·귀환·착륙·정규 경기 API 진입 제한: `Saved/Verification/autonomy-20261026-191613-251246`, 통과. 최소 간격1.089m,HOLD 최대 이동28.23cm.
+- 포터블 새 설치12개: `Saved/Verification/portable-v071-extracted`, 통과. 보존한 실제 보정 원본과 사용자 보정 파일의 바이트 일치도 확인했다. 원시 값과 개인 파일은 공개하지 않았다.
+
+엔진 simulated keyboard event·Viewport API 시험이다. 실제 OS Alt-Tab·물리 키보드·Boxer/HID·입력 지연을 측정한 시험이 아니다. CTL-13과 실제 현장 시험을 미완료로 유지하며, 그래픽·독립 수학 검사 수치는 이전 버전의 기록과 구별한다.

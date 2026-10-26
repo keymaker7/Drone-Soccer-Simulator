@@ -1,0 +1,227 @@
+{
+  "version": "0.7.1",
+  "date_kst": "2026-10-27",
+  "source_sha256": "fc4a4ad9f3e63acc99e9170cb316c2e1888a31df1812c34090a4f3cf7d962921",
+  "input_count": 110,
+  "scope": "explicit Unreal simulated keyboard events and real viewport/controller APIs; not physical keyboard, OS Alt-Tab or USB/HID input",
+  "baseline": {
+    "parent_commit": "902c77814249093e4ee03dd84fa8011e778f5e05",
+    "fixture_source_sha256": "929ee066d7d572a98e55fb728a19322a2a70cba1ee4c366b6cdedb398246a4ac",
+    "checks": 22,
+    "failed": [
+      "viewport focus loss immediately disarms manual aircraft",
+      "viewport focus loss immediately clears stored throttle",
+      "viewport focus loss immediately clears motor demand",
+      "old repeated keys cannot restore throttle",
+      "old repeated roll key stays released in engine",
+      "closing menu rejects old repeated throttle/ARM",
+      "aircraft selection clears held-input throttle on new aircraft"
+    ]
+  },
+  "input_safety": {
+    "ok": true,
+    "checks": [
+      {
+        "check": "fixture starts with a manual keyboard aircraft",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "explicit low-throttle ARM accepted",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "real engine bindings accumulated keyboard throttle",
+        "ok": true,
+        "actual": 0.1400025337934494
+      },
+      {
+        "check": "engine saw held roll key",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "viewport focus loss immediately disarms manual aircraft",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "viewport focus loss immediately clears stored throttle",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "viewport focus loss immediately clears motor demand",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "native radio remains disabled",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "old repeated keys cannot restore throttle",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "old repeated roll key stays released in engine",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "queued pre-interruption key press is rejected",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "GameAndUI always requests focus-loss key flushing",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "repeat cannot re-arm after focus loss",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "focus regain does not re-arm",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "fresh Space press re-arms at zero throttle",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "observer view preserves manual ARM",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "overview preserves manual ARM",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "opening radio menu disarms selected aircraft",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "menu typing cannot arm or add throttle",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "closing menu rejects old repeated throttle/ARM",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "focus loss preserves explicit practice autonomy",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "autonomous forces still run after focus loss",
+        "ok": true,
+        "actual": 9.832983016967773
+      },
+      {
+        "check": "second throttle setup reached engine bindings",
+        "ok": true,
+        "actual": 0.10500191152095795
+      },
+      {
+        "check": "aircraft selection clears held-input throttle on new aircraft",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "equipment inspection opened disarmed",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "equipment view blocks held flight keys",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "equipment exit rejects stale throttle/ARM repeats",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "reset setup accumulated keyboard throttle",
+        "ok": true,
+        "actual": 0.10500164330005646
+      },
+      {
+        "check": "Backspace reset clears pending throttle repeats",
+        "ok": true,
+        "actual": 0
+      }
+    ]
+  },
+  "regression": {
+    "manual_angle": {
+      "ok": true,
+      "game_fps": [
+        20,
+        30,
+        60,
+        120,
+        240
+      ]
+    },
+    "flight_physics": {
+      "ok": true,
+      "game_fps": [
+        30,
+        60,
+        120
+      ]
+    },
+    "contact": {
+      "ok": true,
+      "game_fps": [
+        30,
+        60,
+        120
+      ]
+    },
+    "six_views": true,
+    "ten_aircraft_layout": true,
+    "portable": {
+      "ok": true,
+      "checks": 12,
+      "developer_tools_removed_from_child_path": true,
+      "unicode_and_spaces_path": true
+    },
+    "autonomy": {
+      "ok": true,
+      "ten_airborne": true,
+      "ten_landed_disarmed": true,
+      "finite_inside_court": true,
+      "timeout_local_hold": true,
+      "reconnect_does_not_resume": true,
+      "manual_match_auto_rejected": true,
+      "minimum_separation_m": 1.0889290571212769,
+      "hold_max_drift_cm": 28.22911834716797
+    }
+  },
+  "preserved_real_profile_matches_reference": true,
+  "archive": {
+    "filename": "ImperialWings-Windows-v0.7.1-r1.zip",
+    "bytes": 374756263,
+    "sha256": "016423264f2f5dc054adfd7d82350ed205aac496a3c77a9a10dbd887a8400713"
+  },
+  "physical_keyboard_or_os_alt_tab_tested": false,
+  "physical_usb_flight_tested": false,
+  "input_latency_measured": false
+}

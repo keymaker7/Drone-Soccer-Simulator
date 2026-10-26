@@ -36,6 +36,7 @@ public:
     bool HasPhotorealEquipment() const;
     void SetEquipmentInspection(bool bEnabled);
     bool IsEquipmentInspection() const { return bEquipmentInspection; }
+    void ClearManualPilotInput(const FString& Reason);
 
     UFUNCTION(BlueprintCallable, Category="Drone|Autonomy")
     void SetAutonomousTarget(const FVector& WorldPosition);

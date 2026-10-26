@@ -156,7 +156,7 @@ void AImperialMatchManager::ManualSelected()
 {
     if(auto* D=GetSelectedDrone()){AdvanceGuidanceCommand();D->SetAutonomousEnabled(false);D->SetArmed(false);Mode=EImperialMode::Manual;Log(TEXT("Selected aircraft disarmed. Current input source retained; low throttle is required to arm."));}
 }
-void AImperialMatchManager::ToggleArmSelected(){if(auto* D=GetSelectedDrone()){if(D->IsAutonomousEnabled())D->SetAutonomousEnabled(false);else D->SetArmed(!D->IsArmed());}}
+void AImperialMatchManager::ToggleArmSelected(){if(const auto* Pilot=Cast<AImperialPlayerController>(UGameplayStatics::GetPlayerController(this,0));Pilot&&Pilot->IsInputResetThisFrame())return;if(auto* D=GetSelectedDrone()){if(D->IsAutonomousEnabled())D->SetAutonomousEnabled(false);else D->SetArmed(!D->IsArmed());}}
 void AImperialMatchManager::ResetMatch()
 {
     AdvanceGuidanceCommand();
@@ -165,6 +165,7 @@ void AImperialMatchManager::ResetMatch()
     // The next generation resets only this session's planner state. An unordered
     // separate /reset request could otherwise clear a newer mission.
     Events.Empty();Log(TEXT("Training reset. All aircraft disarmed; scores cleared."));
+    if(auto* Pilot=Cast<AImperialPlayerController>(UGameplayStatics::GetPlayerController(this,0)))Pilot->FlushPilotContextKeys();
     if(auto* Arena=Cast<APrototypeArenaBuilder>(UGameplayStatics::GetActorOfClass(GetWorld(),APrototypeArenaBuilder::StaticClass()))){Arena->ResetGoals();for(int32 I=0;I<2;++I)if(auto* Goal=Arena->GetGoal(I))Goal->SetCompetitionStable(false);}
 }
 void AImperialMatchManager::StartMatch()

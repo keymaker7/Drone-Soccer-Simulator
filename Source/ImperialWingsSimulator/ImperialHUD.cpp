@@ -93,6 +93,8 @@ void AImperialHUD::ToggleRadioPanel()
     bRadioPanelOpen=!bRadioPanelOpen;
     if(bRadioPanelOpen){bRadioAdvanced=false;if(auto* Manager=FindMatch())Manager->ManualSelected();}
     if(!bRadioPanelOpen)if(auto* Radio=GetRadio())Radio->CancelGuidedCalibration();
+    // Preserve a radio deliberately enabled in this menu when closing it.
+    if(auto* Pilot=Cast<AImperialPlayerController>(PlayerOwner))Pilot->FlushPilotContextKeys();
 }
 AImperialPresentationEffects* AImperialHUD::GetPresentation()
 {

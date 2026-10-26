@@ -10,6 +10,8 @@
 #include "Components/InputComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "InputCoreTypes.h"
+#include "InputKeyEventArgs.h"
+#include "HAL/PlatformTime.h"
 #include "Engine/GameViewportClient.h"
 #include "Engine/World.h"
 #include "Misc/Parse.h"
@@ -26,6 +28,39 @@ void ConfigureSpectatorCamera(UCameraComponent* Camera,float FieldOfView)
     Settings.bOverride_AutoExposureBias=true;Settings.AutoExposureBias=-4.f;
     Settings.bOverride_MotionBlurAmount=true;Settings.MotionBlurAmount=0;
 }
+}
+void AImperialPlayerController::OnPossess(APawn* InPawn)
+{
+    TGuardValue<bool> PreserveRadio(bPreserveRadioWhileFlushing,true);
+    Super::OnPossess(InPawn);FlushPressedKeys();
+}
+void AImperialPlayerController::FlushPilotContextKeys()
+{
+    TGuardValue<bool> PreserveRadio(bPreserveRadioWhileFlushing,true);FlushPressedKeys();
+}
+void AImperialPlayerController::FlushPressedKeys()
+{
+    InputResetAtCycles=FPlatformTime::Cycles64();InputResetFrame=GFrameCounter;FreshFlightKeys.Empty();bHeadDragging=false;
+    Super::FlushPressedKeys();
+    if(auto* Drone=Cast<ASoccerDronePawn>(GetPawn()))Drone->ClearManualPilotInput(TEXT("INPUT RESET / DISARMED. RELEASE KEYS, THEN ARM AGAIN."));
+    if(!bPreserveRadioWhileFlushing&&GetGameInstance())
+        if(auto* Radio=GetGameInstance()->GetSubsystem<UImperialRadioSubsystem>())Radio->DisableRadio();
+}
+bool AImperialPlayerController::IsInputResetThisFrame() const{return InputResetFrame==GFrameCounter;}
+bool AImperialPlayerController::InputKey(const FInputKeyEventArgs& Params)
+{
+    // Discard any queued command from before the interrupted input context.
+    if(Params.EventTimestamp&&Params.EventTimestamp<InputResetAtCycles)return true;
+    const FKey K=Params.Key;
+    const bool FlightKey=K==EKeys::Up||K==EKeys::Down||K==EKeys::A||K==EKeys::D||K==EKeys::W||K==EKeys::S||K==EKeys::Q||K==EKeys::E||K==EKeys::SpaceBar;
+    if(FlightKey)
+    {
+        if(HasRadioModal()||IsReadOnlyView()||IsEquipmentInspection()){FreshFlightKeys.Remove(K);return true;}
+        if(Params.Event==IE_Repeat&&!FreshFlightKeys.Contains(K))return true;
+        if(Params.Event==IE_Pressed)FreshFlightKeys.Add(K);
+        else if(Params.Event==IE_Released)FreshFlightKeys.Remove(K);
+    }
+    return Super::InputKey(Params);
 }
 void AImperialPlayerController::BeginPlay()
 {
@@ -128,6 +163,7 @@ FVector AImperialPlayerController::GetPilotStationPosition() const {return Pilot
 void AImperialPlayerController::SetView(int32 View)
 {
     if(!Match||!CanSetView(View)) return;
+    if(ActiveView==6||View==6||IsReadOnlyView()||View==4||View==5)FlushPilotContextKeys();
     if(View!=6&&InspectedDrone.IsValid()){InspectedDrone->SetEquipmentInspection(false);InspectedDrone.Reset();}
     if(View==3&&!InspectedDrone.IsValid()&&ArenaCamera)
     {const FVector Position(1750,-2250,1180),Target(0,30,180);ArenaCamera->SetActorLocationAndRotation(Position,(Target-Position).Rotation());ArenaCamera->GetCameraComponent()->SetFieldOfView(60);}
