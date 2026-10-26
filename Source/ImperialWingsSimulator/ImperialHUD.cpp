@@ -85,7 +85,7 @@ UImperialRadioSubsystem* AImperialHUD::GetRadio() const
 void AImperialHUD::ToggleRadioPanel()
 {
     bRadioPanelOpen=!bRadioPanelOpen;
-    if(bRadioPanelOpen)if(auto* Manager=FindMatch())Manager->ManualSelected();
+    if(bRadioPanelOpen){bRadioAdvanced=false;if(auto* Manager=FindMatch())Manager->ManualSelected();}
     if(!bRadioPanelOpen)if(auto* Radio=GetRadio())Radio->CancelGuidedCalibration();
 }
 AImperialPresentationEffects* AImperialHUD::GetPresentation()
@@ -259,20 +259,52 @@ void AImperialHUD::DrawRadioPanel(AImperialMatchManager& Manager)
     const FImperialRadioDevice* Device=Radio->GetSelectedDevice();
     const bool Connected=Radio->IsConnected();
     const bool Guided=Radio->IsGuidedActive();
+    const bool Calibrated=Radio->IsCalibrated();
+    const bool Enabled=Radio->IsEnabled();
+    if(!Guided)Button(TEXT("Radio_Advanced"),bRadioAdvanced?TEXT("SIMPLE VIEW"):TEXT("ADVANCED OPTIONS"),985,148,170,32,bRadioAdvanced);
+    FString NextStep;
+    if(Guided)NextStep=Radio->GetGuidedPhase()==ImperialRadio::GuidedPhase::Review
+        ?TEXT("STEP 3 / 4  REVIEW THE MEASURED AXES, THEN CLICK CONFIRM & SAVE")
+        :TEXT("STEP 2 / 4  FOLLOW THE STICK GUIDE BELOW; ENTER CONFIRMS EACH HELD END");
+    else if(!Device||!Connected)NextStep=TEXT("STEP 1 / 4  SELECT YOUR CONNECTED RADIO BELOW; NEVER GUESS THE AXES");
+    else if(!Calibrated)NextStep=TEXT("STEP 2 / 4  CLICK STICK SETUP / MODE 2; MOVE ONE STICK DIRECTION AT A TIME");
+    else if(!Enabled)NextStep=TEXT("STEP 4 / 4  LOWER THROTTLE, THEN CLICK ENABLE RADIO; MOTORS STAY DISARMED");
+    else NextStep=TEXT("READY  CLOSE THIS PANEL, THEN SPACE ARMS AT LOW THROTTLE");
+    Text(NextStep,348,181,11,Enabled?Green:Cyan);
     Rect(350,205,7,7,Connected?Green:Amber);
     Text(Connected?TEXT("CONNECTED"):TEXT("DISCONNECTED"),369,199,13,Connected?Green:Amber);
     const FString DevicePrompt=Radio->GetDevices().IsEmpty()?TEXT("No joystick: connect USB DATA and select USB Joystick on the radio.")
-        :FString::Printf(TEXT("%d device(s) found. Click NEXT DEVICE to select your radio."),Radio->GetDevices().Num());
+        :FString::Printf(TEXT("%d device(s) found. Choose your radio below, or use NEXT DEVICE."),Radio->GetDevices().Num());
     Text(Fit(Device?Device->Name:DevicePrompt,16,650),348,224,16,White);
     Text(Device?FString::Printf(TEXT("%d AXES  /  %d BUTTONS  /  DRIVER ID %04X:%04X"),Device->AxisCount,Device->ButtonCount,Device->ManufacturerId,Device->ProductId):TEXT("The device name shown here comes directly from Windows."),348,249,10,Muted);
     Button(TEXT("Radio_Refresh"),TEXT("REFRESH"),1032,205,106,34);
     Button(TEXT("Radio_Device"),TEXT("NEXT DEVICE"),1148,205,104,34);
     Rect(348,276,904,1,Edge);
-    Text(TEXT("LIVE STICK AXES"),348,292,12,White);
+    const bool ShowDevicePicker=!Device&&!Guided&&!bRadioAdvanced;
+    Text(ShowDevicePicker?TEXT("CHOOSE YOUR USB CONTROLLER"):TEXT("LIVE STICK AXES"),348,292,12,White);
     Text(TEXT("CHANNEL ASSIGNMENT"),830,292,12,White);
     const TArray<float>& Axes=Radio->GetRawAxes();
     const TCHAR* AxisNames[]={TEXT("X"),TEXT("Y"),TEXT("Z"),TEXT("R"),TEXT("U"),TEXT("V")};
-    for(int32 I=0;I<6;++I)
+    if(ShowDevicePicker)
+    {
+        const auto& Devices=Radio->GetDevices();
+        if(Devices.IsEmpty())
+        {
+            Text(TEXT("1. Power on the radio and use a USB DATA cable."),348,329,12,White);
+            Text(TEXT("2. Select USB JOYSTICK on the radio screen."),348,354,12,White);
+            Text(TEXT("3. Click REFRESH when Windows detects it."),348,379,12,Cyan);
+            Text(TEXT("Windows test: Win+R, then joy.cpl"),348,425,11,Muted);
+        }
+        for(int32 I=0;I<FMath::Min(3,Devices.Num());++I)
+        {
+            const auto& Choice=Devices[I];const float Y=317+I*57.f;
+            Button(FName(*FString::Printf(TEXT("Radio_Select_%d"),Choice.Id)),TEXT(""),348,Y,445,50);
+            Text(Fit(Choice.Name,12,416),360,Y+8,12,White);
+            Text(FString::Printf(TEXT("SLOT %d  /  %04X:%04X  /  %d AXES  /  %d BUTTONS"),Choice.Id,Choice.ManufacturerId,Choice.ProductId,Choice.AxisCount,Choice.ButtonCount),360,Y+29,10,Cyan);
+        }
+        if(Devices.Num()>3)Text(TEXT("More devices: use NEXT DEVICE above."),348,495,10,Muted);
+    }
+    else for(int32 I=0;I<6;++I)
     {
         const float Y=322+I*33.f;
         const bool Available=Connected&&Device&&Device->AxisAvailable.IsValidIndex(I)&&Device->AxisAvailable[I]&&Axes.IsValidIndex(I);
@@ -300,7 +332,7 @@ void AImperialHUD::DrawRadioPanel(AImperialMatchManager& Manager)
     {
         const float Y=321+I*44.f;const int32 Axis=Radio->GetMappedAxis(I);UsedAxes.Add(Axis);
         Text(Channels[I],830,Y+10,11,White);
-        if(Guided)
+        if(Guided||!bRadioAdvanced)
         {
             Text(Axis>=0&&Axis<6?FString::Printf(TEXT("%s  /  %s"),AxisNames[Axis],Radio->IsInverted(I)?TEXT("INVERTED"):TEXT("NORMAL")):TEXT("WAITING FOR STICK"),927,Y+10,11,Axis>=0?Cyan:Muted);
         }
@@ -315,7 +347,7 @@ void AImperialHUD::DrawRadioPanel(AImperialMatchManager& Manager)
         if(Radio->IsCalibrated())Rect(1150,Y+28,101*(I==3?V:(V+1)*.5f),2,Green);
     }
     const bool FourAxes=UsedAxes.Num()==4&&!UsedAxes.Contains(INDEX_NONE);
-    Text(FourAxes?TEXT("FOUR DISTINCT AXES ASSIGNED"):TEXT("ASSIGN FOUR DIFFERENT AXES"),830,506,10,FourAxes?Muted:Amber);
+    Text(FourAxes?TEXT("FOUR DISTINCT AXES ASSIGNED"):(bRadioAdvanced?TEXT("ASSIGN FOUR DIFFERENT AXES"):TEXT("MODE 2 SETUP FINDS THE FOUR AXES")),830,506,10,FourAxes?Muted:Amber);
     if(Guided)
     {
         Button(TEXT("Radio_GuidedCancel"),TEXT("CANCEL SETUP"),1090,522,162,28);
@@ -370,24 +402,41 @@ void AImperialHUD::DrawRadioPanel(AImperialMatchManager& Manager)
         Text(TEXT("CLOSE cancels unfinished setup. Previous saved calibration is retained until final save."),348,844,11,Muted);
         ButtonPriority=10;return;
     }
-    Button(TEXT("Radio_GuidedBegin"),TEXT("STICK SETUP / MODE 2"),348,522,292,28);
+    Button(TEXT("Radio_GuidedBegin"),TEXT("STICK SETUP / MODE 2"),348,522,292,28,!Calibrated);
     Text(FString::Printf(TEXT("DEADZONE  %.0f %%"),Radio->GetDeadzone()*100),830,532,11,Muted);
-    Button(TEXT("Radio_DeadzoneDown"),TEXT("-"),1104,522,44,28);
-    Button(TEXT("Radio_DeadzoneUp"),TEXT("+"),1158,522,44,28);
+    if(bRadioAdvanced)
+    {
+        Button(TEXT("Radio_DeadzoneDown"),TEXT("-"),1104,522,44,28);
+        Button(TEXT("Radio_DeadzoneUp"),TEXT("+"),1158,522,44,28);
+    }
     Rect(348,562,904,1,Edge);
-    Text(TEXT("CALIBRATE THE FOUR STICKS BEFORE ENABLING RADIO CONTROL"),348,580,12,White);
-    Text(TEXT("1  START, then move all four sticks through their full ranges. CAPTURE RANGE when finished."),348,605,12,Muted);
-    Text(TEXT("2  Center roll / pitch / yaw and move throttle fully down. CAPTURE NEUTRAL, then FINISH & SAVE."),348,627,12,Muted);
-    Button(TEXT("Radio_Begin"),TEXT("1  START RANGE"),348,658,180,36,Radio->IsCalibrating());
-    Button(TEXT("Radio_Range"),TEXT("2  CAPTURE RANGE"),540,658,180,36);
-    Button(TEXT("Radio_Neutral"),TEXT("3  CAPTURE NEUTRAL"),732,658,210,36);
-    Button(TEXT("Radio_Finish"),TEXT("4  FINISH & SAVE"),954,658,190,36,Radio->IsCalibrated());
+    if(bRadioAdvanced)
+    {
+        Text(TEXT("MANUAL AXIS AND RANGE SETUP"),348,580,12,White);
+        Text(TEXT("1  START, then move all four sticks through their full ranges. CAPTURE RANGE when finished."),348,605,12,Muted);
+        Text(TEXT("2  Center roll / pitch / yaw and move throttle fully down. CAPTURE NEUTRAL, then FINISH & SAVE."),348,627,12,Muted);
+        Button(TEXT("Radio_Begin"),TEXT("1  START RANGE"),348,658,180,36,Radio->IsCalibrating());
+        Button(TEXT("Radio_Range"),TEXT("2  CAPTURE RANGE"),540,658,180,36);
+        Button(TEXT("Radio_Neutral"),TEXT("3  CAPTURE NEUTRAL"),732,658,210,36);
+        Button(TEXT("Radio_Finish"),TEXT("4  FINISH & SAVE"),954,658,190,36,Calibrated);
+    }
+    else
+    {
+        Text(Calibrated?TEXT("YOUR CONTROLLER IS CALIBRATED"):TEXT("FIRST USE: SELECT > MODE 2 SETUP > REVIEW / SAVE > ENABLE"),348,580,12,Calibrated?Green:White);
+        Text(TEXT("Already set up? Connect the matching saved device with one explicit click."),348,605,12,Muted);
+        Text(TEXT("New device? Use STICK SETUP / MODE 2 above. Manual options are in ADVANCED."),348,627,12,Muted);
+        Button(TEXT("Radio_ConnectSaved"),TEXT("CONNECT SAVED RADIO"),348,658,335,36,Radio->HasSavedProfiles()&&!Enabled);
+        Text(TEXT("Low throttle required. This does not arm the aircraft."),706,669,11,Cyan);
+    }
     Rect(348,714,904,46,FLinearColor(.035f,.065f,.09f,1));Rect(348,714,3,46,Radio->IsCalibrated()?Green:Amber);
     Text(Fit(Radio->GetStatus(),13,865),364,729,13,Radio->IsCalibrated()?Green:Amber);
     Button(TEXT("Radio_Keyboard"),TEXT("USE KEYBOARD"),348,783,164,36,!Radio->IsEnabled());
     Button(TEXT("Radio_Enable"),TEXT("ENABLE RADIO"),524,783,183,36,Radio->IsEnabled());
-    Button(TEXT("Radio_Save"),TEXT("SAVE PROFILE"),719,783,144,36);
-    Button(TEXT("Radio_Load"),TEXT("LOAD PROFILE"),875,783,144,36);
+    if(bRadioAdvanced)
+    {
+        Button(TEXT("Radio_Save"),TEXT("SAVE PROFILE"),719,783,144,36);
+        Button(TEXT("Radio_Load"),TEXT("LOAD PROFILE"),875,783,144,36);
+    }
     Text(Radio->IsEnabled()?TEXT("USB RADIO ACTIVE"):TEXT("KEYBOARD ACTIVE"),1252,797,11,Radio->IsEnabled()?Green:Muted,true);
     Text(Fit(TEXT("First use: NEXT DEVICE > STICK SETUP / MODE 2 > SAVE > ENABLE RADIO. Space arms after closing."),10,670),348,844,10,Muted);
     Button(TEXT("Radio_Report"),TEXT("EXPORT DEVICE REPORT"),1032,835,220,28);
@@ -406,6 +455,9 @@ void AImperialHUD::NotifyHitBoxClick(FName BoxName)
         auto* R=GetRadio();if(!R)return;
         if(N==TEXT("Radio_Refresh"))R->RefreshDevices();
         else if(N==TEXT("Radio_Device"))R->CycleDevice();
+        else if(N==TEXT("Radio_Advanced")){if(!R->IsGuidedActive())bRadioAdvanced=!bRadioAdvanced;}
+        else if(N==TEXT("Radio_ConnectSaved")){M->ManualSelected();R->EnableSavedRadio();}
+        else if(N.StartsWith(TEXT("Radio_Select_"))){M->ManualSelected();R->SelectDevice(FCString::Atoi(*N.RightChop(13)));}
         else if(N.StartsWith(TEXT("Radio_Axis_")))R->CycleAxis(FCString::Atoi(*N.RightChop(11)));
         else if(N.StartsWith(TEXT("Radio_Invert_")))R->ToggleInvert(FCString::Atoi(*N.RightChop(13)));
         else if(N==TEXT("Radio_DeadzoneDown"))R->SetDeadzone(R->GetDeadzone()-.01f);

@@ -26,6 +26,7 @@ private:
     FVector2D Pointer = FVector2D(-1000, -1000);
     TArray<FBox2D> Bounds;
     bool bRadioPanelOpen = false;
+    bool bRadioAdvanced = false;
     bool bCompactView = false;
     bool bCheckedFirstRun = false;
     struct FButtonTarget { FName Name; FBox2D Bounds; int32 Priority; };

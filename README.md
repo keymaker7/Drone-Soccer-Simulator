@@ -1,30 +1,257 @@
 # Imperial Wings Drone Soccer Simulator
 
 <a id="windows-run"></a>
-<a id="first-flight"></a>
-<a id="controls"></a>
-<a id="boxer"></a>
-<a id="positions"></a>
-<a id="match"></a>
-<a id="graphics"></a>
-<a id="source-build"></a>
-<a id="sdacs"></a>
-<a id="troubleshooting"></a>
-<a id="saved-files"></a>
-<a id="verification"></a>
+## Windows 실행파일 다운로드 — v0.6.1
 
-## Windows 실행파일 다운로드 — v0.6.0
+[Windows x64 실행용 ZIP](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/download/v0.6.1/ImperialWings-Windows-v0.6.1.zip)을 **전체 압축 해제**한 뒤 `ImperialWingsLauncher.exe`를 실행합니다. Unreal Engine·Python·Git을 설치할 필요가 없습니다. GitHub의 Source code ZIP은 개발 소스이며 실행용 ZIP과 다릅니다.
 
-[Windows x64 실행용 ZIP](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/download/v0.6.0/ImperialWings-Windows-v0.6.0-r2.zip)을 **전체 압축 해제**한 뒤 `ImperialWingsLauncher.exe`를 실행합니다. Unreal Engine·Python·Git을 설치할 필요가 없습니다. GitHub의 Source code ZIP은 개발 소스이며 실행용 ZIP과 다릅니다.
-
-첫 실행의 조종기 화면에서 **NEXT DEVICE → STICK SETUP / MODE 2 → CONFIRM & SAVE → ENABLE RADIO** 순서로 실제 장치를 보정합니다. 스로틀 최저에서 패널을 닫고 Space로 ARM합니다. 보정값은 각 Windows 사용자의 `%LOCALAPPDATA%\ImperialWingsSimulator\Saved`에 저장하고 다른 사람의 보정값을 배포하지 않습니다.
+첫 실행의 간소 조종기 화면에서 **실제 장치 카드 선택 → STICK SETUP / MODE 2 → CONFIRM & SAVE → ENABLE RADIO** 순서로 보정합니다. 상단 STEP 안내로 다음 행동을 확인합니다. 이미 보정한 장치는 **CONNECT SAVED RADIO / F8**로 연결할 수 있습니다. 스로틀 최저에서 패널을 닫고 Space로 ARM합니다. 보정값은 각 Windows 사용자의 `%LOCALAPPDATA%\ImperialWingsSimulator\Saved`에 저장하고 다른 사람의 보정값을 배포하지 않습니다.
 
 [다른 PC에서 실행·조종기 설정](docs/PORTABLE_QUICK_START.ko.md)을 확인하세요. Windows 10/11 x64와 DirectX12 / Shader Model6 GPU가 필요합니다. 필수 Visual C++ 설치 파일과 자율 훈련용 독립 실행 환경을 포함합니다. 개발 PC에서 설치 도구 경로를 제거하고 한글·공백 경로로 옮긴 새 사용자 데이터 환경을 검사했으며, 실제 다른 PC 전체에서의 비행을 인증한 것은 아닙니다.
-
 
 Unreal Engine 5.8 기반 Windows 드론축구 시뮬레이터입니다. 기본 시점은 **경기장 밖 조종자 위치에서 기체를 보는 LOS(육안) 조종**입니다. FIDA Class40의 경기장·기체 규격과 5대5 경기 흐름, RadioMaster Boxer용 USB 보정 UI, 실제 SDACS APF를 사용하는 자율 훈련을 함께 개발합니다.
 
 기체는 네 모터의 개별 힘과 회전 모멘트, 중력·항력·Chaos 접촉으로 움직입니다. 정상 비행에서 위치를 강제로 갱신하지 않으며 초기화에서만 물리 위치를 되돌립니다. 실기체와 일치하도록 실측 보정된 제품은 아닙니다.
+
+![v0.6.1 실제 Unreal 실행 장면](docs/images/simulator-runtime-v061.gif)
+
+실제 Windows 실행 파일의 화면을 녹화한 GIF입니다. 명시적 물리 검사 시나리오의 자동 비행 장면이며 실물 USB 조종기 비행이나 게임 내 리플레이 기능의 증거는 아닙니다. [촬영·버전·검증 기록](docs/releases/v0.6.1.md).
+
+[다른 시뮬레이터 기능 조사](docs/simulator-benchmark.md) · [사용자 제공 경기 영상과 물리 대조 계획](docs/video-physics-reference.md)
+
+## 사용 안내 바로가기
+
+- [다운로드·실행](#windows-run) · [첫 비행](#first-flight) · [조작키](#controls)
+- [데이터 수집 순서](#data-collection) · [저장 폴더](#saved-files)
+- [F6 비행 기록](#flight-recording) · [F5 CSV](#csv-export) · [조종기 진단](#device-report)
+- [파일 열기·피드백 공유](#feedback-files) · [기록 문제 해결](#troubleshooting)
+- [Boxer·F8 재연결](#boxer) · [화질](#graphics) · [경기·연습](#match)
+- [소스 빌드](#source-build) · [버전별 검증](#verification)
+
+<a id="first-flight"></a>
+## 처음 실행한 뒤 첫 비행
+
+1. 배포 폴더의 **ImperialWingsLauncher.exe**를 실행합니다.
+2. 키보드라면 조종기 창에서 **USE KEYBOARD → CLOSE**를 선택합니다. Boxer는 안내에 따라 실제 장치를 보정·저장·활성화한 뒤 창을 닫습니다.
+3. 오른쪽 기체 목록 또는 **Tab**으로 기체를 고릅니다. 처음에는 파란 팀 Striker로 연습합니다.
+4. 처음 비행은 **START MATCH를 누르지 않고 Practice**에서 진행합니다. **1**은 경기장 밖 LOS, **3**은 전체 관찰입니다.
+5. 키보드는 **↓**로 THR을0%까지 내리고, Boxer는 왼쪽 스로틀을 맨 아래로 둡니다.
+6. **Space / ARM**으로 모터를 허용합니다. 키보드는 **↑**를 짧게 눌러 스로틀을 올립니다. 키를 놓아도 변경한 스로틀은 유지됩니다.
+7. **W/S, A/D, Q/E**로 기울기·회전을 조금씩 조절합니다. ANGLE은 수평 자세를 복원하며 고도·위치를 자동 고정하지 않습니다.
+8. 스로틀을 조금씩 내려 착륙하고 Space로 DISARM합니다. 선택 기체는 **Backspace**, 전체 상태는 **Home / RESET**으로 초기화합니다.
+9. 종료는 상단 **EXIT** 또는 창 닫기를 사용합니다. 기록 중이면 아래 안내대로 F6를 먼저 눌러 저장을 확인합니다.
+
+스로틀·기체 선택·입력 방식·경기 단계가 ARM 조건에 영향을 줍니다. USB 비행 중 다른 앱으로 전환하면 입력이 해제·DISARM될 수 있으므로 파일 확인은 착륙·기록 종료 후 진행합니다.
+
+<a id="data-collection"></a>
+## 시뮬레이터 데이터 수집 방법 — v0.6
+
+현재 수집 기능은 아래 세 종류입니다. 기록은 이 PC에 저장하며 GitHub·개발자에게 자동 전송하지 않습니다.
+
+| 목적 | 조작 | 파일·폴더 | 무엇을 확인할 수 있나 |
+|---|---|---|---|
+| 시간에 따른 비행·입력 변화 | **F6 / RECORD FLIGHT** 시작, 다시 눌러 종료 | `FlightLogs/*.jsonl` | 시각·선택 기체·USB 상태와10대의 위치·속도·자세·스로틀 |
+| 그 순간의 상세 상태 | **F5 / EXPORT CSV** | `Reports/*-fleet.csv` |10대의 입력/비행 모드·배터리·빌드·배치·보정 상태 |
+| 조종기 연결 문제 | **C → EXPORT DEVICE REPORT** | `Diagnostics/radio-*.json` | 발견 장치·선택 장치·축/버튼 수·연결/보정/활성 상태 |
+
+**F6는 연속 상태 기록, F5는 한 번의 상태 내보내기입니다.** 파일 형식과 포함 항목이 다르므로 문제를 재현할 때 함께 사용하면 좋습니다. F6는 영상 녹화나 완성된 경기 리플레이가 아닙니다.
+
+### 권장 수집 순서
+
+1. 한 번에 확인할 문제를 정합니다. 예: 기체가 한쪽으로 기울어짐, 스로틀 반응 이상, USB 연결 해제.
+2. 버전, 입력 방식, 기체, 화질과 재현 절차를 메모합니다. **Home** 초기화가 필요하다면 기록을 시작하기 전에 수행합니다.
+3. 조종기 보정을 마치고 창을 닫습니다. 시작은 바닥·DISARM·최저 스로틀 상태로 둡니다.
+4. **F6**를 한 번 누릅니다. 전체 패널에서 버튼이 **F6 STOP RECORDING**으로 바뀌는지 확인합니다. 버튼이 숨겨져 있다면 **F10**으로 패널을 표시합니다.
+5. **F5**로 시작 상태 CSV를 남깁니다.
+6. 평소 조종으로 증상을 재현합니다. 가능하다면 발생 직후 F5를 한 번 더 누르고 대략적인 발생 시점을 메모합니다.
+7. 착륙·DISARM 후 마지막 F5를 저장하고 **F6**를 다시 누릅니다. **Flight recording saved** 안내와 **F6 RECORD FLIGHT** 버튼 복귀를 확인합니다.
+8. 게임을 닫거나 조종을 멈춘 뒤 아래 저장 폴더를 엽니다.
+9. 최근 JSONL과 관련 CSV를 확인합니다. 연결 문제라면 장치 진단도 추가합니다.
+10. 다른 시도는 F6를 새로 시작해 별도 파일로 남깁니다. 하나의 파일에서 여러 번 초기화했다면 메모에 적습니다.
+
+비행 중 기록 버튼을 반복해서 누르면 시작/종료가 번갈아 실행됩니다. 기록 때문에 끊김이 느껴진다면 착륙 후 기록을 중지하고 그 현상도 메모합니다. 다른 앱을 열어 파일을 확인하는 행동 자체가 USB 입력 해제를 일으킬 수 있습니다.
+
+<a id="saved-files"></a>
+### 저장 폴더 찾기
+
+**Windows 포터블 배포 기본값**
+
+1. **Win+R**을 누릅니다.
+2. 아래 경로를 그대로 붙여넣고 Enter를 누릅니다.
+
+```text
+%LOCALAPPDATA%\ImperialWingsSimulator\Saved
+```
+
+일반적으로 `C:\Users\<Windows사용자>\AppData\Local\ImperialWingsSimulator\Saved`입니다. AppData가 숨겨져 있어도 위 방법으로 열 수 있습니다.
+
+```text
+Saved/
+├─ FlightLogs/                 # F6 연속 비행 JSONL
+├─ Reports/                    # F5 상태 CSV
+├─ Diagnostics/                # EXPORT DEVICE REPORT의 JSON
+├─ Config/
+│  ├─ RadioProfile.json        # 개인 조종기 보정
+│  └─ VisualQuality.txt        # 사용자 화질
+└─ Runtime/
+   └─ <실행별 폴더>/
+      ├─ launcher.log          # 포터블 실행기·자율 연결 로그
+      └─ guidance-ready.json   # 생성된 경우 연결 주소·준비 정보
+```
+
+각 폴더는 해당 기능을 사용한 뒤 생성됩니다. 배포 ZIP 옆에서 파일을 찾지 말고 **사용자 데이터 폴더**를 확인합니다. v0.6은 새 폴더에 업데이트해도 같은 Windows 사용자의 설정을 공유합니다.
+
+에디터는 프로젝트 `Saved`를 사용하며, 시험에서 `-ImperialDataDir`을 지정했다면 그 지정 폴더를 사용합니다. 이전 v0.5 패키지의 저장 경로와는 다를 수 있습니다.
+
+<a id="flight-recording"></a>
+### F6 JSONL에 들어 있는 데이터
+
+한 줄이 하나의 JSON 기록입니다. 파일을 시작할 때 `start`, 기록 중 `sample`, 정상 종료할 때 `stop` 사건을 남깁니다. F6를 새로 시작하면 새 파일을 만듭니다.
+
+일반 샘플은 게임 tick에서 **0.05초 이상 간격**으로 추가합니다. 약20회/초를 상한으로 하는 방식이며 고정20Hz 보장·모든 제어 계산 기록이 아닙니다. 프레임 지연이나 저장 지연에 따라 간격이 길어질 수 있습니다.
+
+| 필드 | 의미·단위 |
+|---|---|
+| `event` | `start / sample / stop` |
+| `utc` | 기록 순간의 UTC 날짜·시각 |
+| `wall_s` | 단조 증가 시간 기준, 초. 값의 차이로 간격을 확인하며 달력 시각이 아님 |
+| `game_s` | 세션 경과 시간. Home/RESET에서 초기화될 수 있으며 세트 남은 시간이 아님 |
+| `selected` | 선택 기체의0부터 시작하는 번호 |
+| `source_sha256` | 실행 파일의 빌드 입력 지문 |
+| `radio_connected / radio_enabled` | USB 장치 연결 / 조종 활성 여부 |
+| `stick` | 보정된 USB `[Roll, Pitch, Yaw, Throttle]`. 앞3축은−1~1, 스로틀은0~1 |
+| `aircraft` | 선택 기체만이 아닌10대의 상태 배열 |
+
+`aircraft`의 각 항목에는 아래 필드가 있습니다.
+
+| 필드 | 의미·단위 |
+|---|---|
+| `id` |0~9. 파란 팀0~4, 빨간 팀5~9 |
+| `armed / autonomous` | 모터 허용 / 자율 제어 여부 |
+| `input_source` | `KEYBOARD / USB / AUTO`. 명시적 자동 시험은 별도 fixture 표기를 사용할 수 있음 |
+| `flight_mode` | 비행 제어 모드 |
+| `position_m` | 경기장 좌표 `[X, Y, Z]`, 미터 |
+| `speed_mps` | 속력, m/s |
+| `throttle` | 기체에 적용되는 스로틀 명령0~1 |
+| `tilt_deg` | 기체 기울기, 도 |
+| `rotation_deg` | `[Roll, Pitch, Yaw]`, 도 |
+
+USB `stick`은 원시 HID 패킷이나 키보드 키 입력 기록이 아닙니다. `radio_enabled`와 각 기체의 `input_source`를 함께 확인합니다. JSONL의 숫자 `id=0`은 CSV의 `IW-01`에 대응합니다.
+
+**현재 F6 기록에 없는 항목:** 연속 배터리 전압·개별 모터 힘/RPM·자이로·PID 각 항·키보드 누른 키 전체·확정 득점/심판 사건·영상. 배터리와 보정 상태는 F5로 순간 확인할 수 있습니다. 더 풍부한 진단·경기 사건 기록은 [개발 계획](docs/development-roadmap.md#feedback-data-plan)에 있습니다.
+
+F6 파일명과 `utc`는 UTC 기준입니다. Windows 파일 탐색기의 표시 시간, CSV 파일명의 PC 시각과 구분합니다. 비정상 종료로 `stop`이 없거나 마지막 줄이 미완성일 수 있으며 이를 정상 종료 기록으로 바꾸어 해석하지 않습니다.
+
+화면의 EXIT는 전체 초기화 후 종료하므로 마지막 비행 상태가 필요하다면 착륙·DISARM 후 **F6를 먼저 종료**합니다. Home/RESET도 기록 중 기체 위치·경과 시간을 초기화할 수 있습니다.
+
+<a id="csv-export"></a>
+### F5 CSV로 순간 상태 확인하기
+
+게임에서 **F5** 또는 **EXPORT CSV**를 누릅니다. 한 번 누를 때마다 `Reports`에 새 CSV를 저장합니다. 첫 줄은 열 이름이고 그 아래는10대 기체의 상태입니다.
+
+| 열 묶음 | 대표 열 | 읽는 방법 |
+|---|---|---|
+| 기체·선택 | `id, team, role, selected` | `IW-01~IW-10`, 팀·역할·선택 여부 |
+| 조종 상태 | `armed, autonomous, input_source, flight_mode, throttle` | 모터·자율 여부와 입력 방식, 스로틀0~1 |
+| USB 상태 | `radio_connected, radio_calibrated, radio_enabled` | 연결·보정·활성은 각각 별도 상태 |
+| 비행·배치 | `x_m, y_m, z_m, speed_mps, roll_deg, pitch_deg, yaw_deg` | 위치m, 속력m/s, 자세도 |
+| 전력·접촉 | `battery_soc, battery_v, net_deflection_m` | 잔량0~1, 전압V, 네트 처짐m |
+| 버전 | `build_version, build_commit, build_source_sha256, build_utc` | 어떤 실행 파일에서 얻었는지 확인 |
+| 부가 상태 | `radio_setup_phase, radio_setup_samples, radio_panel_open, flight_recording, visual_quality` | 보정 진행·패널·F6 기록·화질 상태 |
+
+불리언 열은 보통 `1 / 0`입니다. 예를 들어 `radio_connected=1`이어도 `radio_enabled=0`이면 USB 조종 활성 상태가 아닙니다.
+
+CSV의 `build_utc`는 **빌드 시각**이며 CSV를 저장한 시각이 아닙니다. CSV에는 별도의 연속 샘플 시각·확정 경기 점수 열이 없으므로 F6·메모와 함께 봅니다. UTF-8 CSV를 지원하는 스프레드시트 프로그램에서 열 수 있습니다.
+
+<a id="device-report"></a>
+### 조종기 연결 진단 파일 만들기
+
+1. 기체를 착륙·DISARM하고 **C / RADIO / USB**를 엽니다.
+2. 조종기가 안 보이면 **REFRESH**, 처음 선택은 장치 카드 또는 **NEXT DEVICE**로 확인합니다. Windows의 `joy.cpl`에서도 실제 스틱이 움직이는지 봅니다.
+3. 창 아래의 **EXPORT DEVICE REPORT**를 클릭합니다.
+4. 저장 성공 메시지를 확인하고 `Diagnostics`의 최근 `radio-*.json`을 엽니다.
+5. 연결 전/후를 비교하려면 각 상태에서 저장하고 파일명·수정 시각을 확인합니다.
+
+보고서에는 `utc, build, source_sha256, input_api, profile_path, connected, calibrated, enabled, devices`가 들어갑니다. 장치별로 `slot, name, driver_id, axes, buttons, selected`를 확인합니다.
+
+이 버튼은 보정값을 새로 만들거나 ARM하지 않습니다. **보정 프로필 자체나 원시 축 시계열을 내보내는 기능은 아닙니다.** `profile_path`에 Windows 사용자 이름이 포함될 수 있으므로 공유 전에 내용을 검토합니다.
+
+<a id="feedback-files"></a>
+### 파일 열기와 개발 피드백 보내기
+
+처음에는 `FlightLogs`·`Reports`·`Diagnostics`를 파일 탐색기에서 **수정한 날짜 순**으로 정렬합니다. JSON/JSONL은 텍스트 편집기로, CSV는 스프레드시트 프로그램으로 엽니다.
+
+문제를 전달할 때 다음 정보를 함께 적습니다.
+
+```text
+게임 버전:
+입력 방식과 조종기:
+선택 기체·경기/연습 상태:
+화질·해상도:
+재현 순서:
+기대한 동작 / 실제 동작:
+문제가 발생한 대략적인 시점:
+첨부 파일: 관련 JSONL·발생 전후 CSV·필요한 장치/실행기 진단
+```
+
+관련 파일만 별도 폴더에 복사하고 내용을 확인한 뒤 필요하면 Windows의 압축 기능으로 ZIP을 만듭니다. **Config/RadioProfile.json이나 Saved 전체를 그대로 공개 업로드하지 않습니다.** 장치명·`profile_path`·실행기 로그의 개인 경로도 확인합니다.
+
+자동 개인정보 제거·진단 ZIP 일괄 생성·개발자 자동 전송·버전 호환 리플레이는 아직 지원하지 않습니다. 생성한 파일을 선택해 수동으로 공유하는 절차입니다.
+
+**PowerShell로 최근 JSONL의 마지막 한 줄 보기 — 선택 사항**
+
+파일을 쓰는 중에는 작업하지 말고 F6 기록을 종료한 뒤 사용합니다. 읽기만 수행하는 예시입니다.
+
+```powershell
+$flightFolder = Join-Path $env:LOCALAPPDATA 'ImperialWingsSimulator\Saved\FlightLogs'
+$recentFlight = Get-ChildItem -LiteralPath $flightFolder -Filter '*.jsonl' -File |
+    Sort-Object LastWriteTime -Descending |
+    Select-Object -First 1
+if (-not $recentFlight) { throw 'F6로 저장한 비행 파일이 없습니다.' }
+
+$lastRecord = Get-Content -LiteralPath $recentFlight.FullName -Tail 1 -Encoding UTF8 |
+    ConvertFrom-Json
+$lastRecord | Select-Object event, utc, game_s, selected, radio_connected, radio_enabled
+$lastRecord.aircraft | Select-Object id, armed, input_source, flight_mode, speed_mps, throttle
+```
+
+비정상 종료 파일의 마지막 줄이 손상되어 JSON 오류가 나면 원본을 보존합니다. 미완성 줄을 통과한 기록처럼 고치지 말고, 읽을 수 있는 이전 줄과 종료 상황을 함께 확인합니다.
+
+<a id="troubleshooting"></a>
+### 데이터 수집·조종 문제 해결
+
+| 증상 | 확인할 내용 |
+|---|---|
+| F6 버튼이 안 보임 | F10으로 전체 패널 표시. 게임 창에 입력 포커스가 있는지 확인 |
+| F6 파일이 없음 | 버튼이 STOP RECORDING으로 바뀌었는지, 사용자 데이터 폴더가 맞는지 확인 |
+| 파일을 배포 폴더에서 찾을 수 없음 | Win+R로 `%LOCALAPPDATA%\ImperialWingsSimulator\Saved` 열기 |
+| F5만 눌렀는데 비행 경로가 없음 | F5는 순간 상태. 시간에 따른 변화는 F6로 기록 |
+| JSONL에 배터리/PID/득점 이력이 없음 | 현재 포함 항목과 계획 항목을 구분. 배터리는 F5 순간 상태로 확인 |
+| USB 값이0인데 기체는 움직임 | `radio_enabled`와 `input_source` 확인. 키보드·AUTO·관성 이동과 구별 |
+| 파일 확인 후 USB 비행이 멈춤 | 다른 앱으로 포커스가 옮겨져 DISARM될 수 있음. 최저 스로틀에서 명시적으로 재연결·ARM |
+| 기록 시간이 갑자기 작아짐 | Home/RESET으로 `game_s`가 초기화됐는지 확인. `utc/wall_s`와 메모를 함께 사용 |
+| Device report 저장 실패 | Windows 사용자 폴더 쓰기 상태·디스크 여유와 게임 상태 메시지 확인 |
+| 기록이 끊기거나 간격이 늘어남 | 게임 프레임·디스크 부하 영향. 고정20Hz 또는 USB 입력 지연 측정값으로 해석하지 않음 |
+| JSON 마지막 줄을 못 읽음 | 비정상 종료·쓰기 중 파일 여부 확인, 원본과 불완전 종료 상태 보존 |
+
+<a id="graphics"></a>
+## 화질과 세부 기능
+
+### 화질 저장
+
+전체 패널 왼쪽 **GRAPHICS**에서 **BALANCED / HIGH / CINEMA**를 클릭합니다. 저장된 설정이 없는 포터블 첫 실행은 Balanced를 사용합니다. 화면이 끊기면 Balanced부터 확인합니다.
+
+선택은 사용자 데이터의 `Config/VisualQuality.txt`에 저장합니다. 먼지 효과는 접촉·저고도 추력의 시각 표현이며 모터 고장이나 실제 파괴 판정이 아닙니다.
+
+<a id="positions"></a>
+### 기체 선택·시작 위치·식별 표시
+
+- **Tab / 오른쪽 기체 목록**으로 선택합니다. 조종 기체를 바꿀 때 이전 수동 기체가 DISARM될 수 있으므로 착륙 후 전환합니다.
+- Striker는 양 팀 자기 시작선 중앙입니다. 조종자 기준 왼쪽부터 **Libero → Guide → Striker → Sweeper → Keeper**이며 반대 팀은 대칭입니다.
+- Striker 초록·Guide 분홍 하단 띠는 좌우 각각2개입니다. 현재는 시각 표현이며 탈락·득점 자격 연동·Guide 승계는 후속 개발입니다.
+- 현재 흰색 전방/빨간색 후방 표시는 훈련 설계입니다. 공식 역할색 조건과 사용자 엄격 태그 정책의 구분은 [정밀 계획](docs/simulator-plan-review.md)을 확인합니다.
+
+<a id="source-build"></a>
 
 ## 개발 소스 빌드 환경과 설치
 
@@ -49,6 +276,7 @@ $SdacsRoot = [IO.Path]::GetFullPath((Join-Path $PWD '..\swarm-drone-atc'))
 
 배포 실행 파일을 만들려면 `Build.ps1`에 `-Package`를 추가합니다. 개발 패키지는 `dist/Integrated/Windows/`에 생성됩니다. 실행 배포 ZIP은 `pip install -r Bridge/requirements-portable-build.txt` 후 `Scripts/Build-Portable.ps1 -OutputDirectory <새 폴더>`로 별도 작성합니다. 실행 파일 주변의 Engine·프로젝트 폴더도 함께 필요합니다. 빌드된 PC에서는 `ImperialWings.cmd`로 브리지와 게임을 시작할 수 있습니다. 저장소에는 엔진·패키지 실행 파일·가상환경을 포함하지 않습니다.
 
+<a id="controls"></a>
 ## LOS 조종과 화면
 
 기본 조종자 카메라는 선택한 팀의 자기 진영 바깥 `x=±9.5m, z=1.7m`에 있습니다. 기체를 선택하면 그 팀·역할에 대응하는 조종석으로 이동합니다.
@@ -72,10 +300,28 @@ $SdacsRoot = [IO.Path]::GetFullPath((Join-Path $PWD '..\swarm-drone-atc'))
 
 수동 비행은 모든 기체에 **ANGLE 모드**를 적용합니다. Roll/Pitch는 최대35°의 목표 기울기를 명령하며 스틱이나 키를 놓으면 수평으로 복원합니다. Yaw는 각속도,고도는 스로틀로 직접 조절합니다. 기본 조종 시점은 경기장 밖 조종자의 육안 위치에 고정합니다.
 
-RadioMaster Boxer는 USB HID 장치를 선택한 뒤 축 배정·최대/최소 범위·중립·반전과 최저 스로틀을 확인해야 합니다. 기본값은 키보드이며 미보정 상태에서 USB 조종으로 임의 ARM하지 않습니다. 실제 Radiomaster Boxer Joystick 연결과 게임의 라이브 축 표시는 확인했습니다. 네 스틱 전 범위·방향 보정과 USB 수동 비행은 별도 현장 검증 항목입니다. [USB 설정](docs/BOXER_SETUP.md)을 참고합니다.
+<a id="boxer"></a>
+### Boxer 설정·저장 프로필·F8 재연결
+
+RadioMaster Boxer는 실제 장치 선택 후 축 배정·최대/최소·중립·반전·최저 스로틀을 확인합니다. 기본값은 키보드이며 미보정 USB 입력으로 ARM하지 않습니다. 개발 PC의 실제4축 보정·저장·USB 활성화·최저 스로틀 ARM은 확인했고 연속 USB 비행·케이블 분리 복구·입력 지연 검증은 남아 있습니다. 자기 PC의 장치는 직접 확인합니다. [USB 설정](docs/BOXER_SETUP.md)을 참고합니다.
 
 **STICK SETUP / MODE 2**는 오른쪽 Roll/Pitch,왼쪽 Yaw/Throttle을 한 단계씩 실제로 움직여 축과 방향을 찾는 안내 화면입니다. 각 단계에서 Enter로 시작·끝값 확인을 할 수 있고,중립·최저 스로틀 확인 후 검토 화면에서 따로 저장합니다. 설정 중에는 비행 단축키가 차단되며 취소하면 이전 프로필이 유지됩니다. 이 기능을 추가한 것과 실물 스틱 보정·USB 비행을 완료한 것은 구분합니다.
 
+v0.6.1의 기본 화면은 **장치 선택 → 안내 보정 → 검토/저장 → 활성화**를 상단 STEP으로 표시합니다. 수동 축 배정·반전·데드존·범위 수집·프로필 저장/불러오기는 **ADVANCED OPTIONS**에 있습니다. **SIMPLE VIEW**로 돌아올 수 있으며, 설정 창을 다시 열면 간소 화면에서 시작합니다. 이미 보정한 장치는 **CONNECT SAVED RADIO**를 누릅니다. 연결과 ARM은 별도입니다.
+
+![실제 실행 파일의 간소 조종기 화면](docs/images/controller-simple-v061.png)
+
+### 다음 실행에서 F8로 연결하기
+
+1. 처음 한 번은 실제 장치를 선택해 보정하고 **CONFIRM & SAVE**를 마칩니다.
+2. 다음 실행에는 조종기의 USB Joystick 연결과 최저 스로틀을 확인합니다.
+3. 보정창을 닫고 **F8**을 누릅니다. 현재 연결 장치 중 저장 프로필과 일치하는 장치가 정확히 하나여야 연결됩니다.
+4. 실패하면 **C**를 열어 장치를 명시적으로 선택합니다. 슬롯·펌웨어·모델 출력이 바뀌었다면 실제 축을 다시 확인합니다.
+5. USB 활성화 후에도 기체는 DISARM입니다. 창을 닫고 **Space**로 별도 ARM합니다.
+
+USB가 이미 활성화된 상태에서 F8을 누르면 USB를 해제합니다. **F8은 선택 기체를 MANUAL/DISARM으로 전환하므로 비행 중 재연결 용도로 누르지 않습니다.** 저장된 값이 있어도 자동 이륙하지 않습니다.
+
+<a id="match"></a>
 ## 경기와 자율 훈련
 
 기본 규정 프로필은 [FIDA Class40 제5차 개정, 2026-01-01 시행](https://fidasystem.com/rules.html)입니다. 권장 경기장 **16×7×4.5m**, 보호구 외경 **40cm**, 골대 내경 **60cm**이며 골대는 양 끝에서 1.5m 안쪽, 중심 높이 3.0m에 배치합니다. 현재 기체 질량 0.9kg은 규정 상한 1.1kg 이내의 시뮬레이터 설정값입니다. STRIKER V3의 실측 질량으로 주장하지 않습니다.
@@ -83,6 +329,8 @@ RadioMaster Boxer는 USB HID 장치를 선택한 뒤 축 배정·최대/최소 �
 팀당 5명 중 스트라이커만 득점합니다. 기체 전체가 상대 골대를 앞에서 뒤로 통과해야 하며 팀 오프사이드는 활성 기체 전원이 자기 진영으로 복귀해야 해제됩니다. 경기 코어는 10초 준비, 180초 세트, 300초 정비와 최대 3세트·2선승을 관리합니다. 준비·정비·종료 단계의 ARM은 제한합니다. 경기를 시작하는 동작이 자동 이륙을 뜻하지 않습니다.
 
 **공식 경기 모드는 수동 조종**, SDACS 자동 비행은 **Practice의 훈련 보조**로 구분합니다. AUTO FLEET/Enter는 자율 훈련, HOLD/H는 현 위치 유지, RETURN/R은 홈 패드 귀환·착륙, MANUAL은 선택 기체를 수동으로 전환하고 DISARM합니다. 완전한 인간 심판 판정, 공격수 승계, 실제 페널티 경기·연장·승부치기·VAR은 구현 범위 밖입니다. 규격과 구현 한계는 [규정 근거](docs/rules-sources-2026.md)에 정리했습니다.
+
+HOLD/RETURN의 연습 전용 강제 차단과 세트 종료 처리에는 [정밀 검토에서 확인한 미완료 경로](docs/simulator-plan-review.md)가 남아 있습니다. 현재 빌드를 완전한 공식 경기 운영판으로 사용하지 않습니다.
 
 ## 기체 모델과 실험 물리
 
@@ -99,13 +347,17 @@ RadioMaster Boxer는 USB HID 장치를 선택한 뒤 축 배정·최대/최소 �
 
 계수는 조정 가능한 가정값입니다. CFD, 모터 벤치 측정, 실기체 IMU·추력·충돌 측정을 대체하지 않습니다. 각 모델의 존재와 실제 게임에서 검증된 통합 범위는 구별하며 최신 결과는 [검증 기록](docs/verification.md)에 남깁니다.
 
+<a id="sdacs"></a>
 ## 실제 SDACS 연동
 
 [기반 저장소](https://github.com/sun475300-sudo/swarm-drone-atc)의 실제 `simulation/apf_engine/apf.py`를 외부 작업 사본에서 import합니다. Unreal이 위치·속도를 미터 단위로 10Hz 전송하고 upstream `batch_compute_forces`·`force_to_velocity`가 짧은 목표점 생성에 참여합니다. Unreal이 물리 상태의 원본이며 브리지는 합성 기체 위치를 보내지 않습니다.
 
 현재 확인한 upstream 커밋은 `1e9d826265069696d7e415c7778d17483d7a8580`입니다. 개발 실행의 `http://127.0.0.1:8767/health`에 실제 origin·커밋·로드한 파일·SHA-256이 표시됩니다. 실행 중 데이터 연결은 localhost이며 외부 통신은 소스 복제·의존성 설치에 사용합니다. 연결이 끊기면 자율 임무를 로컬 위치 유지로 전환합니다. [연동 계약](docs/sdacs-integration.md)과 [외부 권리 고지](THIRD_PARTY_NOTICES.md)를 참고합니다.
 
-## 실제 실행과 검증
+<a id="verification"></a>
+## 이전 버전의 실행·검증 기록
+
+아래 R4~R6 수치는 당시 기록입니다. 최신 [v0.6.1 빌드·화면·물리·배포 검사](docs/releases/v0.6.1.md)와 [누적 검증 기록](docs/verification.md)을 확인합니다. 수집 절차 문서 추가와 실제 USB 비행·성능 측정 결과를 구분합니다.
 
 ![Unreal 실제 경기장 렌더](docs/images/arena-r4.png)
 
@@ -145,7 +397,6 @@ R6 / v0.4.0에서는 **10대 전부 ANGLE**로 전환했습니다. 실제 Chaos�
 포터블 배포 실행기는 실제 MIT APF 소스·검증 해시를 포함한 독립 Windows 런타임을 사용합니다. 설치 Python/Git을 찾지 않으며 자동으로 선택한 localhost 포트를 사용하고 게임 종료 시 해당 프로세스를 종료합니다. 원본 작업 저장소를 수정하지 않습니다.
 
 [이전 v0.5.0 배포 기록](docs/releases/v0.5.0.md)은 당시의 별도 검증 기록입니다.
-
 
 [전체 기능 명세와 완료 기준](docs/simulator-feature-plan.md), [개발 순서·멀티플레이/피드백 계획](docs/development-roadmap.md), [식별 띠 장착 조사](docs/striker-tag-mounting.md)를 보존했습니다. 목록 등록은 기능 구현 완료를 뜻하지 않습니다. [이전 v0.5 상세 실행 안내](docs/legacy-v0.5-run-guide.md)는 별도 보관본입니다.
 

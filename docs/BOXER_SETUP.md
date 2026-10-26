@@ -13,8 +13,8 @@
 ## 2. 게임에서 장치와 네 축 선택
 
 1. 먼저 선택 기체를 **MANUAL / DISARM** 상태로 전환한 다음 **C** 또는 **RADIO** 버튼으로 `RADIO / USB CONTROLLER` 패널을 엽니다. 패널을 열면 선택 기체가 수동·DISARM 상태로 전환됩니다. 범위 수집 시작과 USB 활성화 버튼도 선택 기체를 수동·DISARM 상태로 전환합니다.
-2. **REFRESH**로 연결 장치를 다시 조회하고 **NEXT DEVICE**로 사용할 장치를 명시적으로 선택합니다. 한 대만 연결되어 있어도 최초 장치 선택이 필요합니다. 표시된 장치 이름·축 수·`CONNECTED` 상태를 확인합니다.
-3. `LIVE STICK AXES`의 X/Y/Z/R/U/V 막대를 보며 스틱을 **하나씩** 움직입니다. 움직임이 확인된 축을 오른쪽의 `ROLL`, `PITCH`, `YAW`, `THROTTLE`에 배정합니다. 각 **AXIS** 버튼은 사용할 수 있는 다음 축으로 바뀝니다.
+2. **REFRESH**로 연결 장치를 다시 조회하고 처음에는 **장치 카드**를 눌러 직접 선택합니다. **NEXT DEVICE**로 바꿀 수도 있습니다. 한 대만 연결되어 있어도 최초 선택이 필요합니다. 표시된 장치 이름·축 수·`CONNECTED` 상태를 확인합니다. 기본 화면은 상단 STEP 안내와 **STICK SETUP / MODE 2**를 중심으로 사용합니다.
+3. 수동 배정이 필요한 경우 **ADVANCED OPTIONS**를 엽니다. `LIVE STICK AXES`의 X/Y/Z/R/U/V 막대를 보며 스틱을 **하나씩** 움직입니다. 움직임이 확인된 축을 오른쪽의 `ROLL`, `PITCH`, `YAW`, `THROTTLE`에 배정합니다. 각 **AXIS** 버튼은 사용할 수 있는 다음 축으로 바뀝니다. **SIMPLE VIEW**로 기본 화면에 돌아갑니다.
 4. 네 채널에는 서로 다른 네 축을 배정합니다. 잘못된 방향은 **NORMAL / INVERTED**로 뒤집습니다. 의도한 입력 방향은 Roll 오른쪽 +, Pitch 전진 +, Yaw 오른쪽 +, Throttle 최저 0·최대 1입니다.
 5. Deadzone은 기본 4%이며 **− / +**로 0–25% 범위에서 조절합니다. 스틱 중립 부근의 작은 흔들림을 제거하는 값입니다.
 
@@ -66,7 +66,7 @@ R6 수동 비행은 모든 기체의 **ANGLE** 방식입니다. Roll/Pitch 스�
 - 장치 읽기가 실패하면 즉시 USB 입력을 비활성화하고 입력값을 지웁니다. 마지막 성공 입력이 250 ms를 넘으면 입력을 오래된 값으로 판정합니다. 이는 실제 입력 지연을 측정한 결과가 아니라 구현한 유효기간입니다.
 - USB로 조종 중인 기체는 입력 손실·USB 비활성화·유효 보정 손실·게임 포커스 손실 시 DISARM합니다. DISARM 후에는 중력과 충돌이 계속 적용되므로 공중에서 정지하거나 위치가 유지되지는 않습니다.
 - 재연결만으로 USB 입력이나 ARM이 재개되지 않습니다. 최저 스로틀에서 **ENABLE RADIO**와 ARM을 다시 수행합니다. 보정 도중 연결이 끊기면 범위 수집을 새로 시작합니다.
-- 프로필은 실행 중인 프로젝트의 `Saved/Config/RadioProfile.json`에 장치 식별값별로 저장합니다. **SAVE PROFILE / LOAD PROFILE**로 수동 저장·불러오기를 할 수 있으며, 불러오기는 항상 USB 입력을 비활성화합니다. 개발 프로젝트와 패키지의 Saved 폴더는 서로 다를 수 있습니다.
+- 포터블/패키지는 `%LOCALAPPDATA%/ImperialWingsSimulator/Saved/Config/RadioProfile.json`, 에디터는 프로젝트의 `Saved/Config/RadioProfile.json`에 장치 식별값별로 저장합니다. 명시적 `-ImperialDataDir`은 별도 저장 위치를 사용합니다. 고급 화면의 **SAVE PROFILE / LOAD PROFILE**로 수동 저장·불러오기를 할 수 있으며, 불러오기는 항상 USB 입력을 비활성화합니다.
 - 식별값은 WinMM 슬롯, 드라이버가 보고한 이름·제조사/제품 값·범위·기능을 포함합니다. WinMM은 여기서 USB 일련번호를 제공하지 않으므로 동일 모델·동일 기능·동일 슬롯의 다른 실물을 완전히 구분할 수 없습니다. 조종기를 교체했거나 USB/모델 설정을 바꿨다면 실제 축을 다시 확인하고 보정합니다.
 - 드라이버 슬롯이나 장치 기능이 바뀌면 기존 프로필과 일치하지 않을 수 있습니다. 잘못된 형식·범위·중복 축·다른 식별값의 프로필은 활성화에 사용하지 않습니다.
 
@@ -83,6 +83,6 @@ WinMM 입력은 Microsoft의 [joyGetPosEx](https://learn.microsoft.com/en-us/win
 
 ## v0.6 다른 PC용 배포
 
-실행 ZIP에는 보정값을 포함하지 않는다. 새 PC의 첫 실행에서는 조종기 화면이 열리고 NEXT DEVICE로 실제 장치를 고른 후 보정한다. 설정은 `%LOCALAPPDATA%\ImperialWingsSimulator\Saved\Config\RadioProfile.json`에 저장한다. 설치 폴더 이동·새 버전 압축 해제로 설정이 사라지지 않는다. `EXPORT DEVICE REPORT`는 같은 사용자 데이터의 `Diagnostics`에 실제 장치 목록을 저장한다.
+실행 ZIP에는 보정값을 포함하지 않는다. 새 PC의 첫 실행에서는 간소 조종기 화면이 열리고 장치 카드 또는 NEXT DEVICE로 실제 장치를 고른 후 보정한다. 이후 **CONNECT SAVED RADIO** 또는 **F8**은 유일하게 일치하는 저장 장치를 최저 스로틀에서 연결한다. 보정이 없거나 여러 장치가 일치하면 직접 선택해야 하며 자동 ARM하지 않는다. 설정은 `%LOCALAPPDATA%\ImperialWingsSimulator\Saved\Config\RadioProfile.json`에 저장한다. 설치 폴더 이동·새 버전 압축 해제로 설정이 사라지지 않는다. `EXPORT DEVICE REPORT`는 같은 사용자 데이터의 `Diagnostics`에 실제 장치 목록을 저장한다.
 
 개발 PC와 분리한 한글·공백 경로 및 설치 Python/Git을 제외한 환경에서 첫 실행·실제 Boxer 저장값의 저장/재로딩·재시작 시 키보드/비활성 상태를 검사한다. 실제 다른 PC의 HID 드라이버·GPU·USB 케이블 조합은 해당 PC에서 추가로 확인해야 한다. WinMM이 노출하지 않는 조종기나 네 독립 아날로그 축이 없는 장치는 이 입력 경로로 사용할 수 없다.

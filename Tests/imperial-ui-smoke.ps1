@@ -17,7 +17,8 @@ param(
     [string]$GuidedDeviceId = '1209:4F54',
     [switch]$LayoutOnly,
     [string]$ExpectedSourceSha256 = '',
-    [switch]$PrepareBoxer
+    [switch]$PrepareBoxer,
+    [switch]$ControllerOnly
 )
 
 Set-StrictMode -Version Latest
@@ -305,7 +306,7 @@ try {
         $yawError=if($index -lt 5){[Math]::Abs([double]$layoutRow.yaw_deg)}else{[Math]::Abs([Math]::Abs([double]$layoutRow.yaw_deg)-180)}
         Assert-Check "Initial direction faces centre $($layoutRow.id)" ($yawError -lt .5) 'Blue faces +X; Red faces -X.'
     }
-    if(-not $LayoutOnly){Assert-Check 'Actual SDACS connection' (@($ready.Rows | Where-Object { $_.sdacs_connected -ne '1' }).Count -eq 0) 'The game reports a live SDACS connection in exported telemetry.'}
+    if(-not $LayoutOnly -and -not $ControllerOnly){Assert-Check 'Actual SDACS connection' (@($ready.Rows | Where-Object { $_.sdacs_connected -ne '1' }).Count -eq 0) 'The game reports a live SDACS connection in exported telemetry.'}
     $radioColumns = @($ready.Rows[0].PSObject.Properties.Name)
     $uiSourceIdentity=& (Join-Path $projectDirectory 'Scripts\Get-SourceIdentity.ps1') -ProjectRoot $projectDirectory
     if(-not $ExpectedSourceSha256){$ExpectedSourceSha256=$uiSourceIdentity.source_sha256}
@@ -314,6 +315,34 @@ try {
     Assert-Check 'Application starts in keyboard mode' (@($ready.Rows | Where-Object { $_.input_source -ne 'KEYBOARD' -or $_.radio_enabled -ne '0' }).Count -eq 0) 'All ten disarmed aircraft report KEYBOARD; USB activation is never automatic.'
     Invoke-NativeKey 0x43 # C opens the real USB calibration modal.
     Save-ClientScreenshot '01a-radio-device-and-axes'
+    if($ControllerOnly){
+        $profilePath=Join-Path (Split-Path -Parent $reportsDirectory) 'Config\RadioProfile.json'
+        $controllerProfileBefore=if(Test-Path -LiteralPath $profilePath){(Get-FileHash -LiteralPath $profilePath).Hash}else{'ABSENT'}
+        Invoke-HudClick 515 676 # Explicit saved-radio connection, never automatic ARM.
+        $savedAttempt=Export-FleetSnapshot 'controller-saved-connect' -ViaShortcut
+        Assert-Check 'Saved connection never arms aircraft' (Test-DisarmedFleet $savedAttempt) 'The explicit reconnect action leaves all ten motors disarmed.'
+        if($controllerProfileBefore -eq 'ABSENT'){
+            Assert-Check 'Missing saved profile leaves keyboard active' (@($savedAttempt.Rows|Where-Object {$_.radio_enabled -ne '0' -or $_.input_source -ne 'KEYBOARD'}).Count -eq 0) 'No profile is synthesized to satisfy reconnect.'
+        }
+        $diagnostics=Join-Path (Split-Path -Parent $reportsDirectory) 'Diagnostics'
+        $oldReports=@(Get-ChildItem -LiteralPath $diagnostics -Filter 'radio-*.json' -ErrorAction SilentlyContinue | ForEach-Object FullName)
+        Invoke-HudClick 1140 849
+        Start-Sleep -Milliseconds 450
+        $newReport=Get-ChildItem -LiteralPath $diagnostics -Filter 'radio-*.json' | Where-Object {$_.FullName -notin $oldReports} | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+        Assert-Check 'Device report exports actual Windows devices' ($null -ne $newReport) 'The real diagnostic action produced a new JSON file.'
+        $deviceReport=Get-Content -LiteralPath $newReport.FullName -Raw|ConvertFrom-Json
+        if($controllerProfileBefore -eq 'ABSENT' -and @($deviceReport.devices).Count -gt 0){
+            Invoke-HudClick 565 342 # First actual device card, not a guessed Windows slot.
+            $card=Export-FleetSnapshot 'controller-device-card' -ViaShortcut
+            Assert-Check 'Device card selects listed physical controller' ($card.Rows[0].radio_connected -eq '1' -and $card.Rows[0].radio_device_id -eq $deviceReport.devices[0].driver_id) 'Selected driver ID matches the first device in the Windows diagnostic list.'
+            Assert-Check 'Device selection does not enable or arm' ((Test-DisarmedFleet $card) -and $card.Rows[0].radio_enabled -eq '0') 'Selecting a device does not bypass physical calibration.'
+        }
+        Save-ClientScreenshot 'controller-simple-view'
+        Invoke-HudClick 1070 164
+        Save-ClientScreenshot 'controller-advanced-view'
+        Invoke-HudClick 1070 164
+        Save-ClientScreenshot 'controller-simple-restored'
+    }
     Invoke-HudClick 109 171 # Underlying AUTO must be consumed by the modal backdrop.
     $uncalibratedAtStart = $ready.Rows[0].radio_calibrated -eq '0'
     if ($uncalibratedAtStart) {
@@ -383,6 +412,19 @@ try {
         Assert-Check 'Unfinished guide preserves existing profile file' ($profileBefore -eq $profileAfter) 'The real calibration file was neither created nor changed by this test.'
     }
 
+    if($ControllerOnly){
+        Invoke-NativeKey 0x75 # F6 begins a genuine runtime flight log; no synthetic controls.
+        Start-Sleep -Milliseconds 650
+        Invoke-NativeKey 0x75
+        $flightFolder=Join-Path (Split-Path -Parent $reportsDirectory) 'FlightLogs'
+        $flight=Get-ChildItem -LiteralPath $flightFolder -Filter '*.jsonl'|Sort-Object LastWriteTime -Descending|Select-Object -First 1
+        $samples=@(Get-Content -LiteralPath $flight.FullName|ForEach-Object {$_|ConvertFrom-Json})
+        Assert-Check 'F6 records start samples and stop' ($samples.Count -ge 3 -and $samples[0].event -eq 'start' -and $samples[-1].event -eq 'stop') 'The README collection workflow produced an actual JSONL file.'
+        Assert-Check 'Recorded aircraft match the compiled source' (@($samples|Where-Object {$_.source_sha256 -ne $ExpectedSourceSha256 -or @($_.aircraft).Count -ne 10}).Count -eq 0) 'Every record contains ten actual aircraft and the current build fingerprint.'
+        $controllerProfileAfter=if(Test-Path -LiteralPath $profilePath){(Get-FileHash -LiteralPath $profilePath).Hash}else{'ABSENT'}
+        Assert-Check 'Controller inspection preserves profile on disk' ($controllerProfileBefore -eq $controllerProfileAfter) 'Device selection, advanced view, refused enable and cancelled guide do not save invented calibration.'
+        $success=$true;return
+    }
     for($pilotIndex=0;$pilotIndex -lt 10;$pilotIndex++){
         Invoke-HudClick 1395 (232+$pilotIndex*35)
         Invoke-NativeKey 0x31
@@ -535,6 +577,7 @@ try {
         workspace_matches_runtime = $uiSourceIdentity -and $uiSourceIdentity.source_sha256 -eq $ExpectedSourceSha256
         layout_only = [bool]$LayoutOnly
         prepare_boxer = [bool]$PrepareBoxer
+        controller_only = [bool]$ControllerOnly
         camera_validation = 'View 1 is an outside-court LOS pilot station, view 2 an external training observer, and view 3 the arena overview; actual camera_view and selection fields are asserted after native input.'
         checks = @($script:checks.ToArray()); snapshots = @($script:snapshots.ToArray()); screenshots = @($script:screenshots.ToArray()); input_actions = @($script:inputActions.ToArray())
     }
