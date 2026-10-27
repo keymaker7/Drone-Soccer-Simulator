@@ -549,6 +549,7 @@ void ASoccerDronePawn::SetPowerVerificationConditions(double MaximumCurrentA,dou
 {
     if(!FParse::Param(FCommandLine::Get(),TEXT("ImperialPowerSmoke")))return;
     PhysicalParams.Battery.MaximumCurrentA=FMath::Clamp(MaximumCurrentA,0.,200.);
+    ++BatteryResetEpoch;
     BatteryState=ImperialPhysics::BatteryState{};BatteryState.Soc=FMath::Clamp(Soc,0.,1.);
     BatteryState.VoltageV=FMath::Lerp(PhysicalParams.Battery.EmptyVoltageV,PhysicalParams.Battery.FullVoltageV,BatteryState.Soc);
 }
@@ -801,6 +802,7 @@ void ASoccerDronePawn::ResetDrone()
     KeyboardThrottle = 0.0f;
     KeyboardThrottleStep = 0.0f;
     Body->SetPhysicsLinearVelocity(FVector::ZeroVector);
+    ++BatteryResetEpoch;
     BatteryState=ImperialPhysics::BatteryState{};PowerBudget={};MotorStates={};NetStates={};Sensors.Reset(FCrc::StrCrc32(*GetName()));PhysicalTime=0;PreviousVelocityMS=FVector::ZeroVector;CageCompression=0;
     GuardState={};LastWearOther.Reset();LastWearContactTime=-100;GuardScuffs->ClearInstances();UpdateGuardMaterial();SetEquipmentInspection(false);
     Body->SetPhysicsAngularVelocityInRadians(FVector::ZeroVector);
@@ -859,6 +861,7 @@ void ASoccerDronePawn::PhysicsStep(FPhysScene_Chaos* Scene,float Dt)
     // Scene supplies the actual synchronous Chaos frame budget after its clamp.
     // One control update per physics frame, NOT a PID update per Chaos substep.
     if(Dt<=KINDA_SMALL_NUMBER||!Body->IsSimulatingPhysics())return;
+    ++PhysicsStepSequence;
     const FVector VelocityMS=Body->GetPhysicsLinearVelocity()/100.;const FQuat Rotation=Body->GetComponentQuat();
     const float SampleSeconds=PreviousPhysicsSeconds>0?PreviousPhysicsSeconds:Dt;
     const FVector Specific=Rotation.UnrotateVector((VelocityMS-PreviousVelocityMS)/FMath::Max(.001f,SampleSeconds)-FVector(0,0,GetWorld()->GetGravityZ()/100.));PreviousVelocityMS=VelocityMS;

@@ -14,6 +14,7 @@
 #include "ImperialSoccerLayout.h"
 #include "ImperialBuildInfo.h"
 #include "ImperialSolverProbe.h"
+#include "ImperialFlightTrace.h"
 #include "ImperialPresentationEffects.h"
 #include "Engine/GameInstance.h"
 #include "Engine/GameViewportClient.h"
@@ -661,6 +662,14 @@ void AImperialMatchManager::SmokeTick()
     AttachVerificationIdentity(Result,SmokeMinDt,SmokeMaxDt);
     FFileHelper::SaveStringToFile(Result,*(SmokeResultFile.IsEmpty()?FPaths::Combine(ImperialUserData::Directory(),TEXT("physics-smoke.json")):SmokeResultFile));
     UE_LOG(LogTemp,Display,TEXT("IMPERIAL_PHYSICS_SMOKE_%s %s"),Valid?TEXT("PASS"):TEXT("FAIL"),*Result);
+    if(FParse::Param(FCommandLine::Get(),TEXT("ImperialFlightTrace")))
+    {
+        if(auto* Trace=Cast<AImperialFlightTrace>(UGameplayStatics::GetActorOfClass(GetWorld(),AImperialFlightTrace::StaticClass())))
+        {
+            Trace->RequestFinish(Elapsed,Valid);
+            return;
+        }
+    }
     if(FParse::Param(FCommandLine::Get(),TEXT("ImperialSolverProbe"))&&FParse::Param(FCommandLine::Get(),TEXT("ImperialSolverProbePassthrough")))
     {
         if(auto* Probe=Cast<AImperialSolverProbe>(UGameplayStatics::GetActorOfClass(GetWorld(),AImperialSolverProbe::StaticClass())))

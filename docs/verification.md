@@ -332,4 +332,34 @@ Editor/Shipping 빌드와 보정205개·실행 UI/JSON20개·입력 안전29개�
 
 거부 사례도 UE Windows의 정상 `WM_QUIT` 경로에서 프로세스 종료 코드0이 나올 수 있다. 강제 종료를 사용하지 않았고, runner는 종료 코드만으로 통과시키지 않고 새 JSON의 `ok=false`·오류 사유·동일 지문을 필수로 검사했다. Python 최적화 실행 거부와 CSV의 모든 수치 유한값·8개 거부 문구 사후 검사도 통과했다.
 
-로컬 원본은 Editor `Saved/Verification/solver-probe-20261027-082339-906316/results.json`, Shipping `Saved/Verification/solver-probe-20261027-082339-926636/results.json`, 포터블 `Saved/Verification/portable-probe-r1/result.json`이다. 이번 완료는 **계측 하위 단계**다. 실제 고정주기 비행 제어의 상태 전달·힘 이관, 연속 궤적·전체 에너지 적분, 실물 USB·새 하드웨어·다른 물리 PC·GPU/그래픽 검증은 미완료다. [순차 작업](sequential-work-2026-10-27.md#r9-ctl-13-probe)과 [단계 설계](fixed-step-control-design.md)에서 후속 조건을 관리한다.
+로컬 원본은 Editor `Saved/Verification/solver-probe-20261027-082339-906316/results.json`, Shipping `Saved/Verification/solver-probe-20261027-082339-926636/results.json`, 포터블 `Saved/Verification/portable-probe-r1/result.json`이다. 이번 완료는 **계측 하위 단계**다. 이 카운터 단계는 연속 궤적·전체 에너지 적분을 검사하지 않았으며, 아래 후속 기록에서 프레임별 검증 범위를 구분한다. 실제 고정주기 비행 제어의 상태 전달·힘 이관, 실물 USB·새 하드웨어·다른 물리 PC·GPU/그래픽 검증은 미완료다. [순차 작업](sequential-work-2026-10-27.md#r9-ctl-13-probe)과 [단계 설계](fixed-step-control-design.md)에서 후속 조건을 관리한다.
+
+<a id="ctl-13-r9-flight-trace"></a>
+## 2026-10-27 v0.7.5-dev / R9 프레임별 궤적·전류·에너지 — 게임 프레임 비교 완료
+
+카운터 단계의 종료 상태 비교 한계를 보완하는 후속 실험이다. 최종 입력127개·소스 지문 `71aa36b021080fcbc262ed1820ba6d169e7d3fc36651e3978beb690a2eb8515e`, 빌드 부모 커밋 `0e0dd21b7b261cd9690fe18e9b2882e65d9fd299`다. 같은 개발 브랜치와 v0.7.5-dev를 사용하며, 공식 다운로드 v0.7.4-r2와 그 검사 기록은 유지한다. [후속 보고서](flight-trace-2026-10-27.md) · [기계 판독 결과](verification/flight-trace-2026-10-27.json).
+
+첫 샘플은 기준값으로 두고 최초 구간을 적분에서 제외한다. 이후43게임초 시나리오 완료 프레임까지 **매 동기 게임 물리 프레임의 끝점**에서10대 위치·quaternion·선속도/각속도 벡터·전류·SOC·전압·소모Ah·공급/모터 전력을 비교한다. `physics_step_seq`는 매 프레임+1이어야 하며,0번 기체의 reset epoch3회·나머지9대의 무reset과 최종 순번을 확인한다. PID·힘·토크의 계산 및 적용 경로는 이관하지 않았다.
+
+| 확인 단계 | 최종 확인 결과 |
+|---|---|
+| Shipping 동일FPS baseline/observer |20/30/45/60/120/240FPS6쌍 통과. 실행당 프레임 수860/1290/1935/2580/5160/10320, 기체 샘플 수8600/12900/19350/25800/51600/103200 |
+| Editor 동일FPS 비교 |20/30/45/60/120/240FPS6쌍 통과 |
+| 새 경로 ZIP 비교 |60FPS1쌍 통과. 세 실행 환경 합계13쌍·26회, 기체 행937,400개·첫 기준행260개를 제외한 적분 구간937,140개 |
+| 독립 분석기 검사 | Editor·Shipping·새 ZIP 모두18개 통과.17개 손상 사례 거부·동일 회전의 quaternion 부호 반전1개 허용. 행 누락/중복/순서·완료 프레임 누락·NaN/Inf·reset/물리 갱신 누락·중간 오류 상쇄·속도 방향 변경·양자화 한도를 넘은 모터 공급 초과 포함 |
+| 전류·에너지 장부 | 매 프레임 `I*dt/3600`를 reset 구간을 반영한 소모Ah/SOC와 대조. `V*I`·공급 에너지 및 모터 전력 적분을 독립 재계산하고 baseline/observer의 프레임별 값과 전체 적분 비교 |
+| baseline/observer 차이 |13쌍 모두17자리 CSV의 SHA-256이 쌍별 일치. 위치·선속도/각속도 벡터·전류·SOC·전압·소모Ah·프레임 전력·전체 전류/에너지 적분 차이는0. 동일 quaternion의 각도 재계산 잔차는 최대2.98e-8rad로1e-4rad 기준 이내 |
+| 최신 소스 회귀·새 경로 ZIP | 동일127입력의 Shipping 카운터12개·옵션 거부4개와 새 포터블13개 통과. 이전125입력의 결과를 재사용하지 않음 |
+| 진단 옵션·기존 CSV 보호 |6개 통과: fixture 누락·fixed 모드·passthrough 누락·CSV 경로 누락·잘못된FPS·이미 존재하는 CSV를 거부. 기존 CSV의 검사용 원본 바이트 보존 확인 |
+
+60FPS 추적 창은 월드0.033333335~43.016668910초, 약42.983335575초이며 첫 샘플 앞의 구간은 적분하지 않는다. Shipping60FPS0번 기체는3회 reset을 반영해 전류 적분0.1526968602575126Ah·공급 에너지8855.907633820878J·모터 에너지8640.440938004913J를 기록했다. 최대 프레임별 전하 오차는 약6.94e-18Ah, SOC 오차는 약5.55e-17이다.60FPS 호버 오차3.15cm와 실제 BLUE1골도 유지했다.
+
+Editor120FPS에서 같은 CSV quaternion을 정규화 내적과 `acos`로 각도로 바꿀 때2.980232238769531e-8rad가 계산됐다. 원본 CSV 해시는 같으며, 이 각도 계산 잔차까지 모두0이라고 표현하지 않는다.
+
+float로 저장한 실제 모터 추력에서 전력을 추정하면 double 공급 예산과 약18.5μW의 차이가 생겼다. 분석기의 허용은 `3*2^-24*P + 1e-8 W`이며 `P`는 적용/가용 모터 전력 중 큰 값이다. 추력의 수치 양자화를 위한 해석적 오차 한도이며 물리 전력 예산 증가가 아니다.
+
+추가 거부 검사에서 UE5.8의 `CreateFileWriter`가 `FILEWRITE_NoReplaceExisting`를 무시해 기존 CSV를 덮어쓰는 문제를 재현했다. 진단 시작 전에 `FileExists`/`DirectoryExists`로 사전 존재 경로를 명시적으로 거부하도록 보완했다. 검사용 기존 CSV가 바뀌지 않았음을 확인하고, 수정한 동일 입력 지문으로 전체 비행 비교·분석기·카운터·새 ZIP 검사를 다시 통과했다.6개 거부 사례의 프로세스 종료 코드는0이지만 새 결과 JSON의 구체 오류·실패 상태·지문을 확인하며, 기존 CSV 사례는 원본 보존도 검사한다.
+
+최종 로컬 원본은 Editor `Saved/Verification/flight-trace-20261027-090216-011829/results.json`, Shipping `Saved/Verification/flight-trace-20261027-090245-610934/results.json`, 새 ZIP `Saved/Verification/flight-trace-20261027-090443-893557/results.json`이다. 옵션/기록 보호6개는 `Saved/Verification/flight-trace-options-20261027-090205-810108/results.json`, 포터블은 `Saved/Verification/portable-trace-r2/result.json`, 최신 카운터 회귀는 `Saved/Verification/solver-probe-20261027-090244-449724/results.json`에 있다. 새 로컬 QA r2 ZIP은374,810,923바이트·SHA-256 `33ec007b00d6e1075690ad2cb1c8096330af1aeda207dbc37de27643870df67c`이며 공식 실행용 다운로드를 교체하지 않는다.
+
+완료된 범위는 **CTL-13 단계1의 현재 게임 물리 프레임 해상도에서의 궤적·전류·에너지 baseline 비교**다. 내부 Chaos 서브스텝의 연속 궤적, 서로 다른 FPS끼리의 동일 궤적, 실제 고정120Hz 비행 제어·상태 버퍼/힘 이관·GPU 성능·실물 USB·새 하드웨어·다른 물리 PC 검증은 주장하지 않는다. [남은 개발](sequential-work-2026-10-27.md#r9-flight-trace).
