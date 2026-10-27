@@ -1,5 +1,7 @@
 # Imperial Wings Drone Soccer Simulator
 
+**[전체 개발 계획서](docs/master-development-plan.md)** — 피드백12개, 현재 완료/미완료 상태, 조종기·AI·탑건·LOS·언어/UI·경기·물리·LAN/온라인·배포의 순서와 완료 기준을 통합했습니다. [28개 분야·326개 상세 기능](docs/simulator-feature-plan.md) · [작업 체크리스트](IMPERIAL_WINGS_CODEX_TASKS.md).
+
 <a id="current-development"></a>
 ## 현재 개발: 조종기 레이트·Expo·아밍키 — v0.7.6-dev
 
