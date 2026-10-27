@@ -49,6 +49,9 @@ public:
     bool IsConnected() const;
     bool IsCalibrated() const;
     bool IsEnabled() const;
+    bool IsPrecisionThrottleEnabled() const { return bPrecisionThrottle; }
+    bool SetPrecisionThrottleEnabled(bool bEnable);
+    float ApplyManualThrottle(float Input) const;
     ImperialRadio::StickMode GetStickMode() const { return SelectedMode; }
     bool SetStickMode(ImperialRadio::StickMode Mode);
     bool IsCalibrating() const { return bCalibrationActive || Guided.Active(); }
@@ -100,6 +103,7 @@ private:
     ImperialRadio::Profile Calibration;
     ImperialRadio::StickMode SelectedMode = ImperialRadio::StickMode::Mode2;
     bool bStickModeChosen = false;
+    bool bPrecisionThrottle = false;
     ImperialRadio::Capture RangeCapture;
     ImperialRadio::GuidedCapture Guided;
     bool bConnected = false;
@@ -121,4 +125,5 @@ private:
     ImperialRadio::Controls CurrentControls() const;
     bool WriteProfile();
     FString ProfilePath() const;
+    void LoadPilotControls();
 };

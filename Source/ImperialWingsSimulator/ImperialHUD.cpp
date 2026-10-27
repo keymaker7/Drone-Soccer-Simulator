@@ -232,7 +232,9 @@ void AImperialHUD::DrawHUD()
         Text(TEXT("MOTORS"),1411,775,10,Muted);Text(Selected->IsArmed()?TEXT("ARMED"):TEXT("SAFE"),1411,797,18,Selected->IsArmed()?Green:Muted);
         Rect(1240,832,315,3,Edge);Rect(1240,832,315*FMath::Clamp(Selected->GetThrottle(),0.f,1.f),3,M->GetTeamColor(M->GetSelected()));
         Button(TEXT("ArmSelected"),Selected->IsArmed()?TEXT("DISARM SELECTED"):TEXT("ARM SELECTED"),1239,854,316,34,Selected->IsArmed(),true);
-        Text(FString::Printf(TEXT("BAT %.0f%% %.1fV   GUARD %.0f%%"),Selected->GetBatteryPercent(),Selected->GetBatteryVoltage(),Selected->GetGuardIntegrityPercent()),1240,904,10,Selected->GetGuardIntegrityPercent()<30?Amber:Muted);
+        Text(FString::Printf(TEXT("BAT %.0f%% %.1fV   GUARD %.0f%%"),Selected->GetBatteryPercent(),Selected->GetBatteryVoltage(),Selected->GetGuardIntegrityPercent()),1240,898,10,Selected->GetGuardIntegrityPercent()<30?Amber:Muted);
+        if(Selected->GetBatteryPercent()<=0)Text(TEXT("BATTERY EMPTY / NO MOTOR POWER"),1240,912,10,Amber);
+        else if(Selected->IsBatteryPowerLimited())Text(FString::Printf(TEXT("POWER LIMITED / THRUST %.0f%%"),Selected->GetMotorThrustScale()*100),1240,912,10,Amber);
     }
 
     Rect(24,736,3,44,Cyan);Text(Fit(M->GetNotice(),12,636),42,752,12,White);
@@ -455,8 +457,13 @@ void AImperialHUD::DrawRadioPanel(AImperialMatchManager& Manager)
         Button(TEXT("Radio_ConnectSaved"),TEXT("CONNECT SAVED RADIO"),348,658,335,36,Radio->HasSavedProfiles()&&!Enabled);
         Text(TEXT("Low throttle required. This does not arm the aircraft."),706,669,11,Cyan);
     }
-    Rect(348,714,904,46,FLinearColor(.035f,.065f,.09f,1));Rect(348,714,3,46,Radio->IsCalibrated()?Green:Amber);
-    Text(Fit(Radio->GetStatus(),13,865),364,729,13,Radio->IsCalibrated()?Green:Amber);
+    if(!Radio->IsCalibrating())
+        Button(TEXT("Radio_PrecisionThrottle"),Radio->IsPrecisionThrottleEnabled()?TEXT("THROTTLE: PRECISION"):TEXT("THROTTLE: DIRECT"),348,704,245,28,Radio->IsPrecisionThrottleEnabled());
+    else
+        Text(TEXT("THROTTLE: LOCKED DURING SETUP"),348,712,10,Muted);
+    Text(Radio->IsCalibrating()?TEXT("Finish calibration before changing response."):TEXT("Precision: softer near 55% input. Height stays manual."),610,712,11,Muted);
+    Rect(348,740,904,32,FLinearColor(.035f,.065f,.09f,1));Rect(348,740,3,32,Radio->IsCalibrated()?Green:Amber);
+    Text(Fit(Radio->GetStatus(),12,865),364,750,12,Radio->IsCalibrated()?Green:Amber);
     Button(TEXT("Radio_Keyboard"),TEXT("USE KEYBOARD"),348,783,164,36,!Radio->IsEnabled());
     Button(TEXT("Radio_Enable"),TEXT("ENABLE RADIO"),524,783,183,36,Radio->IsEnabled());
     if(bRadioAdvanced)
@@ -486,6 +493,12 @@ void AImperialHUD::NotifyHitBoxClick(FName BoxName)
         if(N==TEXT("Radio_Refresh"))R->RefreshDevices();
         else if(N==TEXT("Radio_Device"))R->CycleDevice();
         else if(N==TEXT("Radio_Advanced")){if(!R->IsGuidedActive())bRadioAdvanced=!bRadioAdvanced;}
+        else if(N==TEXT("Radio_PrecisionThrottle"))
+        {
+            // Check the fleet's ARM state before any input flush could disarm it.
+            if(R->SetPrecisionThrottleEnabled(!R->IsPrecisionThrottleEnabled()))
+                if(auto* Pilot=Cast<AImperialPlayerController>(PlayerOwner))Pilot->FlushPilotContextKeys();
+        }
         else if(N==TEXT("Radio_Mode1")||N==TEXT("Radio_Mode2"))
         {
             if(!R->IsCalibrating())

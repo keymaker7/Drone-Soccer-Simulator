@@ -143,6 +143,54 @@ void TestMovingGoalFrames()
     m.Reset();g=NominalGoalFrames();p=Homes();p[0]={6.1,0,3};m.Update(p,.01,g);g[1].normal={0,0,0};m.Update(p,.01,g);g=NominalGoalFrames();p[0].x=6.9;m.Update(p,.01,g);
     Check(m.Score(0)==0,"Invalid goal pose followed by recovery invented a transit");
 }
+
+void TestBothTeamsAllRoles()
+{
+    for(int team=0;team<2;++team)for(int role=0;role<5;++role)
+    {
+        MatchRules m;auto p=Homes();const int id=team*5+role;const double direction=team==0?1.0:-1.0;
+        At(m,p,id,direction*6.1);At(m,p,id,direction*6.9);
+        Check(m.Score(team)==(role==0?1:0),"One of the ten role/team combinations had incorrect scoring eligibility");
+        Check(m.Score(1-team)==0,"A goal changed the opposing team's score");
+        Check(m.IsOffside(team)==(role==0),"One of the ten role/team combinations had incorrect offside eligibility");
+    }
+}
+
+void TestTransitIntegrity()
+{
+    MatchRules m;auto p=Homes();
+    At(m,p,0,6.1,.08);At(m,p,0,6.9,-.08);
+    Check(m.Score(0)==1,"Diagonal flight entirely inside the conservative aperture clearance did not score");
+    m.Reset();p=Homes();At(m,p,0,6.1);At(m,p,0,6.5,.11);At(m,p,0,6.9);
+    Check(m.Score(0)==0&&!m.IsOffside(0),"A transit leaving the opening halfway through became a goal");
+    m.Reset();p=Homes();At(m,p,0,6.1);At(m,p,0,6.6);At(m,p,0,6.1);At(m,p,0,6.9);
+    Check(m.Score(0)==1,"A cancelled bounce poisoned the next complete legal transit");
+    for(int sample=0;sample<100;++sample)At(m,p,0,6.9+sample*.001);
+    Check(m.Score(0)==1&&m.Penalties(0)==0,"Repeated samples behind the goal generated duplicate decisions");
+    m.Reset();p=Homes();At(m,p,5,-6.9);
+    Check(m.Score(1)==0&&!m.IsOffside(1),"Initial observation behind the red attack goal invented a passage");
+    At(m,p,5,-6.1);At(m,p,5,-6.9);
+    Check(m.Score(1)==0&&m.IsOffside(1)&&m.Penalties(1)==1,"Red repeated attack while offside did not mirror blue sanctions");
+}
+
+void TestBothTeamRetreatBoundaries()
+{
+    for(int team=0;team<2;++team)
+    {
+        MatchRules m;auto p=Homes();Forward(m,p,team);
+        const int striker=team*5,teammate=striker+1;
+        const double ownSide=team==0?-1.0:1.0;
+        p[teammate].x=ownSide*RuleProfileFIDA40::BallRadius;
+        At(m,p,striker,ownSide*.5);
+        Check(m.IsOffside(team),"A team cleared offside while a teammate's body still touched the centre line");
+        p[teammate].x=ownSide*(RuleProfileFIDA40::BallRadius+1e-10);m.Update(p,.01);
+        Check(m.IsOffside(team),"Numerical noise at the centre line incorrectly cleared offside");
+        p[teammate].x=ownSide*(RuleProfileFIDA40::BallRadius+.000001);m.Update(p,.01);
+        Check(!m.IsOffside(team),"A complete mirrored team retreat failed to clear offside");
+        Forward(m,p,team);
+        Check(m.Score(team)==2&&m.Score(1-team)==0,"The next goal after a valid mirrored retreat did not increment only that team");
+    }
+}
 }
 int main()
 {
@@ -150,6 +198,7 @@ int main()
     {
         TestProfileAndPractice();TestFullPassAndBounce();TestRolesAndEdges();TestOffsideAndPenalties();
         TestClockAndSetWins();TestDrawsCarryAndWhistle();TestInvalidInputsAndReset();TestMovingGoalFrames();
+        TestBothTeamsAllRoles();TestTransitIntegrity();TestBothTeamRetreatBoundaries();
         std::cout<<"PASS: "<<checks<<" FIDA rule checks (whole-ball goals, roles, offside, penalties, clock, sets and invalid inputs).\n";
         return 0;
     }

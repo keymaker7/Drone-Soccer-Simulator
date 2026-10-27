@@ -17,6 +17,16 @@ def digest(path):
         return hashlib.file_digest(source, 'sha256').hexdigest()
 
 
+def bundle_feedback_form(source, output):
+    """Copy the reviewed standalone form without changing its contents."""
+    expected = digest(source)
+    destination = output/'feedback-form.html'
+    shutil.copy2(source, destination)
+    if digest(destination) != expected:
+        raise ValueError('Bundled feedback form differs from its source')
+    return dict(path=destination.name, sha256=expected)
+
+
 def make(args):
     package=args.package.resolve()
     output=args.output.resolve()
@@ -25,6 +35,9 @@ def make(args):
         raise ValueError('Release destination already exists; choose a new directory')
     if not (package/'ImperialWingsSimulator.exe').is_file():
         raise ValueError('Package the Unreal game first')
+    feedback_source=ROOT/'docs'/'feedback-form.html'
+    if not feedback_source.is_file():
+        raise ValueError('Reviewed standalone feedback form is missing')
     origin=subprocess.check_output(['git','-C',str(repo),'remote','get-url','origin'],text=True).strip()
     commit=subprocess.check_output(['git','-C',str(repo),'rev-parse','HEAD'],text=True).strip()
     if origin!='https://github.com/sun475300-sudo/swarm-drone-atc.git':
@@ -57,6 +70,7 @@ def make(args):
                     '/reference:System.Windows.Forms.dll','/reference:System.Web.Extensions.dll',
                     '/out:'+str(output/'ImperialWingsLauncher.exe'),str(ROOT/'Scripts'/'PortableLauncher.cs')],check=True)
     shutil.copy2(ROOT/'docs'/'PORTABLE_QUICK_START.ko.md',output/'START_HERE.ko.md')
+    feedback_form=bundle_feedback_form(feedback_source,output)
     shutil.copy2(ROOT/'THIRD_PARTY_NOTICES.md',output/'THIRD_PARTY_NOTICES.md')
     notices=output/'Licenses';notices.mkdir()
     shutil.copy2(repo/'LICENSE',notices/'swarm-drone-atc-MIT.txt')
@@ -74,10 +88,10 @@ def make(args):
     manifest=dict(version=identity['version'],build=identity,upstream=provenance,
                   platform='Windows x64',data_directory='%LOCALAPPDATA%/ImperialWingsSimulator/Saved',
                   prerequisites='Microsoft Visual C++ x64 14.44 or later; Windows 10/11 x64; DX12 SM6 GPU',
-                  portable_bridge=True,private_profiles_included=False)
+                  portable_bridge=True,private_profiles_included=False,feedback_form=feedback_form)
     (output/'release-manifest.json').write_text(json.dumps(manifest,indent=2),encoding='utf-8')
     files=sorted(p for p in output.rglob('*') if p.is_file())
-    if any(p.name=='RadioProfile.json' or 'Saved' in p.relative_to(output).parts for p in files):
+    if any(p.name.casefold() in {'radioprofile.json','pilotcontrols.json'} or 'Saved' in p.relative_to(output).parts for p in files):
         raise ValueError('Private/generated user data found in distribution')
     (output/'SHA256SUMS.txt').write_text(''.join(digest(p)+'  '+p.relative_to(output).as_posix()+'\n' for p in files),encoding='utf-8')
     archive=Path(str(output)+'.zip')

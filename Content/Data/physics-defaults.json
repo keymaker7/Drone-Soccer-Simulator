@@ -5,6 +5,7 @@
   "motor_response_s": 0.035,
   "battery_capacity_ah": 1.5,
   "battery_internal_resistance_ohm": 0.035,
+  "battery_maximum_current_a": 80.0,
   "drag_effective_cd_area_m2": 0.015,
   "sensor_latency_s": 0.005,
   "gyro_noise_rad_s": 0.0005,

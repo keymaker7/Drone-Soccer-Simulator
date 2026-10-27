@@ -2,6 +2,9 @@
 #include "ImperialUserData.h"
 #include "ImperialBuildInfo.h"
 #include "RadioProfileJson.h"
+#include "ManualThrottleResponse.h"
+#include "SoccerDronePawn.h"
+#include "EngineUtils.h"
 
 #include "Dom/JsonObject.h"
 #include "Engine/GameInstance.h"
@@ -93,6 +96,7 @@ void UImperialRadioSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     bInitialized = true;
     bEnabled = false;
     RefreshDevices();
+    LoadPilotControls();
     UE_LOG(LogTemp, Display, TEXT("IMPERIAL_RADIO_READY devices=%d mode=KEYBOARD native=WinMM"), Devices.Num());
 }
 
@@ -304,6 +308,81 @@ bool UImperialRadioSubsystem::IsCalibrated() const
 bool UImperialRadioSubsystem::IsEnabled() const
 {
     return bEnabled && IsCalibrated();
+}
+
+float UImperialRadioSubsystem::ApplyManualThrottle(float Input) const
+{
+    return static_cast<float>(ImperialInput::ManualThrottleResponse(Input, bPrecisionThrottle));
+}
+
+void UImperialRadioSubsystem::LoadPilotControls()
+{
+    bPrecisionThrottle = false;
+    const FString Path = ImperialUserData::Path(TEXT("Config/PilotControls.json"));
+    if (!IFileManager::Get().FileExists(*Path)) return;
+    TSharedPtr<FJsonObject> Root;
+    double Version = 0;
+    bool Precision = false;
+    bool Valid = ReadJsonFile(Path, Root) && ReadFinite(Root, TEXT("version"), Version) && Version == 1.0;
+    if (Valid)
+    {
+        const TSharedPtr<FJsonValue>* VersionField = Root->Values.Find(TEXT("version"));
+        const TSharedPtr<FJsonValue>* Field = Root->Values.Find(TEXT("precision_throttle"));
+        Valid = VersionField && VersionField->IsValid() && (*VersionField)->Type == EJson::Number &&
+            Field && Field->IsValid() && (*Field)->Type == EJson::Boolean && (*Field)->TryGetBool(Precision);
+    }
+    if (!Valid)
+    {
+        Status = TEXT("Pilot controls file invalid or unsupported. THROTTLE: DIRECT remains active.");
+        UE_LOG(LogTemp, Warning, TEXT("IMPERIAL_PILOT_CONTROLS_INVALID precision=0"));
+        return;
+    }
+    bPrecisionThrottle = Precision;
+    UE_LOG(LogTemp, Display, TEXT("IMPERIAL_PILOT_CONTROLS_LOADED precision=%d keyboard=1"), bPrecisionThrottle ? 1 : 0);
+}
+
+bool UImperialRadioSubsystem::SetPrecisionThrottleEnabled(bool bEnable)
+{
+    if (IsCalibrating())
+    {
+        Status = TEXT("Finish or cancel calibration before changing throttle response.");
+        return false;
+    }
+    if (UWorld* World = GetWorld())
+    {
+        for (TActorIterator<ASoccerDronePawn> It(World); It; ++It)
+        {
+            if (It->IsArmed() && !It->IsAutonomousEnabled())
+            {
+                Status = TEXT("DISARM every manually controlled aircraft before changing throttle response.");
+                return false;
+            }
+        }
+    }
+    auto Root = MakeShared<FJsonObject>();
+    Root->SetNumberField(TEXT("version"), 1);
+    Root->SetBoolField(TEXT("precision_throttle"), bEnable);
+    FString Json;
+    const FString Path = ImperialUserData::Path(TEXT("Config/PilotControls.json"));
+    const FString TempPath = Path + TEXT(".tmp");
+    IFileManager::Get().MakeDirectory(*FPaths::GetPath(Path), true);
+    const bool Saved = FJsonSerializer::Serialize(Root, TJsonWriterFactory<>::Create(&Json)) &&
+        FFileHelper::SaveStringToFile(Json, *TempPath, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM) &&
+        IFileManager::Get().Move(*Path, *TempPath, true, true, false, true);
+    if (!Saved)
+    {
+        Status = TEXT("Could not save pilot controls. Previous throttle response remains unchanged.");
+        return false;
+    }
+    // Commit only after the atomic file replacement succeeds. Never rewrite the
+    // device calibration file or reinterpret its raw input/low-throttle gate.
+    bPrecisionThrottle = bEnable;
+    bEnabled = false;
+    Status = bEnable
+        ? TEXT("Precision throttle saved: softer near 55% input; height stays manual. USB disabled; reconnect explicitly.")
+        : TEXT("Direct throttle saved. USB disabled; reconnect explicitly at low throttle.");
+    UE_LOG(LogTemp, Display, TEXT("IMPERIAL_PILOT_CONTROLS_SAVED precision=%d keyboard=1"), bEnable ? 1 : 0);
+    return true;
 }
 
 bool UImperialRadioSubsystem::SetStickMode(ImperialRadio::StickMode Mode)

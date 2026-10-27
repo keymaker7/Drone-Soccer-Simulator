@@ -1,0 +1,2327 @@
+{
+  "version": "0.7.4",
+  "build": {
+    "version": "0.7.4",
+    "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+    "source_dirty": true,
+    "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+    "build_utc": "2026-10-27T07:45:34Z",
+    "target": "ImperialWingsSimulator",
+    "platform": "Win64",
+    "configuration": "Shipping",
+    "input_count": 123
+  },
+  "standalone": {
+    "physics_checks": 122,
+    "radio_checks": 205,
+    "manual_throttle_checks": 29,
+    "scoring_checks": 101,
+    "failures": 0
+  },
+  "runtime": {
+    "evidence": "Saved/Verification/runtime-20261027-074635-632/results.json",
+    "result": [
+      {
+        "fixed_game_fps": 30,
+        "result": {
+          "ok": true,
+          "drones": 10,
+          "hover_error_cm": 3.297,
+          "hover_max_z_cm": 231.674,
+          "hover_min_z_cm": 219.909,
+          "floor_wall_contact": true,
+          "net_contact": true,
+          "net_peak_m": 0.05318,
+          "net_visible_peak_m": 0.05041,
+          "net_rebound_mps": 1.123,
+          "striker_physical_goal": true,
+          "blue_score": 1,
+          "csv_export": true,
+          "build": {
+            "version": "0.7.4",
+            "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+            "source_dirty": true,
+            "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+            "build_utc": "2026-10-27T07:45:34Z",
+            "target": "ImperialWingsSimulator"
+          },
+          "actual_min_game_dt_s": 0.03333333507180214,
+          "actual_max_game_dt_s": 0.03333333507180214,
+          "physics_defaults": {
+            "model": "STRIKER V3 reference-inspired, experimental coefficients",
+            "measured_airframe_data": false,
+            "motor_pwm_exponent": 2,
+            "motor_response_s": 0.035,
+            "battery_capacity_ah": 1.5,
+            "battery_internal_resistance_ohm": 0.035,
+            "battery_maximum_current_a": 80,
+            "drag_effective_cd_area_m2": 0.015,
+            "sensor_latency_s": 0.005,
+            "gyro_noise_rad_s": 0.0005,
+            "wake_coupling": 0.18,
+            "net_stiffness_n_per_m": 300,
+            "net_damping_ns_per_m": 22,
+            "guard_energy_capacity_j": 80,
+            "guard_damage_threshold_j": 0.6,
+            "goal_mass_kg": 12.5,
+            "goal_suspension_angular_damping": 1.4
+          }
+        }
+      },
+      {
+        "fixed_game_fps": 60,
+        "result": {
+          "ok": true,
+          "drones": 10,
+          "hover_error_cm": 3.15,
+          "hover_max_z_cm": 231.869,
+          "hover_min_z_cm": 219.915,
+          "floor_wall_contact": true,
+          "net_contact": true,
+          "net_peak_m": 0.06753,
+          "net_visible_peak_m": 0.0646,
+          "net_rebound_mps": 1.0562,
+          "striker_physical_goal": true,
+          "blue_score": 1,
+          "csv_export": true,
+          "build": {
+            "version": "0.7.4",
+            "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+            "source_dirty": true,
+            "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+            "build_utc": "2026-10-27T07:45:34Z",
+            "target": "ImperialWingsSimulator"
+          },
+          "actual_min_game_dt_s": 0.01666666753590107,
+          "actual_max_game_dt_s": 0.01666666753590107,
+          "physics_defaults": {
+            "model": "STRIKER V3 reference-inspired, experimental coefficients",
+            "measured_airframe_data": false,
+            "motor_pwm_exponent": 2,
+            "motor_response_s": 0.035,
+            "battery_capacity_ah": 1.5,
+            "battery_internal_resistance_ohm": 0.035,
+            "battery_maximum_current_a": 80,
+            "drag_effective_cd_area_m2": 0.015,
+            "sensor_latency_s": 0.005,
+            "gyro_noise_rad_s": 0.0005,
+            "wake_coupling": 0.18,
+            "net_stiffness_n_per_m": 300,
+            "net_damping_ns_per_m": 22,
+            "guard_energy_capacity_j": 80,
+            "guard_damage_threshold_j": 0.6,
+            "goal_mass_kg": 12.5,
+            "goal_suspension_angular_damping": 1.4
+          }
+        }
+      },
+      {
+        "fixed_game_fps": 120,
+        "result": {
+          "ok": true,
+          "drones": 10,
+          "hover_error_cm": 2.988,
+          "hover_max_z_cm": 231.982,
+          "hover_min_z_cm": 219.921,
+          "floor_wall_contact": true,
+          "net_contact": true,
+          "net_peak_m": 0.075,
+          "net_visible_peak_m": 0.07437,
+          "net_rebound_mps": 1.0764,
+          "striker_physical_goal": true,
+          "blue_score": 1,
+          "csv_export": true,
+          "build": {
+            "version": "0.7.4",
+            "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+            "source_dirty": true,
+            "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+            "build_utc": "2026-10-27T07:45:34Z",
+            "target": "ImperialWingsSimulator"
+          },
+          "actual_min_game_dt_s": 0.008333333767950535,
+          "actual_max_game_dt_s": 0.008333333767950535,
+          "physics_defaults": {
+            "model": "STRIKER V3 reference-inspired, experimental coefficients",
+            "measured_airframe_data": false,
+            "motor_pwm_exponent": 2,
+            "motor_response_s": 0.035,
+            "battery_capacity_ah": 1.5,
+            "battery_internal_resistance_ohm": 0.035,
+            "battery_maximum_current_a": 80,
+            "drag_effective_cd_area_m2": 0.015,
+            "sensor_latency_s": 0.005,
+            "gyro_noise_rad_s": 0.0005,
+            "wake_coupling": 0.18,
+            "net_stiffness_n_per_m": 300,
+            "net_damping_ns_per_m": 22,
+            "guard_energy_capacity_j": 80,
+            "guard_damage_threshold_j": 0.6,
+            "goal_mass_kg": 12.5,
+            "goal_suspension_angular_damping": 1.4
+          }
+        }
+      }
+    ]
+  },
+  "angle": {
+    "evidence": "Saved/Verification/angle-20261027-074648-727/results.json",
+    "result": [
+      {
+        "fixed_game_fps": 20,
+        "exit_code": 0,
+        "result": {
+          "ok": true,
+          "drones": 10,
+          "initial_self_level": true,
+          "stick_tilt_peak_deg": 17.399646759033203,
+          "overall_tilt_peak_deg": 24.81421661376953,
+          "released_worst_tilt_deg": 0.07321560382843018,
+          "released_self_level": true,
+          "input_source": "explicit non-USB verification fixture; vertical compensation isolates angle control",
+          "build": {
+            "version": "0.7.4",
+            "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+            "source_dirty": true,
+            "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+            "build_utc": "2026-10-27T07:45:34Z",
+            "target": "ImperialWingsSimulator"
+          },
+          "actual_min_game_dt_s": 0.05000000074505806,
+          "actual_max_game_dt_s": 0.05000000074505806,
+          "physics_defaults": {
+            "model": "STRIKER V3 reference-inspired, experimental coefficients",
+            "measured_airframe_data": false,
+            "motor_pwm_exponent": 2,
+            "motor_response_s": 0.035,
+            "battery_capacity_ah": 1.5,
+            "battery_internal_resistance_ohm": 0.035,
+            "battery_maximum_current_a": 80,
+            "drag_effective_cd_area_m2": 0.015,
+            "sensor_latency_s": 0.005,
+            "gyro_noise_rad_s": 0.0005,
+            "wake_coupling": 0.18,
+            "net_stiffness_n_per_m": 300,
+            "net_damping_ns_per_m": 22,
+            "guard_energy_capacity_j": 80,
+            "guard_damage_threshold_j": 0.6,
+            "goal_mass_kg": 12.5,
+            "goal_suspension_angular_damping": 1.4
+          }
+        }
+      },
+      {
+        "fixed_game_fps": 30,
+        "exit_code": 0,
+        "result": {
+          "ok": true,
+          "drones": 10,
+          "initial_self_level": true,
+          "stick_tilt_peak_deg": 17.127422332763672,
+          "overall_tilt_peak_deg": 24.81421661376953,
+          "released_worst_tilt_deg": 0.06339026987552643,
+          "released_self_level": true,
+          "input_source": "explicit non-USB verification fixture; vertical compensation isolates angle control",
+          "build": {
+            "version": "0.7.4",
+            "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+            "source_dirty": true,
+            "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+            "build_utc": "2026-10-27T07:45:34Z",
+            "target": "ImperialWingsSimulator"
+          },
+          "actual_min_game_dt_s": 0.03333333507180214,
+          "actual_max_game_dt_s": 0.03333333507180214,
+          "physics_defaults": {
+            "model": "STRIKER V3 reference-inspired, experimental coefficients",
+            "measured_airframe_data": false,
+            "motor_pwm_exponent": 2,
+            "motor_response_s": 0.035,
+            "battery_capacity_ah": 1.5,
+            "battery_internal_resistance_ohm": 0.035,
+            "battery_maximum_current_a": 80,
+            "drag_effective_cd_area_m2": 0.015,
+            "sensor_latency_s": 0.005,
+            "gyro_noise_rad_s": 0.0005,
+            "wake_coupling": 0.18,
+            "net_stiffness_n_per_m": 300,
+            "net_damping_ns_per_m": 22,
+            "guard_energy_capacity_j": 80,
+            "guard_damage_threshold_j": 0.6,
+            "goal_mass_kg": 12.5,
+            "goal_suspension_angular_damping": 1.4
+          }
+        }
+      },
+      {
+        "fixed_game_fps": 60,
+        "exit_code": 0,
+        "result": {
+          "ok": true,
+          "drones": 10,
+          "initial_self_level": true,
+          "stick_tilt_peak_deg": 17.58135986328125,
+          "overall_tilt_peak_deg": 24.81421661376953,
+          "released_worst_tilt_deg": 0.08896256983280182,
+          "released_self_level": true,
+          "input_source": "explicit non-USB verification fixture; vertical compensation isolates angle control",
+          "build": {
+            "version": "0.7.4",
+            "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+            "source_dirty": true,
+            "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+            "build_utc": "2026-10-27T07:45:34Z",
+            "target": "ImperialWingsSimulator"
+          },
+          "actual_min_game_dt_s": 0.01666666753590107,
+          "actual_max_game_dt_s": 0.01666666753590107,
+          "physics_defaults": {
+            "model": "STRIKER V3 reference-inspired, experimental coefficients",
+            "measured_airframe_data": false,
+            "motor_pwm_exponent": 2,
+            "motor_response_s": 0.035,
+            "battery_capacity_ah": 1.5,
+            "battery_internal_resistance_ohm": 0.035,
+            "battery_maximum_current_a": 80,
+            "drag_effective_cd_area_m2": 0.015,
+            "sensor_latency_s": 0.005,
+            "gyro_noise_rad_s": 0.0005,
+            "wake_coupling": 0.18,
+            "net_stiffness_n_per_m": 300,
+            "net_damping_ns_per_m": 22,
+            "guard_energy_capacity_j": 80,
+            "guard_damage_threshold_j": 0.6,
+            "goal_mass_kg": 12.5,
+            "goal_suspension_angular_damping": 1.4
+          }
+        }
+      },
+      {
+        "fixed_game_fps": 120,
+        "exit_code": 0,
+        "result": {
+          "ok": true,
+          "drones": 10,
+          "initial_self_level": true,
+          "stick_tilt_peak_deg": 17.842426300048828,
+          "overall_tilt_peak_deg": 24.81421661376953,
+          "released_worst_tilt_deg": 0.08234172314405441,
+          "released_self_level": true,
+          "input_source": "explicit non-USB verification fixture; vertical compensation isolates angle control",
+          "build": {
+            "version": "0.7.4",
+            "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+            "source_dirty": true,
+            "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+            "build_utc": "2026-10-27T07:45:34Z",
+            "target": "ImperialWingsSimulator"
+          },
+          "actual_min_game_dt_s": 0.008333333767950535,
+          "actual_max_game_dt_s": 0.008333333767950535,
+          "physics_defaults": {
+            "model": "STRIKER V3 reference-inspired, experimental coefficients",
+            "measured_airframe_data": false,
+            "motor_pwm_exponent": 2,
+            "motor_response_s": 0.035,
+            "battery_capacity_ah": 1.5,
+            "battery_internal_resistance_ohm": 0.035,
+            "battery_maximum_current_a": 80,
+            "drag_effective_cd_area_m2": 0.015,
+            "sensor_latency_s": 0.005,
+            "gyro_noise_rad_s": 0.0005,
+            "wake_coupling": 0.18,
+            "net_stiffness_n_per_m": 300,
+            "net_damping_ns_per_m": 22,
+            "guard_energy_capacity_j": 80,
+            "guard_damage_threshold_j": 0.6,
+            "goal_mass_kg": 12.5,
+            "goal_suspension_angular_damping": 1.4
+          }
+        }
+      },
+      {
+        "fixed_game_fps": 240,
+        "exit_code": 0,
+        "result": {
+          "ok": true,
+          "drones": 10,
+          "initial_self_level": true,
+          "stick_tilt_peak_deg": 17.85768699645996,
+          "overall_tilt_peak_deg": 24.81421661376953,
+          "released_worst_tilt_deg": 0.16653606295585632,
+          "released_self_level": true,
+          "input_source": "explicit non-USB verification fixture; vertical compensation isolates angle control",
+          "build": {
+            "version": "0.7.4",
+            "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+            "source_dirty": true,
+            "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+            "build_utc": "2026-10-27T07:45:34Z",
+            "target": "ImperialWingsSimulator"
+          },
+          "actual_min_game_dt_s": 0.004166666883975267,
+          "actual_max_game_dt_s": 0.004166666883975267,
+          "physics_defaults": {
+            "model": "STRIKER V3 reference-inspired, experimental coefficients",
+            "measured_airframe_data": false,
+            "motor_pwm_exponent": 2,
+            "motor_response_s": 0.035,
+            "battery_capacity_ah": 1.5,
+            "battery_internal_resistance_ohm": 0.035,
+            "battery_maximum_current_a": 80,
+            "drag_effective_cd_area_m2": 0.015,
+            "sensor_latency_s": 0.005,
+            "gyro_noise_rad_s": 0.0005,
+            "wake_coupling": 0.18,
+            "net_stiffness_n_per_m": 300,
+            "net_damping_ns_per_m": 22,
+            "guard_energy_capacity_j": 80,
+            "guard_damage_threshold_j": 0.6,
+            "goal_mass_kg": 12.5,
+            "goal_suspension_angular_damping": 1.4
+          }
+        }
+      }
+    ]
+  },
+  "power": [
+    {
+      "evidence": "Saved/Verification/power-20261027-074635-669-9d1fe35b/result.json",
+      "result": {
+        "ok": true,
+        "scenarios": [
+          {
+            "scenario": "full_throttle_80A",
+            "ok": true,
+            "samples": 16,
+            "maximum_current_a": 80,
+            "model_seconds": 0.800000011920929,
+            "maximum_motor_power_excess_w": 0,
+            "maximum_thrust_n": 22.802017211914062,
+            "maximum_available_power_excess_w": 3.76078965018678e-05,
+            "maximum_altitude_m": 4.493556499481201,
+            "power_limited_observed": true
+          },
+          {
+            "scenario": "full_throttle_10A",
+            "ok": true,
+            "samples": 16,
+            "maximum_current_a": 10,
+            "model_seconds": 0.800000011920929,
+            "maximum_motor_power_excess_w": 0,
+            "maximum_thrust_n": 6.235935211181641,
+            "maximum_available_power_excess_w": 4.97610301408713e-06,
+            "maximum_altitude_m": 0.9959018230438232,
+            "power_limited_observed": true
+          },
+          {
+            "scenario": "zero_current_supply",
+            "ok": true,
+            "samples": 16,
+            "maximum_current_a": 0,
+            "model_seconds": 0.800000011920929,
+            "maximum_motor_power_excess_w": 0,
+            "maximum_thrust_n": 0,
+            "maximum_available_power_excess_w": 0,
+            "maximum_altitude_m": 0.9860119819641113,
+            "power_limited_observed": true
+          },
+          {
+            "scenario": "avionics_brownout",
+            "ok": true,
+            "samples": 16,
+            "maximum_current_a": 0.1,
+            "model_seconds": 0.800000011920929,
+            "maximum_motor_power_excess_w": 0,
+            "maximum_thrust_n": 0,
+            "maximum_available_power_excess_w": 0,
+            "maximum_altitude_m": 0.9860119819641113,
+            "power_limited_observed": true
+          },
+          {
+            "scenario": "empty_battery",
+            "ok": true,
+            "samples": 16,
+            "maximum_current_a": 0,
+            "model_seconds": 0.800000011920929,
+            "maximum_motor_power_excess_w": 0,
+            "maximum_thrust_n": 0,
+            "maximum_available_power_excess_w": 0,
+            "maximum_altitude_m": 0.9860119819641113,
+            "power_limited_observed": false
+          },
+          {
+            "scenario": "moderate_throttle",
+            "ok": true,
+            "samples": 16,
+            "maximum_current_a": 11.337277757014315,
+            "model_seconds": 0.800000011920929,
+            "maximum_motor_power_excess_w": 0,
+            "maximum_thrust_n": 6.7832207679748535,
+            "maximum_available_power_excess_w": 4.430992703419179e-06,
+            "maximum_altitude_m": 0.9945939183235168,
+            "power_limited_observed": false
+          }
+        ],
+        "build": {
+          "version": "0.7.4",
+          "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+          "source_dirty": true,
+          "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+          "build_utc": "2026-10-27T07:45:34Z",
+          "target": "ImperialWingsSimulator"
+        },
+        "actual_min_game_dt_s": 0.05000000074505806,
+        "actual_max_game_dt_s": 0.05000000074505806,
+        "scope": "explicit synthetic non-USB throttle fixture; actual Chaos body/force path; experimental electrical model, not measured aircraft power"
+      }
+    },
+    {
+      "evidence": "Saved/Verification/power-20261027-074654-865-3fe497f5/result.json",
+      "result": {
+        "ok": true,
+        "scenarios": [
+          {
+            "scenario": "full_throttle_80A",
+            "ok": true,
+            "samples": 48,
+            "maximum_current_a": 80,
+            "model_seconds": 0.8000000417232513,
+            "maximum_motor_power_excess_w": 0,
+            "maximum_thrust_n": 22.800556182861328,
+            "maximum_available_power_excess_w": 3.343857133586425e-05,
+            "maximum_altitude_m": 4.493001937866211,
+            "power_limited_observed": true
+          },
+          {
+            "scenario": "full_throttle_10A",
+            "ok": true,
+            "samples": 48,
+            "maximum_current_a": 10,
+            "model_seconds": 0.8000000417232513,
+            "maximum_motor_power_excess_w": 0,
+            "maximum_thrust_n": 6.235935211181641,
+            "maximum_available_power_excess_w": 7.099629414142328e-06,
+            "maximum_altitude_m": 0.9994685053825378,
+            "power_limited_observed": true
+          },
+          {
+            "scenario": "zero_current_supply",
+            "ok": true,
+            "samples": 48,
+            "maximum_current_a": 0,
+            "model_seconds": 0.8000000417232513,
+            "maximum_motor_power_excess_w": 0,
+            "maximum_thrust_n": 0,
+            "maximum_available_power_excess_w": 0,
+            "maximum_altitude_m": 0.9981858730316162,
+            "power_limited_observed": true
+          },
+          {
+            "scenario": "avionics_brownout",
+            "ok": true,
+            "samples": 48,
+            "maximum_current_a": 0.1,
+            "model_seconds": 0.8000000417232513,
+            "maximum_motor_power_excess_w": 0,
+            "maximum_thrust_n": 0,
+            "maximum_available_power_excess_w": 0,
+            "maximum_altitude_m": 0.9981858730316162,
+            "power_limited_observed": true
+          },
+          {
+            "scenario": "empty_battery",
+            "ok": true,
+            "samples": 48,
+            "maximum_current_a": 0,
+            "model_seconds": 0.8000000417232513,
+            "maximum_motor_power_excess_w": 0,
+            "maximum_thrust_n": 0,
+            "maximum_available_power_excess_w": 0,
+            "maximum_altitude_m": 0.9981858730316162,
+            "power_limited_observed": false
+          },
+          {
+            "scenario": "moderate_throttle",
+            "ok": true,
+            "samples": 48,
+            "maximum_current_a": 11.336629310507412,
+            "model_seconds": 0.8000000417232513,
+            "maximum_motor_power_excess_w": 0,
+            "maximum_thrust_n": 6.782886028289795,
+            "maximum_available_power_excess_w": 5.1820709074945626e-06,
+            "maximum_altitude_m": 0.9987404346466064,
+            "power_limited_observed": false
+          }
+        ],
+        "build": {
+          "version": "0.7.4",
+          "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+          "source_dirty": true,
+          "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+          "build_utc": "2026-10-27T07:45:34Z",
+          "target": "ImperialWingsSimulator"
+        },
+        "actual_min_game_dt_s": 0.01666666753590107,
+        "actual_max_game_dt_s": 0.01666666753590107,
+        "scope": "explicit synthetic non-USB throttle fixture; actual Chaos body/force path; experimental electrical model, not measured aircraft power"
+      }
+    },
+    {
+      "evidence": "Saved/Verification/power-20261027-074706-843-20c4ef3b/result.json",
+      "result": {
+        "ok": true,
+        "scenarios": [
+          {
+            "scenario": "full_throttle_80A",
+            "ok": true,
+            "samples": 192,
+            "maximum_current_a": 80,
+            "model_seconds": 0.8000000417232513,
+            "maximum_motor_power_excess_w": 0,
+            "maximum_thrust_n": 22.800790786743164,
+            "maximum_available_power_excess_w": 4.838098061554774e-05,
+            "maximum_altitude_m": 4.5,
+            "power_limited_observed": true
+          },
+          {
+            "scenario": "full_throttle_10A",
+            "ok": true,
+            "samples": 192,
+            "maximum_current_a": 10,
+            "model_seconds": 0.8000000417232513,
+            "maximum_motor_power_excess_w": 0,
+            "maximum_thrust_n": 6.235930919647217,
+            "maximum_available_power_excess_w": 6.272589502032133e-06,
+            "maximum_altitude_m": 0.9999191164970398,
+            "power_limited_observed": true
+          },
+          {
+            "scenario": "zero_current_supply",
+            "ok": true,
+            "samples": 192,
+            "maximum_current_a": 0,
+            "model_seconds": 0.8000000417232513,
+            "maximum_motor_power_excess_w": 0,
+            "maximum_thrust_n": 0,
+            "maximum_available_power_excess_w": 0,
+            "maximum_altitude_m": 0.999829888343811,
+            "power_limited_observed": true
+          },
+          {
+            "scenario": "avionics_brownout",
+            "ok": true,
+            "samples": 192,
+            "maximum_current_a": 0.1,
+            "model_seconds": 0.8000000417232513,
+            "maximum_motor_power_excess_w": 0,
+            "maximum_thrust_n": 0,
+            "maximum_available_power_excess_w": 0,
+            "maximum_altitude_m": 0.999829888343811,
+            "power_limited_observed": true
+          },
+          {
+            "scenario": "empty_battery",
+            "ok": true,
+            "samples": 192,
+            "maximum_current_a": 0,
+            "model_seconds": 0.8000000417232513,
+            "maximum_motor_power_excess_w": 0,
+            "maximum_thrust_n": 0,
+            "maximum_available_power_excess_w": 0,
+            "maximum_altitude_m": 0.999829888343811,
+            "power_limited_observed": false
+          },
+          {
+            "scenario": "moderate_throttle",
+            "ok": true,
+            "samples": 192,
+            "maximum_current_a": 11.336422463192898,
+            "model_seconds": 0.8000000417232513,
+            "maximum_motor_power_excess_w": 0,
+            "maximum_thrust_n": 6.782781600952148,
+            "maximum_available_power_excess_w": 7.179650481248245e-06,
+            "maximum_altitude_m": 0.9998452663421631,
+            "power_limited_observed": false
+          }
+        ],
+        "build": {
+          "version": "0.7.4",
+          "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+          "source_dirty": true,
+          "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+          "build_utc": "2026-10-27T07:45:34Z",
+          "target": "ImperialWingsSimulator"
+        },
+        "actual_min_game_dt_s": 0.004166666883975267,
+        "actual_max_game_dt_s": 0.004166666883975267,
+        "scope": "explicit synthetic non-USB throttle fixture; actual Chaos body/force path; experimental electrical model, not measured aircraft power"
+      }
+    },
+    {
+      "evidence": "Saved/Verification/power-20261027-074819-296-8c9c8932/result.json",
+      "result": {
+        "ok": true,
+        "scenarios": [
+          {
+            "scenario": "full_throttle_80A",
+            "ok": true,
+            "samples": 48,
+            "maximum_current_a": 80,
+            "model_seconds": 0.8000000417232513,
+            "maximum_motor_power_excess_w": 0,
+            "maximum_thrust_n": 22.800556182861328,
+            "maximum_available_power_excess_w": 3.343857133586425e-05,
+            "maximum_altitude_m": 4.493001937866211,
+            "power_limited_observed": true
+          },
+          {
+            "scenario": "full_throttle_10A",
+            "ok": true,
+            "samples": 48,
+            "maximum_current_a": 10,
+            "model_seconds": 0.8000000417232513,
+            "maximum_motor_power_excess_w": 0,
+            "maximum_thrust_n": 6.235935211181641,
+            "maximum_available_power_excess_w": 7.099629414142328e-06,
+            "maximum_altitude_m": 0.9994685053825378,
+            "power_limited_observed": true
+          },
+          {
+            "scenario": "zero_current_supply",
+            "ok": true,
+            "samples": 48,
+            "maximum_current_a": 0,
+            "model_seconds": 0.8000000417232513,
+            "maximum_motor_power_excess_w": 0,
+            "maximum_thrust_n": 0,
+            "maximum_available_power_excess_w": 0,
+            "maximum_altitude_m": 0.9981858730316162,
+            "power_limited_observed": true
+          },
+          {
+            "scenario": "avionics_brownout",
+            "ok": true,
+            "samples": 48,
+            "maximum_current_a": 0.1,
+            "model_seconds": 0.8000000417232513,
+            "maximum_motor_power_excess_w": 0,
+            "maximum_thrust_n": 0,
+            "maximum_available_power_excess_w": 0,
+            "maximum_altitude_m": 0.9981858730316162,
+            "power_limited_observed": true
+          },
+          {
+            "scenario": "empty_battery",
+            "ok": true,
+            "samples": 48,
+            "maximum_current_a": 0,
+            "model_seconds": 0.8000000417232513,
+            "maximum_motor_power_excess_w": 0,
+            "maximum_thrust_n": 0,
+            "maximum_available_power_excess_w": 0,
+            "maximum_altitude_m": 0.9981858730316162,
+            "power_limited_observed": false
+          },
+          {
+            "scenario": "moderate_throttle",
+            "ok": true,
+            "samples": 48,
+            "maximum_current_a": 11.336629310507412,
+            "model_seconds": 0.8000000417232513,
+            "maximum_motor_power_excess_w": 0,
+            "maximum_thrust_n": 6.782886028289795,
+            "maximum_available_power_excess_w": 5.1820709074945626e-06,
+            "maximum_altitude_m": 0.9987404346466064,
+            "power_limited_observed": false
+          }
+        ],
+        "build": {
+          "version": "0.7.4",
+          "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+          "source_dirty": true,
+          "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+          "build_utc": "2026-10-27T07:45:34Z",
+          "target": "ImperialWingsSimulator"
+        },
+        "actual_min_game_dt_s": 0.01666666753590107,
+        "actual_max_game_dt_s": 0.01666666753590107,
+        "scope": "explicit synthetic non-USB throttle fixture; actual Chaos body/force path; experimental electrical model, not measured aircraft power"
+      }
+    }
+  ],
+  "throttle": [
+    {
+      "evidence": "Saved/Verification/throttle-response-20261027-074645-689-c53f1615/results.json",
+      "frame_rate": 20,
+      "runs": [
+        {
+          "phase": "default",
+          "result": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "cold launch remains keyboard and disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "new user defaults to direct throttle",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "HUD precision button saves enabled setting",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "preference does not create USB calibration",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "precision keeps zero and full endpoints",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "armed manual aircraft blocks curve change",
+                "ok": true,
+                "value": 0
+              }
+            ],
+            "reloaded": false,
+            "build": {
+              "version": "0.7.4",
+              "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+              "source_dirty": true,
+              "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+              "build_utc": "2026-10-27T07:45:34Z",
+              "target": "ImperialWingsSimulator"
+            },
+            "actual_min_game_dt_s": 0.05000000074505806,
+            "actual_max_game_dt_s": 0.05000000074505806,
+            "scope": "isolated saved control preference and explicit non-USB raw throttle fixture through actual Chaos motor forces; no altitude hold or physical-controller calibration"
+          }
+        },
+        {
+          "phase": "reload",
+          "result": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "cold launch remains keyboard and disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "precision restored in a second process",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "curve change succeeds only while disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero raw throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle remains unmodified",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual force command follows selected curve",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "motor force remains within battery power",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "curve change succeeds only while disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero raw throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle remains unmodified",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual force command follows selected curve",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "motor force remains within battery power",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "curve change succeeds only while disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero raw throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle remains unmodified",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual force command follows selected curve",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "motor force remains within battery power",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "curve change succeeds only while disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero raw throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle remains unmodified",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual force command follows selected curve",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "motor force remains within battery power",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "curve change succeeds only while disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero raw throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle remains unmodified",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual force command follows selected curve",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "motor force remains within battery power",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "curve change succeeds only while disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero raw throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle remains unmodified",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual force command follows selected curve",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "motor force remains within battery power",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "precision reduces actual thrust change around the chosen middle",
+                "ok": true,
+                "value": 0.6501880694167596
+              },
+              {
+                "check": "precision preserves actual full-throttle output",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "high raw throttle still blocks ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "native radio never enabled by curve preference",
+                "ok": true,
+                "value": 0
+              }
+            ],
+            "reloaded": true,
+            "build": {
+              "version": "0.7.4",
+              "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+              "source_dirty": true,
+              "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+              "build_utc": "2026-10-27T07:45:34Z",
+              "target": "ImperialWingsSimulator"
+            },
+            "actual_min_game_dt_s": 0.05000000074505806,
+            "actual_max_game_dt_s": 0.05000000074505806,
+            "scope": "isolated saved control preference and explicit non-USB raw throttle fixture through actual Chaos motor forces; no altitude hold or physical-controller calibration"
+          }
+        }
+      ],
+      "telemetry": {
+        "file": "Saved/Verification/throttle-response-20261027-074645-689-c53f1615/userdata/FlightLogs/20261027-074648-1D5C9DEE45B53D00DA4D99BC87643E03.jsonl",
+        "records": 84,
+        "armed_fixture_samples": 82,
+        "covered_scenarios": 6
+      }
+    },
+    {
+      "evidence": "Saved/Verification/throttle-response-20261027-074657-710-d0ad4953/results.json",
+      "frame_rate": 60,
+      "runs": [
+        {
+          "phase": "default",
+          "result": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "cold launch remains keyboard and disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "new user defaults to direct throttle",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "HUD precision button saves enabled setting",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "preference does not create USB calibration",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "precision keeps zero and full endpoints",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "armed manual aircraft blocks curve change",
+                "ok": true,
+                "value": 0
+              }
+            ],
+            "reloaded": false,
+            "build": {
+              "version": "0.7.4",
+              "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+              "source_dirty": true,
+              "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+              "build_utc": "2026-10-27T07:45:34Z",
+              "target": "ImperialWingsSimulator"
+            },
+            "actual_min_game_dt_s": 0.01666666753590107,
+            "actual_max_game_dt_s": 0.01666666753590107,
+            "scope": "isolated saved control preference and explicit non-USB raw throttle fixture through actual Chaos motor forces; no altitude hold or physical-controller calibration"
+          }
+        },
+        {
+          "phase": "reload",
+          "result": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "cold launch remains keyboard and disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "precision restored in a second process",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "curve change succeeds only while disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero raw throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle remains unmodified",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual force command follows selected curve",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "motor force remains within battery power",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "curve change succeeds only while disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero raw throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle remains unmodified",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual force command follows selected curve",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "motor force remains within battery power",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "curve change succeeds only while disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero raw throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle remains unmodified",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual force command follows selected curve",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "motor force remains within battery power",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "curve change succeeds only while disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero raw throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle remains unmodified",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual force command follows selected curve",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "motor force remains within battery power",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "curve change succeeds only while disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero raw throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle remains unmodified",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual force command follows selected curve",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "motor force remains within battery power",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "curve change succeeds only while disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero raw throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle remains unmodified",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual force command follows selected curve",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "motor force remains within battery power",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "precision reduces actual thrust change around the chosen middle",
+                "ok": true,
+                "value": 0.650187533789872
+              },
+              {
+                "check": "precision preserves actual full-throttle output",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "high raw throttle still blocks ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "native radio never enabled by curve preference",
+                "ok": true,
+                "value": 0
+              }
+            ],
+            "reloaded": true,
+            "build": {
+              "version": "0.7.4",
+              "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+              "source_dirty": true,
+              "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+              "build_utc": "2026-10-27T07:45:34Z",
+              "target": "ImperialWingsSimulator"
+            },
+            "actual_min_game_dt_s": 0.01666666753590107,
+            "actual_max_game_dt_s": 0.01666666753590107,
+            "scope": "isolated saved control preference and explicit non-USB raw throttle fixture through actual Chaos motor forces; no altitude hold or physical-controller calibration"
+          }
+        }
+      ],
+      "telemetry": {
+        "file": "Saved/Verification/throttle-response-20261027-074657-710-d0ad4953/userdata/FlightLogs/20261027-074700-0AD1514B4E388065E08AEFA4D36B5885.jsonl",
+        "records": 84,
+        "armed_fixture_samples": 82,
+        "covered_scenarios": 6
+      }
+    },
+    {
+      "evidence": "Saved/Verification/throttle-response-20261027-074710-104-20073728/results.json",
+      "frame_rate": 240,
+      "runs": [
+        {
+          "phase": "default",
+          "result": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "cold launch remains keyboard and disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "new user defaults to direct throttle",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "HUD precision button saves enabled setting",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "preference does not create USB calibration",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "precision keeps zero and full endpoints",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "armed manual aircraft blocks curve change",
+                "ok": true,
+                "value": 0
+              }
+            ],
+            "reloaded": false,
+            "build": {
+              "version": "0.7.4",
+              "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+              "source_dirty": true,
+              "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+              "build_utc": "2026-10-27T07:45:34Z",
+              "target": "ImperialWingsSimulator"
+            },
+            "actual_min_game_dt_s": 0.004166666883975267,
+            "actual_max_game_dt_s": 0.004166666883975267,
+            "scope": "isolated saved control preference and explicit non-USB raw throttle fixture through actual Chaos motor forces; no altitude hold or physical-controller calibration"
+          }
+        },
+        {
+          "phase": "reload",
+          "result": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "cold launch remains keyboard and disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "precision restored in a second process",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "curve change succeeds only while disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero raw throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle remains unmodified",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual force command follows selected curve",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "motor force remains within battery power",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "curve change succeeds only while disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero raw throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle remains unmodified",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual force command follows selected curve",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "motor force remains within battery power",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "curve change succeeds only while disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero raw throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle remains unmodified",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual force command follows selected curve",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "motor force remains within battery power",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "curve change succeeds only while disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero raw throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle remains unmodified",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual force command follows selected curve",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "motor force remains within battery power",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "curve change succeeds only while disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero raw throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle remains unmodified",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual force command follows selected curve",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "motor force remains within battery power",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "curve change succeeds only while disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero raw throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle remains unmodified",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual force command follows selected curve",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "motor force remains within battery power",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "precision reduces actual thrust change around the chosen middle",
+                "ok": true,
+                "value": 0.6501862755864936
+              },
+              {
+                "check": "precision preserves actual full-throttle output",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "high raw throttle still blocks ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "native radio never enabled by curve preference",
+                "ok": true,
+                "value": 0
+              }
+            ],
+            "reloaded": true,
+            "build": {
+              "version": "0.7.4",
+              "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+              "source_dirty": true,
+              "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+              "build_utc": "2026-10-27T07:45:34Z",
+              "target": "ImperialWingsSimulator"
+            },
+            "actual_min_game_dt_s": 0.004166666883975267,
+            "actual_max_game_dt_s": 0.004166666883975267,
+            "scope": "isolated saved control preference and explicit non-USB raw throttle fixture through actual Chaos motor forces; no altitude hold or physical-controller calibration"
+          }
+        }
+      ],
+      "telemetry": {
+        "file": "Saved/Verification/throttle-response-20261027-074710-104-20073728/userdata/FlightLogs/20261027-074713-1740C6654B01BDCAA44245A5E5D040E4.jsonl",
+        "records": 97,
+        "armed_fixture_samples": 95,
+        "covered_scenarios": 6
+      }
+    },
+    {
+      "evidence": "Saved/Verification/throttle-response-20261027-074810-016-a64471f8/results.json",
+      "frame_rate": 60,
+      "runs": [
+        {
+          "phase": "default",
+          "result": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "cold launch remains keyboard and disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "new user defaults to direct throttle",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "HUD precision button saves enabled setting",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "preference does not create USB calibration",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "precision keeps zero and full endpoints",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "armed manual aircraft blocks curve change",
+                "ok": true,
+                "value": 0
+              }
+            ],
+            "reloaded": false,
+            "build": {
+              "version": "0.7.4",
+              "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+              "source_dirty": true,
+              "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+              "build_utc": "2026-10-27T07:45:34Z",
+              "target": "ImperialWingsSimulator"
+            },
+            "actual_min_game_dt_s": 0.01666666753590107,
+            "actual_max_game_dt_s": 0.01666666753590107,
+            "scope": "isolated saved control preference and explicit non-USB raw throttle fixture through actual Chaos motor forces; no altitude hold or physical-controller calibration"
+          }
+        },
+        {
+          "phase": "reload",
+          "result": {
+            "ok": true,
+            "checks": [
+              {
+                "check": "cold launch remains keyboard and disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "precision restored in a second process",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "curve change succeeds only while disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero raw throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle remains unmodified",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual force command follows selected curve",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "motor force remains within battery power",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "curve change succeeds only while disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero raw throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle remains unmodified",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual force command follows selected curve",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "motor force remains within battery power",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "curve change succeeds only while disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero raw throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle remains unmodified",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual force command follows selected curve",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "motor force remains within battery power",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "curve change succeeds only while disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero raw throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle remains unmodified",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual force command follows selected curve",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "motor force remains within battery power",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "curve change succeeds only while disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero raw throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle remains unmodified",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual force command follows selected curve",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "motor force remains within battery power",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "curve change succeeds only while disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero raw throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle remains unmodified",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual force command follows selected curve",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "motor force remains within battery power",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "precision reduces actual thrust change around the chosen middle",
+                "ok": true,
+                "value": 0.650187533789872
+              },
+              {
+                "check": "precision preserves actual full-throttle output",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "high raw throttle still blocks ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "native radio never enabled by curve preference",
+                "ok": true,
+                "value": 0
+              }
+            ],
+            "reloaded": true,
+            "build": {
+              "version": "0.7.4",
+              "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+              "source_dirty": true,
+              "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+              "build_utc": "2026-10-27T07:45:34Z",
+              "target": "ImperialWingsSimulator"
+            },
+            "actual_min_game_dt_s": 0.01666666753590107,
+            "actual_max_game_dt_s": 0.01666666753590107,
+            "scope": "isolated saved control preference and explicit non-USB raw throttle fixture through actual Chaos motor forces; no altitude hold or physical-controller calibration"
+          }
+        }
+      ],
+      "telemetry": {
+        "file": "Saved/Verification/throttle-response-20261027-074810-016-a64471f8/userdata/FlightLogs/20261027-074812-B010937D4ECF483087B0C9B860179EC1.jsonl",
+        "records": 84,
+        "armed_fixture_samples": 82,
+        "covered_scenarios": 6
+      }
+    }
+  ],
+  "controller_mode_ui": {
+    "evidence": "Saved/Verification/radio-modes-20261027-074705-572-623eaae3/result.json",
+    "result": {
+      "ok": true,
+      "checks": [
+        {
+          "check": "Mode 1 JSON round trip",
+          "ok": true
+        },
+        {
+          "check": "Mode 2 JSON round trip",
+          "ok": true
+        },
+        {
+          "check": "legacy profile without stick_mode loads as Mode 2",
+          "ok": true
+        },
+        {
+          "check": "reject invalid metadata {\"stick_mode\":0} without changing output",
+          "ok": true
+        },
+        {
+          "check": "reject invalid metadata {\"stick_mode\":3} without changing output",
+          "ok": true
+        },
+        {
+          "check": "reject invalid metadata {\"stick_mode\":1.5} without changing output",
+          "ok": true
+        },
+        {
+          "check": "reject invalid metadata {\"stick_mode\":\"1\"} without changing output",
+          "ok": true
+        },
+        {
+          "check": "reject invalid metadata {\"stick_mode\":null} without changing output",
+          "ok": true
+        },
+        {
+          "check": "reject invalid metadata {\"stick_mode\":true} without changing output",
+          "ok": true
+        },
+        {
+          "check": "new user defaults to Mode 2 and disabled USB",
+          "ok": true
+        },
+        {
+          "check": "fixture starts with low throttle ARM",
+          "ok": true
+        },
+        {
+          "check": "opening settings disarms selected aircraft",
+          "ok": true
+        },
+        {
+          "check": "Mode 1 HUD button selects Mode 1",
+          "ok": true
+        },
+        {
+          "check": "mode choice cannot enable USB or arm",
+          "ok": true
+        },
+        {
+          "check": "unsupported mode rejected",
+          "ok": true
+        },
+        {
+          "check": "mode choice does not invent a profile",
+          "ok": true
+        },
+        {
+          "check": "chosen layout survives panel close and reopen",
+          "ok": true
+        },
+        {
+          "check": "Mode 2 HUD button selects Mode 2",
+          "ok": true
+        },
+        {
+          "check": "switching back leaves USB disabled and aircraft disarmed",
+          "ok": true
+        },
+        {
+          "check": "UI test never writes a calibration file",
+          "ok": true
+        }
+      ],
+      "build": {
+        "version": "0.7.4",
+        "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+        "source_dirty": true,
+        "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+        "build_utc": "2026-10-27T07:45:34Z",
+        "target": "ImperialWingsSimulator"
+      },
+      "scope": "explicit HUD button APIs and actual JSON mode codec in isolated user data; no device selected, no HID injection, no physical-controller verification"
+    }
+  },
+  "input_safety": {
+    "evidence": "Saved/Verification/input-safety-20261027-074712-178/result.json",
+    "result": {
+      "ok": true,
+      "checks": [
+        {
+          "check": "fixture starts with a manual keyboard aircraft",
+          "ok": true,
+          "actual": 0
+        },
+        {
+          "check": "explicit low-throttle ARM accepted",
+          "ok": true,
+          "actual": 0
+        },
+        {
+          "check": "real engine bindings accumulated keyboard throttle",
+          "ok": true,
+          "actual": 0.1400022953748703
+        },
+        {
+          "check": "engine saw held roll key",
+          "ok": true,
+          "actual": 0
+        },
+        {
+          "check": "viewport focus loss immediately disarms manual aircraft",
+          "ok": true,
+          "actual": 0
+        },
+        {
+          "check": "viewport focus loss immediately clears stored throttle",
+          "ok": true,
+          "actual": 0
+        },
+        {
+          "check": "viewport focus loss immediately clears motor demand",
+          "ok": true,
+          "actual": 0
+        },
+        {
+          "check": "native radio remains disabled",
+          "ok": true,
+          "actual": 0
+        },
+        {
+          "check": "old repeated keys cannot restore throttle",
+          "ok": true,
+          "actual": 0
+        },
+        {
+          "check": "old repeated roll key stays released in engine",
+          "ok": true,
+          "actual": 0
+        },
+        {
+          "check": "queued pre-interruption key press is rejected",
+          "ok": true,
+          "actual": 0
+        },
+        {
+          "check": "GameAndUI always requests focus-loss key flushing",
+          "ok": true,
+          "actual": 0
+        },
+        {
+          "check": "repeat cannot re-arm after focus loss",
+          "ok": true,
+          "actual": 0
+        },
+        {
+          "check": "focus regain does not re-arm",
+          "ok": true,
+          "actual": 0
+        },
+        {
+          "check": "fresh Space press re-arms at zero throttle",
+          "ok": true,
+          "actual": 0
+        },
+        {
+          "check": "observer view preserves manual ARM",
+          "ok": true,
+          "actual": 0
+        },
+        {
+          "check": "overview preserves manual ARM",
+          "ok": true,
+          "actual": 0
+        },
+        {
+          "check": "opening radio menu disarms selected aircraft",
+          "ok": true,
+          "actual": 0
+        },
+        {
+          "check": "menu typing cannot arm or add throttle",
+          "ok": true,
+          "actual": 0
+        },
+        {
+          "check": "closing menu rejects old repeated throttle/ARM",
+          "ok": true,
+          "actual": 0
+        },
+        {
+          "check": "focus loss preserves explicit practice autonomy",
+          "ok": true,
+          "actual": 0
+        },
+        {
+          "check": "autonomous forces still run after focus loss",
+          "ok": true,
+          "actual": 9.83298110961914
+        },
+        {
+          "check": "second throttle setup reached engine bindings",
+          "ok": true,
+          "actual": 0.1050015389919281
+        },
+        {
+          "check": "aircraft selection clears held-input throttle on new aircraft",
+          "ok": true,
+          "actual": 0
+        },
+        {
+          "check": "equipment inspection opened disarmed",
+          "ok": true,
+          "actual": 0
+        },
+        {
+          "check": "equipment view blocks held flight keys",
+          "ok": true,
+          "actual": 0
+        },
+        {
+          "check": "equipment exit rejects stale throttle/ARM repeats",
+          "ok": true,
+          "actual": 0
+        },
+        {
+          "check": "reset setup accumulated keyboard throttle",
+          "ok": true,
+          "actual": 0.10500171780586243
+        },
+        {
+          "check": "Backspace reset clears pending throttle repeats",
+          "ok": true,
+          "actual": 0
+        }
+      ],
+      "scope": "explicit Unreal simulated keyboard events and real viewport/controller APIs; not physical keyboard, OS Alt-Tab or USB/HID input",
+      "build": {
+        "version": "0.7.4",
+        "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+        "source_dirty": true,
+        "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+        "build_utc": "2026-10-27T07:45:34Z",
+        "target": "ImperialWingsSimulator"
+      }
+    }
+  },
+  "time_contract": {
+    "evidence": "Saved/Verification/time-contract-20261027-074718-410-27f18d74/result.json",
+    "result": {
+      "ok": true,
+      "injected_100ms": true,
+      "injected_250ms": true,
+      "official_manual_match": true,
+      "match_stayed_manual_disarmed": true,
+      "ledger": {
+        "policy": "sync_chaos_budget_discard_excess_no_catchup",
+        "match_clock": "game_time",
+        "model_clock": "scene_pre_tick_budget",
+        "game_s": 72.01265718787909,
+        "physics_budget_s": 71.78700282424688,
+        "dropped_physics_s": 0.22565436363220215,
+        "deferred_physics_s": 0,
+        "last_game_dt_s": 0.016666699200868607,
+        "last_physics_dt_s": 0.016666699200868607,
+        "max_game_dt_s": 0.2513780891895294,
+        "frames": 4301,
+        "limited_frames": 2
+      },
+      "measured_dropped_s": 0.22565436363220215,
+      "clocks_ok": true,
+      "stable": true,
+      "synchronous_physics": true,
+      "build": {
+        "version": "0.7.4",
+        "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+        "source_dirty": true,
+        "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+        "build_utc": "2026-10-27T07:45:34Z",
+        "target": "ImperialWingsSimulator"
+      },
+      "hitches": true,
+      "game_s": 60.0123044885695,
+      "match_clock_elapsed_s": 60.0123044885695,
+      "solver_s": 59.78665012493759,
+      "wall_s": 60.0126802995801,
+      "max_model_clock_error_s": 1.0160761121369433e-12,
+      "max_sensor_clock_error_s": 1.0160761121369433e-12,
+      "max_battery_integral_error_ah": 6.6451852294468e-18,
+      "max_hold_error_cm": 4.999998095516752,
+      "max_tilt_deg": 0,
+      "max_speed_mps": 4.1789122162683157e-10,
+      "scope": "60 real game seconds; ten real Chaos bodies; local autonomous HOLD; optional actual 100/250ms process sleeps; no USB or APF server; not a fixed-thread PID"
+    },
+    "interpretation": "Official manual/disarmed match clock fixture. Generic original scope mentions HOLD; actual official_manual_match and match_stayed_manual_disarmed flags define this run."
+  },
+  "autonomy": {
+    "evidence": "Saved/Verification/autonomy-20261027-074736-621667/result.json",
+    "result": {
+      "ok": true,
+      "fixture": "real-time ten Chaos aircraft using actual upstream APF HTTP; bounded server intentionally returns 503 during return; no USB or flight position corrections",
+      "source_commit": "1e9d826265069696d7e415c7778d17483d7a8580",
+      "ten_airborne": true,
+      "ten_landed_disarmed": true,
+      "finite_inside_court": true,
+      "timeout_local_hold": true,
+      "reconnect_does_not_resume": true,
+      "manual_match_auto_rejected": true,
+      "minimum_separation_m": 1.1183706521987915,
+      "hold_max_drift_cm": 28.282073974609375,
+      "armed_peak_tilt_deg": 5.202765941619873,
+      "peak_altitude_cm": 393.0520935058594,
+      "build": {
+        "version": "0.7.4",
+        "source_commit": "59f8b55dd0555f27e77217508afc38ec4a9d1fa6",
+        "source_dirty": true,
+        "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+        "build_utc": "2026-10-27T07:45:34Z",
+        "target": "ImperialWingsSimulator"
+      },
+      "physics_defaults": {
+        "model": "STRIKER V3 reference-inspired, experimental coefficients",
+        "measured_airframe_data": false,
+        "motor_pwm_exponent": 2,
+        "motor_response_s": 0.035,
+        "battery_capacity_ah": 1.5,
+        "battery_internal_resistance_ohm": 0.035,
+        "battery_maximum_current_a": 80,
+        "drag_effective_cd_area_m2": 0.015,
+        "sensor_latency_s": 0.005,
+        "gyro_noise_rad_s": 0.0005,
+        "wake_coupling": 0.18,
+        "net_stiffness_n_per_m": 300,
+        "net_damping_ns_per_m": 22,
+        "guard_energy_capacity_j": 80,
+        "guard_damage_threshold_j": 0.6,
+        "goal_mass_kg": 12.5,
+        "goal_suspension_angular_damping": 1.4
+      },
+      "test_host": {
+        "injected_http_503": true,
+        "upstream": {
+          "ok": true,
+          "source": "swarm-drone-atc",
+          "source_commit": "1e9d826265069696d7e415c7778d17483d7a8580",
+          "protocol_version": 2,
+          "supported_protocol_versions": [
+            1,
+            2
+          ],
+          "source_origin": "https://github.com/sun475300-sudo/swarm-drone-atc.git",
+          "apf_module": "simulation/apf_engine/apf.py (relative to documented upstream repository)",
+          "apf_sha256": "916598aa798c92acbba227a8facfd0ec2cb7dc23d6100446c938d5d15e75d9ff",
+          "backend": "upstream-numpy-cpu",
+          "numpy_version": "2.2.6",
+          "upstream_params": {
+            "k_att": 0.7,
+            "k_rep_drone": 6.0,
+            "k_rep_obs": 0.015,
+            "d0_drone": 2.4,
+            "d0_obs": 0.55,
+            "max_force": 4.0,
+            "altitude_k": 0.0,
+            "target_alt": 2.5
+          },
+          "guidance_revision": "fida40-staged-return-v2",
+          "position_lookahead_s": 1.25,
+          "return_corridor_heights_m": [
+            1.0,
+            2.2
+          ],
+          "telemetry_authority": "Unreal Engine physics",
+          "request_count": 484,
+          "uptime_s": 57.812
+        },
+        "child_exit": 0,
+        "wall_seconds": 57.812
+      },
+      "checkpoint_events": [
+        {
+          "event": "launch",
+          "game_time_s": 0.5000026002526283,
+          "mode": "SDACS AUTONOMOUS"
+        },
+        {
+          "event": "hold",
+          "game_time_s": 18.50060800090432,
+          "mode": "POSITION HOLD"
+        },
+        {
+          "event": "return",
+          "game_time_s": 22.500636100769043,
+          "mode": "RETURNING"
+        },
+        {
+          "event": "interrupt_return",
+          "game_time_s": 24.000661499798298,
+          "mode": "RETURNING"
+        },
+        {
+          "event": "timeout_held",
+          "game_time_s": 26.100686702877283,
+          "mode": "POSITION HOLD"
+        },
+        {
+          "event": "reconnect_held",
+          "game_time_s": 27.984032701700926,
+          "mode": "POSITION HOLD"
+        },
+        {
+          "event": "landed",
+          "game_time_s": 54.23562290146947,
+          "mode": "MANUAL TRAINING"
+        }
+      ]
+    }
+  },
+  "relocated_portable": {
+    "evidence": "Saved/Verification/portable-v074-r2-fresh/result.json",
+    "result": {
+      "ok": true,
+      "checks": [
+        {
+          "name": "all released file hashes match",
+          "passed": true
+        },
+        {
+          "name": "standalone feedback form exists, is checksummed and matches reviewed source",
+          "passed": true
+        },
+        {
+          "name": "no pilot settings or generated Saved directory",
+          "passed": true
+        },
+        {
+          "name": "native launcher resolves relocated files without developer tools",
+          "passed": true
+        },
+        {
+          "name": "frozen APF starts with no installed Python or Git on PATH",
+          "passed": true
+        },
+        {
+          "name": "frozen APF provenance matches released upstream",
+          "passed": true
+        },
+        {
+          "name": "actual bundled APF responds to ten-aircraft protocol 2",
+          "passed": true
+        },
+        {
+          "name": "bounded APF test exits cleanly",
+          "passed": true
+        },
+        {
+          "name": "fresh standalone Unreal storage result",
+          "passed": true
+        },
+        {
+          "name": "fresh keyboard startup and profile safety",
+          "passed": true
+        },
+        {
+          "name": "fresh writes only to explicit per-user data path",
+          "passed": true
+        },
+        {
+          "name": "first use never invents a controller profile",
+          "passed": true
+        },
+        {
+          "name": "package remains free of generated pilot data after execution",
+          "passed": true
+        }
+      ]
+    }
+  },
+  "windows_archive": {
+    "name": "ImperialWings-Windows-v0.7.4-r2.zip",
+    "bytes": 374786305,
+    "sha256": "2bb10cc56b25a80e66a017b26b1cc236fe483460a15a8ea4e06ba39475b89cc6"
+  },
+  "reproduced_failures": [
+    {
+      "issue": "battery supply did not cap actual motor forces",
+      "evidence": "Saved/Verification/power-20261027-072436-806-e35a9582/result.json",
+      "baseline_failing_scenarios": 4
+    },
+    {
+      "issue": "offside cleared at exact central-line contact after floating-point interpolation",
+      "evidence": "Saved/Verification/v074-scoring-expanded.log",
+      "failed_check": 94,
+      "fixed_total_checks": 101
+    },
+    {
+      "issue": "fixture used cumulative model time as scenario time and sampled too early",
+      "evidence": "Saved/Verification/throttle-response-20261027-073556-224-4d84163d/reload-result.json",
+      "fixed": "per-scenario model-time difference"
+    },
+    {
+      "issue": "unpaced NullRHI recording skipped short full-power segments",
+      "evidence": "Saved/Verification/throttle-response-20261027-073645-110-a78b50a5",
+      "fixed": "explicit fixture wall-time pacing; ordinary F6 recorder retained"
+    }
+  ],
+  "limitations": [
+    "No physical USB/controller flight, other physical PC or real aircraft coefficient calibration in this release.",
+    "Actual Chaos fixed-game-time tests are not an independent fixed 120 Hz controller.",
+    "Scoring tests cover the implemented FIDA subset; role succession, cards, penalty shootouts, overtime and complete referee workflow remain incomplete.",
+    "Competitor simulator references are official-document research, not hands-on product tests.",
+    "Portable launcher inspection and bounded headless/offscreen fixtures do not certify an interactive desktop launch on every PC."
+  ]
+}

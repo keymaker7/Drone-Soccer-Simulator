@@ -502,6 +502,18 @@ UImperialRadioSubsystem* ASoccerDronePawn::GetRadio() const
     return nullptr;
 }
 
+float ASoccerDronePawn::GetThrottleCommand() const
+{
+    const float Raw=GetThrottle();
+    if(!bAutonomousEnabled)if(const auto* Radio=GetRadio())return Radio->ApplyManualThrottle(Raw);
+    return Raw;
+}
+
+bool ASoccerDronePawn::UsesPrecisionThrottle() const
+{
+    const auto* Radio=GetRadio();return !bAutonomousEnabled&&Radio&&Radio->IsPrecisionThrottleEnabled();
+}
+
 FString ASoccerDronePawn::GetInputSource() const
 {
     if(bAngleVerificationInput)return TEXT("VERIFICATION_FIXTURE");
@@ -526,6 +538,21 @@ float ASoccerDronePawn::GetTotalThrustNewtons() const
     return MotorThrustN[0] + MotorThrustN[1] + MotorThrustN[2] + MotorThrustN[3];
 }
 
+double ASoccerDronePawn::GetMotorElectricalPowerW() const
+{
+    double Watts=0;
+    for(float Thrust:MotorThrustN)Watts+=ImperialPhysics::EstimateRotorPowerW(Thrust,PhysicalParams.Motor,PhysicalParams.Aero.DensityKgM3);
+    return Watts;
+}
+
+void ASoccerDronePawn::SetPowerVerificationConditions(double MaximumCurrentA,double Soc)
+{
+    if(!FParse::Param(FCommandLine::Get(),TEXT("ImperialPowerSmoke")))return;
+    PhysicalParams.Battery.MaximumCurrentA=FMath::Clamp(MaximumCurrentA,0.,200.);
+    BatteryState=ImperialPhysics::BatteryState{};BatteryState.Soc=FMath::Clamp(Soc,0.,1.);
+    BatteryState.VoltageV=FMath::Lerp(PhysicalParams.Battery.EmptyVoltageV,PhysicalParams.Battery.FullVoltageV,BatteryState.Soc);
+}
+
 FString ASoccerDronePawn::GetPilotStatus() const
 {
     if (!LastSafetyMessage.IsEmpty())
@@ -541,7 +568,7 @@ float ASoccerDronePawn::GetTiltDegrees() const
 }
 void ASoccerDronePawn::SetAngleVerificationInput(FVector Stick,float Throttle)
 {
-    if(!FParse::Param(FCommandLine::Get(),TEXT("ImperialAngleSmoke")))return;
+    if(!FParse::Param(FCommandLine::Get(),TEXT("ImperialAngleSmoke"))&&!FParse::Param(FCommandLine::Get(),TEXT("ImperialPowerSmoke"))&&!FParse::Param(FCommandLine::Get(),TEXT("ImperialThrottleSmoke")))return;
     bAngleVerificationInput=true;
     AngleVerificationStick=Stick.GetClampedToMaxSize(1);
     AngleVerificationThrottle=FMath::Clamp(Throttle,0.f,1.f);
@@ -774,7 +801,7 @@ void ASoccerDronePawn::ResetDrone()
     KeyboardThrottle = 0.0f;
     KeyboardThrottleStep = 0.0f;
     Body->SetPhysicsLinearVelocity(FVector::ZeroVector);
-    BatteryState=ImperialPhysics::BatteryState{};MotorStates={};NetStates={};Sensors.Reset(FCrc::StrCrc32(*GetName()));PhysicalTime=0;PreviousVelocityMS=FVector::ZeroVector;CageCompression=0;
+    BatteryState=ImperialPhysics::BatteryState{};PowerBudget={};MotorStates={};NetStates={};Sensors.Reset(FCrc::StrCrc32(*GetName()));PhysicalTime=0;PreviousVelocityMS=FVector::ZeroVector;CageCompression=0;
     GuardState={};LastWearOther.Reset();LastWearContactTime=-100;GuardScuffs->ClearInstances();UpdateGuardMaterial();SetEquipmentInspection(false);
     Body->SetPhysicsAngularVelocityInRadians(FVector::ZeroVector);
     // Reset is the sole teleport operation. All flight motion comes from Chaos forces.
@@ -893,6 +920,7 @@ void ASoccerDronePawn::InitializePhysicalModel()
         Number(TEXT("motor_response_s"),PhysicalParams.Motor.ResponseSeconds,.005,.2);
         Number(TEXT("battery_capacity_ah"),PhysicalParams.Battery.CapacityAh,.1,10);
         Number(TEXT("battery_internal_resistance_ohm"),PhysicalParams.Battery.InternalResistanceOhm,.001,.3);
+        Number(TEXT("battery_maximum_current_a"),PhysicalParams.Battery.MaximumCurrentA,0,200);
         Number(TEXT("drag_effective_cd_area_m2"),PhysicalParams.Aero.EffectiveCdAreaM2,.001,.2);
         Number(TEXT("sensor_latency_s"),PhysicalParams.Sensors.LatencySeconds,0,.03);
         Number(TEXT("gyro_noise_rad_s"),PhysicalParams.Sensors.GyroNoiseStdRadS,0,.02);
@@ -1000,7 +1028,7 @@ void ASoccerDronePawn::ApplyFlightForces(float Dt)
     FlightModelSeconds+=Step;
     if(!bArmed)
     {
-        bLastArmed=false;MotorStates={};for(float& F:MotorThrustN)F=0;
+        bLastArmed=false;MotorStates={};PowerBudget={};for(float& F:MotorThrustN)F=0;
         ImperialPhysics::BatteryStep(BatteryState,0,Step,PhysicalParams.Battery,bBatteryModel);ApplyAerodynamicDrag();return;
     }
     // A hovering body can satisfy Chaos sleep thresholds even though its motors
@@ -1031,10 +1059,10 @@ void ASoccerDronePawn::ApplyFlightForces(float Dt)
     for(int I=0;I<3;++I)Torque[I]=ImperialPhysics::PidStep(Pid[I],Error[I],FilteredBodyAcceleration[I],Step,RateKp[I],RateKi[I],RateKd[I],I==2?-.18:-.5,I==2?.18:.5);
     IntegralError=FVector(Pid[0].Integral,Pid[1].Integral,Pid[2].Integral);
     const double Voltage=ImperialPhysics::BatteryThrustFactor(BatteryState,PhysicalParams.Battery,bBatteryModel);
-    const double ManualCollective=(ArmedIdleThrustN+(MaxMotorThrustN-ArmedIdleThrustN)*FMath::Pow((double)GetThrottle(),bNonlinearMotors?PhysicalParams.Motor.PwmExponent:1.))*Voltage;
+    const double ManualCollective=(ArmedIdleThrustN+(MaxMotorThrustN-ArmedIdleThrustN)*FMath::Pow((double)GetThrottleCommand(),bNonlinearMotors?PhysicalParams.Motor.PwmExponent:1.))*Voltage;
     Torque+=FVector::CrossProduct(CenterOfMassLocalM,FVector(0,0,(bAutonomousEnabled?Collective:ManualCollective)*4));
     const float SignX[4]={1,1,-1,-1},SignY[4]={-1,1,1,-1},Spin[4]={1,-1,1,-1};
-    double Power=0;bool Saturated=false;
+    bool Saturated=false;
     const FVector Up=R.GetUpVector();
     for(int I=0;I<4;++I)
     {
@@ -1042,20 +1070,28 @@ void ASoccerDronePawn::ApplyFlightForces(float Dt)
         const double Target=(bAutonomousEnabled?Collective:ManualCollective)+Mix;
         const double PWM=ImperialPhysics::PwmForThrust(FMath::Max(.00001,Target),PhysicalParams.Motor,Voltage,bNonlinearMotors);
         Saturated|=Target<0||Target>MaxMotorThrustN*Voltage;
-        MotorThrustN[I]=ImperialPhysics::MotorStep(MotorStates[I],PWM,Step,PhysicalParams.Motor,Voltage,bNonlinearMotors);
+        ImperialPhysics::MotorStep(MotorStates[I],PWM,Step,PhysicalParams.Motor,Voltage,bNonlinearMotors);
+    }
+    // Resolve the same-step electrical budget before any rotor force/torque is
+    // applied. This advances the battery exactly once and scales all rotors.
+    PowerBudget=ImperialPhysics::ApplyBatteryPowerBudget(MotorStates,BatteryState,Step,PhysicalParams.Motor,PhysicalParams.Battery,PhysicalParams.Aero.DensityKgM3,bBatteryModel);
+    Saturated|=PowerBudget.Limited;
+    for(int I=0;I<4;++I)
+    {
+        MotorThrustN[I]=static_cast<float>(MotorStates[I].ThrustN);
         const FVector Rotor=Body->GetComponentLocation()+R.RotateVector(FVector(SignX[I]*ArmLengthM*100,SignY[I]*ArmLengthM*100,2.5));
         const FVector Position=Rotor/100.;
         const double Surface=ImperialPhysics::SurfaceLiftFactor(Position.Z,4.5-Position.Z,FMath::Min(8-FMath::Abs(Position.X),3.5-FMath::Abs(Position.Y)),PhysicalParams.Surface,bSurfaceModel);
         const double Wake=1.-.04*FMath::Clamp(-FVector::DotProduct(AirVelocityAt(Position),Up),0.,2.);
         Body->AddForceAtLocation(Up*MotorThrustN[I]*Surface*Wake*100,Rotor);
         Body->AddTorqueInRadians(Up*Spin[I]*YawReactionArmM*MotorThrustN[I]*10000);
-        Power+=ImperialPhysics::EstimateRotorPowerW(MotorThrustN[I],PhysicalParams.Motor);
     }
     if(Saturated)IntegralError*=FMath::Exp(-Step*5);
+    if(PowerBudget.Limited)AutonomousVelocityIntegral*=FMath::Exp(-Step*5);
     std::array<double,4> Omega;for(int I=0;I<4;++I)Omega[I]=MotorStates[I].OmegaRadS;
     const auto Gyro=ImperialPhysics::GyroTorque({IdealRate.X,IdealRate.Y,IdealRate.Z},Omega,{-1,1,-1,1},PhysicalParams.Gyro);
     Body->AddTorqueInRadians(R.RotateVector(FVector(Gyro.X,Gyro.Y,Gyro.Z))*10000);
-    ImperialPhysics::BatteryStep(BatteryState,Power,Step,PhysicalParams.Battery,bBatteryModel);ApplyAerodynamicDrag();
+    ApplyAerodynamicDrag();
 }
 void ASoccerDronePawn::ApplyAerodynamicDrag()
 {

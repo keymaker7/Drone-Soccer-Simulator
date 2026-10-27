@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<title>Imperial Wings · 테스트 피드백</title>
+<style>
+:root{color-scheme:light;--ink:#172c37;--muted:#506674;--line:#d6e2e7;--accent:#006d77;--paper:#fff;--back:#eef4f6}
+*{box-sizing:border-box}body{margin:0;background:var(--back);color:var(--ink);font:16px/1.65 "Segoe UI","Malgun Gothic",sans-serif}main{max-width:1000px;margin:auto;padding:36px 24px 60px}header{margin-bottom:28px}.eyebrow{font-size:13px;letter-spacing:.14em;font-weight:700;color:var(--accent)}h1{font-size:32px;line-height:1.3;margin:10px 0}h2{font-size:21px;margin:0 0 16px}.sub{color:var(--muted);margin:8px 0}.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}.badge{padding:4px 12px;border:1px solid #bbd5db;border-radius:20px;color:var(--accent);font-size:13px;background:#f8ffff}
+section,fieldset.card{margin:20px 0;padding:24px;background:var(--paper);border:1px solid var(--line);border-radius:14px;min-width:0}fieldset.card legend{font-size:21px;font-weight:700;padding:0 8px}fieldset.card{padding-top:15px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px 22px}.wide{grid-column:1/-1}label{display:block;font-weight:600;font-size:14px;margin-bottom:6px}input,select,textarea{display:block;width:100%;border:1px solid #9cb1be;border-radius:7px;padding:10px 12px;color:var(--ink);background:white;font:inherit;min-height:46px}textarea{resize:vertical;min-height:95px}input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #63b9c5;outline-offset:2px}.hint{font-size:13px;color:var(--muted);margin:5px 0 0}.required{color:#a52c20}.check-row{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:13px 0;border-bottom:1px solid var(--line)}.check-row:last-child{border-bottom:0}.check-row label{margin:0}.check-row select{flex:0 0 145px;width:145px}.check-row small{display:block;color:var(--muted);font-weight:400}.buttons{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}button{padding:12px 18px;border:1px solid var(--accent);border-radius:8px;font:600 15px "Segoe UI","Malgun Gothic",sans-serif;cursor:pointer;color:white;background:var(--accent);min-height:46px}button.secondary{background:white;color:var(--accent)}button:disabled{opacity:.45;cursor:not-allowed}.check{display:flex;align-items:flex-start;gap:10px;margin:18px 0 0;font-size:14px;font-weight:400}.check input{width:20px;height:20px;min-height:0;margin-top:3px;flex:none}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.7 "Segoe UI","Malgun Gothic",sans-serif;padding:18px;background:#f3f7f9;border:1px solid var(--line);border-radius:8px;max-height:480px;overflow:auto}#status{padding:12px 16px;background:#e5f4f2;border-left:4px solid var(--accent);border-radius:5px;min-height:48px}#status.error{background:#fff0eb;border-color:#af3d25;color:#7b2716}summary{cursor:pointer;font-weight:600}details p,details li{font-size:14px;color:var(--muted)}footer{font-size:13px;color:var(--muted);margin-top:25px}code{overflow-wrap:anywhere}a{color:var(--accent)}[hidden]{display:none!important}
+@media(max-width:620px){main{padding:24px 14px 36px}h1{font-size:27px}section,fieldset.card{padding:18px 15px}.grid{grid-template-columns:1fr;gap:16px}.wide{grid-column:auto}.check-row{align-items:flex-start;gap:10px}.check-row select{flex-basis:116px;width:116px;padding:9px 6px}.buttons button{flex:1 1 160px}}
+@media print{body{background:white}header,form,footer,#status,.buttons,.check{display:none}main,section{padding:0;border:0}#preview-section{display:block!important}pre{max-height:none;overflow:visible;border:0;background:white}}
+</style>
+</head>
+<body><main>
+<header><div class="eyebrow">IMPERIAL WINGS · TEST FEEDBACK</div><h1>직접 사용한 경험을 알려주세요.</h1><p class="sub">오류 한 건 또는 한 번의 테스트 결과를 작성합니다. 미리 확인한 뒤 파일로 저장해 전달하세요.</p><div class="badges"><span class="badge">설치·로그인 없이 작성</span><span class="badge">인터넷 없이 사용</span><span class="badge">자동 전송 없음</span></div></header>
+<noscript><p>이 양식은 JavaScript가 필요합니다. 사용할 수 없다면 README의 피드백 항목을 텍스트로 작성해 전달해 주세요.</p></noscript>
+<p id="status" role="status" aria-live="polite">필수 항목(*)을 입력한 뒤 ‘보고서 미리보기’를 누르세요. 내용은 이 창 안에서만 유지됩니다.</p>
+<form id="feedback" novalidate>
+<section aria-labelledby="report-heading"><h2 id="report-heading">1. 어떤 피드백인가요?</h2><div class="grid">
+<div><label for="kind">보고 종류</label><select id="kind" name="kind"><option value="bug">오류 보고</option><option value="trial">테스트 후기·개선 제안</option></select></div>
+<div><label for="tester">테스터 별칭 <span class="hint">선택</span></label><input id="tester" name="tester" maxlength="60" autocomplete="off" placeholder="실명 대신 별칭을 적어도 됩니다"></div>
+<div class="wide"><label for="title">제목 <span class="required">*</span></label><input id="title" name="title" maxlength="160" required placeholder="예: 조종기 설정을 저장했지만 재실행 후 연결되지 않음"></div>
+<div><label for="area">관련 기능 <span class="required">*</span></label><select id="area" name="area" required><option value="">선택해 주세요</option><option>다운로드·압축 해제</option><option>게임 실행·종료</option><option>조종기 연결·보정</option><option>수동 비행·조종감</option><option>경기 규칙·득점</option><option>LOS 시점·기체·LED 식별</option><option>자율 훈련·귀환</option><option>충돌·골대·네트 물리</option><option>그래픽·성능</option><option>안내·편의 기능</option><option>기타</option></select></div>
+<div><label for="impact">사용에 미친 영향 <span class="required">*</span></label><select id="impact" name="impact" required><option value="">선택해 주세요</option><option value="blocked">진행 불가 — 실행·조종을 할 수 없음</option><option value="major">큰 불편 — 기능 사용 중 반복해서 중단됨</option><option value="minor">작은 불편 — 계속 사용할 수 있음</option><option value="suggestion">개선 제안·사용 후기</option></select></div>
+</div></section>
+<section aria-labelledby="environment-heading"><h2 id="environment-heading">2. 실행 환경</h2><div class="grid">
+<div><label for="version">실행한 버전·ZIP 이름 <span class="required">*</span></label><input id="version" name="version" maxlength="180" required placeholder="예: ImperialWings-Windows-v0.7.2-r2.zip"><p class="hint">본인이 실행한 파일을 확인해 적습니다. 모르면 ‘확인 불가’라고 적어 주세요.</p></div>
+<div><label for="windows">Windows 버전 <span class="required">*</span></label><select id="windows" name="windows" required><option value="">선택해 주세요</option><option>Windows 11</option><option>Windows 10</option><option>확인 불가</option><option>기타</option></select></div>
+<div class="wide"><label for="hardware">CPU · 그래픽카드 · RAM <span class="required">*</span></label><input id="hardware" name="hardware" maxlength="250" required placeholder="예: CPU / GPU / RAM 32GB — 모르는 항목은 ‘모름’"><p class="hint">Windows 설정 → 시스템 → 정보 또는 작업 관리자 → 성능에서 확인할 수 있습니다.</p></div>
+<div><label for="input">입력 방식 <span class="required">*</span></label><select id="input" name="input" required><option value="">선택해 주세요</option><option value="keyboard">키보드</option><option value="usb">USB 조종기</option><option value="not-started">실행 전 문제라 조종하지 못함</option><option value="other">기타</option></select></div>
+<div><label for="controller">조종기 모델·USB 모드 <span id="controller-required" class="required" hidden>*</span></label><input id="controller" name="controller" maxlength="200" placeholder="예: RadioMaster Boxer / USB Joystick"><p class="hint">USB 조종기를 골랐다면 필수입니다. 인식이 안 되면 그 상태를 적습니다.</p></div>
+<div><label for="experience">실제 드론축구 경험</label><select id="experience" name="experience"><option value="unanswered">응답 안 함</option><option value="new">처음 접함</option><option value="drone">다른 드론 비행 경험 있음</option><option value="soccer">드론축구 조종·경기 경험 있음</option></select></div>
+<div><label for="graphics">해상도·화질·확인한 FPS <span class="hint">선택</span></label><input id="graphics" name="graphics" maxlength="200" placeholder="예: 1920×1080 / Balanced / 60FPS"></div>
+<div class="wide"><label for="context">기체·경기/연습·시점 <span class="hint">선택</span></label><input id="context" name="context" maxlength="250" placeholder="예: 파란 팀 Striker / Practice / 1 파일럿 LOS"></div>
+</div></section>
+<section aria-labelledby="checklist-heading"><h2 id="checklist-heading">3. 직접 확인한 항목</h2><p class="hint">확인한 결과만 바꿉니다. ‘미시험’은 성공으로 집계하지 않습니다. 테스트 후기에는 성공 또는 실패한 항목이 하나 이상 필요합니다.</p><div id="checklist">
+<div class="check-row"><label for="check-download">다운로드·압축 해제<small>실행용 ZIP을 골라 전체 압축 해제</small></label><select id="check-download" name="check-download"><option value="untested">미시험</option><option value="pass">성공</option><option value="fail">실패</option><option value="na">해당 없음</option></select></div>
+<div class="check-row"><label for="check-launch">첫 실행·종료<small>실행기로 열고 정상 종료</small></label><select id="check-launch" name="check-launch"><option value="untested">미시험</option><option value="pass">성공</option><option value="fail">실패</option><option value="na">해당 없음</option></select></div>
+<div class="check-row"><label for="check-controller">조종기 연결·보정<small>축 방향·중립·최저 스로틀 확인</small></label><select id="check-controller" name="check-controller"><option value="untested">미시험</option><option value="pass">성공</option><option value="fail">실패</option><option value="na">해당 없음</option></select></div>
+<div class="check-row"><label for="check-reconnect">설정 저장·재실행<small>같은 조종기의 저장 설정을 다시 연결</small></label><select id="check-reconnect" name="check-reconnect"><option value="untested">미시험</option><option value="pass">성공</option><option value="fail">실패</option><option value="na">해당 없음</option></select></div>
+<div class="check-row"><label for="check-flight">이륙·조종·착륙<small>Practice에서 낮게 비행 후 착륙·DISARM</small></label><select id="check-flight" name="check-flight"><option value="untested">미시험</option><option value="pass">성공</option><option value="fail">실패</option><option value="na">해당 없음</option></select></div>
+<div class="check-row"><label for="check-visibility">LOS 시점·LED 식별<small>팀·역할·기체 방향을 구분할 수 있는지</small></label><select id="check-visibility" name="check-visibility"><option value="untested">미시험</option><option value="pass">성공</option><option value="fail">실패</option><option value="na">해당 없음</option></select></div>
+<div class="check-row"><label for="check-physics">충돌·경기장 반응<small>가드·골대·네트 반응을 직접 관찰</small></label><select id="check-physics" name="check-physics"><option value="untested">미시험</option><option value="pass">성공</option><option value="fail">실패</option><option value="na">해당 없음</option></select></div>
+<div class="check-row"><label for="check-performance">화질·성능<small>기체 식별, 끊김, 느려지는 상황 확인</small></label><select id="check-performance" name="check-performance"><option value="untested">미시험</option><option value="pass">성공</option><option value="fail">실패</option><option value="na">해당 없음</option></select></div>
+</div></section>
+<section aria-labelledby="detail-heading"><h2 id="detail-heading">4. 구체적인 내용</h2><div class="grid">
+<div><label for="frequency">다시 시도했을 때</label><select id="frequency" name="frequency"><option value="not-retested">아직 다시 시험하지 않음</option><option value="always">매번 발생</option><option value="sometimes">가끔 발생</option><option value="once">다시 해 보니 발생하지 않음</option><option value="na">오류 보고에 해당하지 않음</option></select></div>
+<div><label for="event-time">발생 시각·기록 위치 <span class="hint">선택</span></label><input id="event-time" name="event-time" maxlength="180" placeholder="예: 한국 시간 오후 3:20 / F6 기록 약 18초"></div>
+<div class="wide"><label for="steps">재현 순서 <span class="bug-required required">*</span></label><textarea id="steps" name="steps" maxlength="6000" required placeholder="1. 어떤 상태에서 시작했는지&#10;2. 무엇을 눌렀는지&#10;3. 어느 단계에서 발생했는지"></textarea></div>
+<div><label for="expected">기대한 동작 <span class="bug-required required">*</span></label><textarea id="expected" name="expected" maxlength="3000" required></textarea></div>
+<div><label for="actual">실제로 일어난 동작 <span class="bug-required required">*</span></label><textarea id="actual" name="actual" maxlength="3000" required placeholder="오류 문구가 보였다면 그대로 적어 주세요"></textarea></div>
+<div class="wide"><label for="notes">사용 후기·우선 개선점 <span id="notes-required" class="required" hidden>*</span></label><textarea id="notes" name="notes" maxlength="6000" placeholder="좋았던 점, 실제 드론과 다른 느낌, 가장 먼저 고치면 좋을 점"></textarea></div>
+<div class="wide"><label for="attachments">함께 전달할 파일·설명 <span class="hint">선택</span></label><textarea id="attachments" name="attachments" maxlength="2000" placeholder="예: flight.jsonl — 18초 부근 / screenshot.png — 조종기 오류 화면"></textarea><p class="hint">여기에는 파일 이름·설명을 적습니다. 실제 파일은 저장한 보고서와 함께 직접 전달합니다. 이 양식이 파일을 읽거나 첨부·업로드하지 않습니다.</p></div>
+</div><details style="margin-top:18px"><summary>비행 기록·진단 자료를 함께 보내려면</summary><ol><li>F6으로 비행 기록을 시작하고, 착륙·DISARM 후 다시 F6으로 종료합니다.</li><li>Win+R에 <code>%LOCALAPPDATA%\ImperialWingsSimulator\Saved</code>를 넣어 엽니다. FlightLogs의 JSONL, Reports의 CSV, 필요한 Diagnostics 파일만 선택합니다.</li><li>공유 전에 개인 경로·장치 정보를 확인합니다. Config의 개인 조종기 보정이나 Saved 폴더 전체는 첨부하지 않습니다.</li><li>저장한 보고서와 선택 파일을 사용자와 합의한 채팅·메일 등으로 전달합니다. 자동 전송되지 않습니다.</li></ol></details>
+<div class="buttons"><button type="submit">보고서 미리보기</button><button type="button" class="secondary" id="reset-form">새로 작성</button></div></section>
+</form>
+<section id="preview-section" aria-labelledby="preview-heading" hidden><h2 id="preview-heading">5. 확인하고 저장하기</h2><p class="hint">내용을 수정했다면 미리보기를 다시 만드세요. TXT는 읽기·복사하기용, JSON은 항목별 정리용입니다.</p><pre id="preview" tabindex="0" aria-label="전달할 보고서 미리보기"></pre><label class="check"><input id="reviewed" type="checkbox">전달할 내용과 첨부 메모를 확인했습니다.</label><div class="buttons"><button type="button" id="save-txt" disabled>TXT 보고서 저장</button><button type="button" id="save-json" class="secondary" disabled>JSON 보고서 저장</button></div></section>
+<footer>피드백 양식 1.0 · DOC-07 · 사용자가 적은 내용만 보고서로 만듭니다. 창을 닫거나 새로고침하면 입력 내용이 사라지므로 먼저 저장하세요. 실행 파일·조종기 설정을 변경하지 않습니다.</footer>
+</main>
+<script>
+'use strict';
+(() => {
+  const $=id=>document.getElementById(id), form=$('feedback');
+  const checkIds=['download','launch','controller','reconnect','flight','visibility','physics','performance'];
+  const checkLabels=['다운로드·압축 해제','첫 실행·종료','조종기 연결·보정','설정 저장·재실행','이륙·조종·착륙','LOS 시점·LED 식별','충돌·경기장 반응','화질·성능'];
+  const results={untested:'미시험',pass:'성공',fail:'실패',na:'해당 없음'};
+  let draft=null, reportText='';
+  const value=id=>$(id).value.trim();
+  const label=id=>$(id).selectedOptions[0].textContent;
+  function status(message,error=false){$('status').textContent=message;$('status').classList.toggle('error',error);}
+  function updateRequirements(){
+    for(const field of form.querySelectorAll('input,textarea'))field.setCustomValidity('');
+    const bug=value('kind')==='bug',usb=value('input')==='usb';
+    ['steps','expected','actual'].forEach(id=>$(id).required=bug);$('notes').required=!bug;
+    document.querySelectorAll('.bug-required').forEach(el=>el.hidden=!bug);$('notes-required').hidden=bug;
+    $('controller').required=usb;$('controller-required').hidden=!usb;
+  }
+  function invalidate(){
+    const hadPreview=draft!==null;draft=null;reportText='';$('reviewed').checked=false;
+    $('save-txt').disabled=$('save-json').disabled=true;
+    if(hadPreview){$('preview-section').hidden=true;$('preview').textContent='';status('내용이 변경됐습니다. 보고서 미리보기를 다시 만든 뒤 확인해 주세요.');}
+  }
+  form.addEventListener('input',()=>{updateRequirements();invalidate();});
+  form.addEventListener('change',()=>{updateRequirements();invalidate();});
+  function buildReport(){
+    const checklist=checkIds.map((id,index)=>({id,label:checkLabels[index],result:value('check-'+id)}));
+    const counts={pass:0,fail:0,untested:0,na:0};checklist.forEach(row=>counts[row.result]++);
+    return {schema:'imperial-wings-feedback',schema_version:1,form_version:'1.0',
+      report_id:crypto.randomUUID(),created_utc:new Date().toISOString(),writer_timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||'unknown',
+      kind:value('kind'),kind_label:label('kind'),title:value('title'),tester_alias:value('tester'),area:label('area'),impact:value('impact'),impact_label:label('impact'),
+      environment:{simulator_version:value('version'),windows:label('windows'),hardware:value('hardware'),input:value('input'),input_label:label('input'),controller:value('controller'),experience:value('experience'),experience_label:label('experience'),graphics:value('graphics'),context:value('context')},
+      checklist,counts,frequency:value('frequency'),frequency_label:label('frequency'),event_time_note:value('event-time'),steps:value('steps'),expected:value('expected'),actual:value('actual'),notes:value('notes'),
+      attachment_note:value('attachments'),attachment_files_included:false,automatically_sent:false,source:'tester_entered_unverified'};
+  }
+  function toText(r){
+    const show=v=>v||'미기재';
+    return ['IMPERIAL WINGS 테스트 피드백','보고서 ID: '+r.report_id,'작성 시각(UTC): '+r.created_utc,'작성 환경 시간대: '+r.writer_timezone,
+      '종류: '+r.kind_label,'제목: '+r.title,'테스터 별칭: '+show(r.tester_alias),'관련 기능: '+r.area,'영향: '+r.impact_label,'',
+      '[실행 환경]','실행 버전·ZIP: '+r.environment.simulator_version,'Windows: '+r.environment.windows,'CPU / GPU / RAM: '+r.environment.hardware,
+      '입력: '+r.environment.input_label,'조종기: '+show(r.environment.controller),'실제 경험: '+r.environment.experience_label,'해상도·화질·FPS: '+show(r.environment.graphics),'기체·모드·시점: '+show(r.environment.context),'',
+      '[직접 확인한 결과]',...r.checklist.map(row=>row.label+': '+results[row.result]),
+      `성공 ${r.counts.pass} / 실패 ${r.counts.fail} / 미시험 ${r.counts.untested} / 해당 없음 ${r.counts.na}`,'',
+      '재현 빈도: '+r.frequency_label,'발생 시각·기록 위치: '+show(r.event_time_note),'','[재현 순서]',show(r.steps),'','[기대한 동작]',show(r.expected),'','[실제 동작]',show(r.actual),'','[사용 후기·개선 제안]',show(r.notes),'','[함께 전달할 파일 메모]',show(r.attachment_note),'',
+      '실제 첨부 파일은 이 보고서에 포함되지 않습니다. 선택 파일을 별도로 전달해 주세요.',
+      '테스터가 작성한 관찰이며 개발자가 재현·확정한 결과가 아닙니다. 자동 전송되지 않았습니다.',''].join('\n');
+  }
+  form.addEventListener('submit',event=>{
+    event.preventDefault();updateRequirements();
+    for(const field of form.querySelectorAll('input[required],textarea[required]'))field.setCustomValidity(field.value.trim()?'':'공백만 입력할 수 없습니다.');
+    if(!form.reportValidity()){status('필수 항목을 확인해 주세요.',true);return;}
+    if(value('kind')==='trial'&&!checkIds.some(id=>['pass','fail'].includes(value('check-'+id)))){
+      status('테스트 후기에는 실제 확인한 성공 또는 실패 항목을 하나 이상 표시해 주세요.',true);$('check-download').focus();return;
+    }
+    try{draft=buildReport();reportText=toText(draft);$('preview').textContent=reportText;$('preview-section').hidden=false;$('reviewed').checked=false;$('save-txt').disabled=$('save-json').disabled=true;
+      status('미리보기를 확인하고 확인란을 선택하면 보고서를 저장할 수 있습니다.');$('preview-section').scrollIntoView({behavior:'smooth',block:'start'});
+    }catch(error){invalidate();status('보고서를 만들지 못했습니다. 현재 입력 내용을 복사해 보관한 뒤 다시 시도해 주세요.',true);}
+  });
+  $('reviewed').addEventListener('change',()=>{$('save-txt').disabled=$('save-json').disabled=!draft||!$('reviewed').checked;});
+  function download(format){
+    if(!draft||!$('reviewed').checked)return;
+    let url;
+    try{
+      const text=format==='json'?JSON.stringify(draft,null,2)+'\n':'\uFEFF'+reportText;
+      url=URL.createObjectURL(new Blob([text],{type:format==='json'?'application/json;charset=utf-8':'text/plain;charset=utf-8'}));
+      const a=document.createElement('a');a.href=url;a.download='IW-feedback-'+draft.created_utc.replace(/[-:.]/g,'')+'-'+draft.report_id.slice(0,8)+'.'+format;document.body.append(a);a.click();a.remove();
+      status('보고서 다운로드를 요청했습니다. 브라우저의 다운로드 목록에서 파일을 확인한 뒤 선택한 자료와 함께 직접 전달해 주세요.');
+    }catch(error){status('다운로드를 시작하지 못했습니다. 미리보기 내용을 선택해 복사하거나 브라우저 다운로드 설정을 확인해 주세요.',true);}
+    finally{if(url)setTimeout(()=>URL.revokeObjectURL(url),1500);}
+  }
+  $('save-txt').addEventListener('click',()=>download('txt'));$('save-json').addEventListener('click',()=>download('json'));
+  $('reset-form').addEventListener('click',()=>{if(!window.confirm('작성한 내용을 지우고 새로 시작할까요? 저장하지 않은 내용은 사라집니다.'))return;form.reset();invalidate();$('preview-section').hidden=true;updateRequirements();status('새 양식입니다. 실제 확인한 내용만 입력해 주세요.');$('title').focus();});
+  updateRequirements();
+})();
+</script>
+</body>
+</html>

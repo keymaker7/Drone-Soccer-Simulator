@@ -98,13 +98,14 @@ double EstimateRotorPowerW(double ThrustN, const MotorParams& Params, double Den
 void BatteryStep(BatteryState& State, double ElectricalPowerW, double Dt, const BatteryParams& Params, bool Enabled)
 {
     const double Nominal = Positive(Params.NominalVoltageV, 14.8);
+    // Unknown charge must not be silently replaced with a fully charged pack.
+    State.Soc = ClampFinite(State.Soc, 0, 1, 0);
+    State.ConsumedAh = Nonnegative(State.ConsumedAh);
     if (!Enabled)
     {
         State.VoltageV = Nominal; State.CurrentA = 0; State.DeliveredPowerW = 0; State.PowerLimited = false;
         return;
     }
-    State.Soc = ClampFinite(State.Soc, 0, 1, 1);
-    State.ConsumedAh = Nonnegative(State.ConsumedAh);
     const double Empty = Positive(Params.EmptyVoltageV, 13.2);
     const double Full = std::max(Empty, Positive(Params.FullVoltageV, 16.8));
     const double OpenCircuit = Empty + (Full - Empty) * State.Soc;
@@ -122,7 +123,9 @@ void BatteryStep(BatteryState& State, double ElectricalPowerW, double Dt, const 
         Current = Discriminant >= 0 ? 2.0 * Power / (OpenCircuit + std::sqrt(Discriminant)) : OpenCircuit / (2.0 * Resistance);
     }
     else Current = Power / OpenCircuit;
-    Current = std::clamp(Current, 0.0, Positive(Params.MaximumCurrentA, 80));
+    // Explicit zero means no available current. Negative/non-finite limits fail
+    // closed rather than falling back to the default 80 A supply.
+    Current = std::clamp(Current, 0.0, Nonnegative(Params.MaximumCurrentA));
     const double StepSeconds = Nonnegative(Dt);
     const double Capacity = Positive(Params.CapacityAh, 1.5);
     if (StepSeconds > 0) Current = std::min(Current, State.Soc * Capacity * 3600.0 / StepSeconds);
@@ -141,6 +144,63 @@ double BatteryThrustFactor(const BatteryState& State, const BatteryParams& Param
     if (!std::isfinite(State.Soc) || State.Soc <= 0) return 0;
     const double Ratio = Nonnegative(State.VoltageV) / Positive(Params.NominalVoltageV, 14.8);
     return ClampFinite(Ratio * Ratio, 0, 1.5);
+}
+
+PowerBudgetResult ApplyBatteryPowerBudget(std::array<MotorState,4>& Motors, BatteryState& Battery,
+    double Dt, const MotorParams& Motor, const BatteryParams& BatteryParameters, double DensityKgM3, bool Enabled)
+{
+    PowerBudgetResult Result;
+    const double MaximumThrust = std::min(Positive(Motor.MaxThrustN, 8.0), 1000000.0);
+    const double MaximumOmega = std::min(Positive(Motor.MaximumOmegaRadS, 1800.0), 1000000.0);
+    const auto UpdateOmega = [&](MotorState& State)
+    {
+        State.OmegaRadS = MaximumOmega * std::sqrt(std::max(0.0, State.ThrustN / MaximumThrust));
+    };
+    for (MotorState& State : Motors)
+    {
+        // Stay within both MotorStep's saturation and the finite estimator domain.
+        State.ThrustN = ClampFinite(State.ThrustN, 0, std::min(1000.0, MaximumThrust * 1.5));
+        UpdateOmega(State);
+        Result.RequestedMotorPowerW += EstimateRotorPowerW(State.ThrustN, Motor, DensityKgM3);
+    }
+    if (!std::isfinite(Dt) || Dt <= 0)
+    {
+        Result.ThrustScale = 0;
+        Result.Limited = Result.RequestedMotorPowerW > 0;
+        for (MotorState& State : Motors) State = {};
+        return Result;
+    }
+
+    // Use the same pre-step OCV and avionics power term as BatteryStep. In
+    // particular, do not derive the current step's budget from post-step SOC:
+    // the last partial charge may have delivered real energy before reaching zero.
+    const double BeforeSoc = ClampFinite(Battery.Soc, 0, 1, 0);
+    const double Empty = Positive(BatteryParameters.EmptyVoltageV, 13.2);
+    const double Full = std::max(Empty, Positive(BatteryParameters.FullVoltageV, 16.8));
+    const double OpenCircuit = Empty + (Full - Empty) * BeforeSoc;
+    const double AvionicsPowerW = Nonnegative(BatteryParameters.AvionicsCurrentA) * OpenCircuit;
+    BatteryStep(Battery, Result.RequestedMotorPowerW, Dt, BatteryParameters, Enabled);
+
+    if (!Enabled)
+    {
+        Result.AvailableMotorPowerW = Result.RequestedMotorPowerW;
+        Result.AppliedMotorPowerW = Result.RequestedMotorPowerW;
+        return Result;
+    }
+    Result.AvailableMotorPowerW = std::max(0.0, Nonnegative(Battery.DeliveredPowerW) - AvionicsPowerW);
+    if (Result.RequestedMotorPowerW > 0 && Result.AvailableMotorPowerW < Result.RequestedMotorPowerW)
+    {
+        const double Ratio = ClampFinite(Result.AvailableMotorPowerW / Result.RequestedMotorPowerW, 0, 1);
+        Result.ThrustScale = std::pow(Ratio, 2.0 / 3.0);
+        Result.Limited = Result.ThrustScale < 1.0 - 1e-12;
+    }
+    for (MotorState& State : Motors)
+    {
+        State.ThrustN *= Result.ThrustScale;
+        UpdateOmega(State);
+        Result.AppliedMotorPowerW += EstimateRotorPowerW(State.ThrustN, Motor, DensityKgM3);
+    }
+    return Result;
 }
 
 Vec3 DragForce(const Vec3& RelativeAirVelocityMS, const AeroParams& Params, bool Enabled)

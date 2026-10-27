@@ -11,6 +11,21 @@ import urllib.request
 import uuid
 
 
+def verify_feedback_form(root, manifest, source, hashed_paths):
+    """Require the reviewed form even if it was omitted from the checksum list."""
+    relative='feedback-form.html'
+    info=manifest.get('feedback_form',{})
+    if info.get('path')!=relative or hashed_paths.count(relative)!=1:
+        raise AssertionError('Feedback form missing from release metadata or checksums')
+    bundled=root/relative
+    if not bundled.is_file() or not source.is_file():
+        raise AssertionError('Bundled feedback form or reviewed source is missing')
+    with source.open('rb') as f:expected=hashlib.file_digest(f,'sha256').hexdigest()
+    with bundled.open('rb') as f:actual=hashlib.file_digest(f,'sha256').hexdigest()
+    if actual!=expected or info.get('sha256')!=expected:
+        raise AssertionError('Bundled feedback form differs from reviewed source')
+
+
 def run(args):
     root=args.bundle.resolve();output=args.output.resolve();output.mkdir(parents=True,exist_ok=False)
     clean=os.environ.copy()
@@ -24,14 +39,18 @@ def run(args):
         if not condition:raise AssertionError(name)
         print('PASS '+name,flush=True)
     manifest=json.loads((root/'release-manifest.json').read_text(encoding='utf-8-sig'))
+    hashed_paths=[]
     for line in (root/'SHA256SUMS.txt').read_text(encoding='utf-8').splitlines():
         expected,relative=line.split('  ',1)
+        hashed_paths.append(relative)
         path=(root/relative).resolve()
         if not path.is_relative_to(root):raise AssertionError('Manifest traversal')
         with path.open('rb') as f:actual=hashlib.file_digest(f,'sha256').hexdigest()
         if actual!=expected:raise AssertionError('Damaged release file '+relative)
     check('all released file hashes match',True)
-    check('no pilot settings or generated Saved directory',not any(p.name=='RadioProfile.json' or p.name=='Saved' for p in root.rglob('*')))
+    verify_feedback_form(root,manifest,args.feedback_source.resolve(),hashed_paths)
+    check('standalone feedback form exists, is checksummed and matches reviewed source',True)
+    check('no pilot settings or generated Saved directory',not any(p.name.casefold() in {'radioprofile.json','pilotcontrols.json'} or p.name=='Saved' for p in root.rglob('*')))
     inspection=output/'launcher-inspection.json'
     p=subprocess.run([str(root/'ImperialWingsLauncher.exe'),'--inspect',str(inspection)],env=clean,cwd=str(output),timeout=15)
     state=json.loads(inspection.read_text(encoding='utf-8-sig'))
@@ -76,7 +95,7 @@ def run(args):
     if args.real_profile:
         # Genuine existing local calibration, isolated QA only; never copied to the release.
         storage('existing-real-profile',args.real_profile.resolve())
-    check('package remains free of generated pilot data after execution',not any(p.name=='RadioProfile.json' or p.name=='Saved' for p in root.rglob('*')))
+    check('package remains free of generated pilot data after execution',not any(p.name.casefold() in {'radioprofile.json','pilotcontrols.json'} or p.name=='Saved' for p in root.rglob('*')))
     print(str(output/'result.json'))
 
 if __name__=='__main__':
@@ -84,4 +103,6 @@ if __name__=='__main__':
     parser.add_argument('--bundle',type=Path,required=True)
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--real-profile',type=Path)
+    parser.add_argument('--feedback-source',type=Path,default=Path(__file__).resolve().parents[1]/'docs'/'feedback-form.html',
+                        help='Reviewed original HTML used to check the bundled feedback form')
     run(parser.parse_args())

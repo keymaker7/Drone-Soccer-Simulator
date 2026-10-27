@@ -5,13 +5,15 @@
 
 **[다운로드 방법](#download-steps) · [실행 방법](#run-steps) · [첫 조종기 설정](#first-controller-setup)**
 
-2026-10-27 확인 기준 공개 실행본은 **v0.7.3**입니다. [Windows x64 실행용 ZIP 바로 다운로드](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/download/v0.7.3/ImperialWings-Windows-v0.7.3-r1.zip). 개발 중인 소스의 버전과 공개 실행본은 다를 수 있으므로, 지인과 테스트할 때는 **같은 릴리스의 같은 ZIP**을 사용합니다.
+**v0.7.4-r2는 로컬 실행·새 경로의 배포 ZIP 검사를 통과했습니다.** [릴리스·검증 기록](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/tag/v0.7.4) · **[Windows x64 실행용 ZIP 다운로드](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/download/v0.7.4/ImperialWings-Windows-v0.7.4-r2.zip)**. 전력 제한·선택형 정밀 스로틀·득점 경계 오류 수정·피드백 양식을 포함합니다. ZIP은 374,786,305바이트이며 [해시와 검사 범위](docs/releases/v0.7.4.md)를 확인할 수 있습니다.
 
 <a id="download-steps"></a>
+이번 점수 검사는 **101개 규칙 조건**과 실제 기체의 골대 통과를 확인했습니다. 중앙선 접촉에서 오프사이드가 먼저 풀리는 오류를 수정했습니다. [득점 검사 상세](docs/scoring-test-2026-10-27.md) · [Liftoff·VelociDrone·Uncrashed·DRL 참고 비교](docs/simulator-reference-comparison.md).
+
 ### 1. 다운로드 방법
 
 1. [GitHub Releases 페이지](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases)를 엽니다. 개발 시험판에는 `Pre-release`가 표시되므로 `Latest` 표시만 찾지 말고 **버전과 변경·검증 기록**을 확인합니다.
-2. 받을 버전의 **Assets**를 펼치고 **`ImperialWings-Windows-<버전>-<빌드>.zip`**을 누릅니다. 위에서 확인한 공개 파일명은 **`ImperialWings-Windows-v0.7.3-r1.zip`**이며 용량은 약375MB입니다.
+2. 받을 버전의 **Assets**를 펼치고 **`ImperialWings-Windows-<버전>-<빌드>.zip`**을 누릅니다. 검증된 파일명은 **`ImperialWings-Windows-v0.7.4-r2.zip`**입니다. Assets의 파일명·용량이 맞는지 확인합니다.
 3. 다운로드가 완료될 때까지 기다립니다. 브라우저의 다운로드 목록에서 **폴더에서 보기**를 누르거나, 파일 탐색기의 **다운로드** 폴더에서 ZIP을 찾습니다. 이어서 아래 [실행 방법](#run-steps)을 따릅니다.
 
 | 다운로드 항목 | 용도 |
@@ -25,7 +27,7 @@
 
 **실행 환경:** Windows 10/11 x64, DirectX12·Shader Model6를 지원하는 GPU가 필요합니다. Unreal Engine·Python·Git을 별도로 설치할 필요는 없습니다.
 
-1. 받은 ZIP을 **마우스 오른쪽 → 모두 압축 풀기**로 전체 해제합니다. 예를 들어 `C:\Games\ImperialWings-v0.7.3`에 풉니다. ZIP 안에서 바로 실행하거나 EXE 하나만 꺼내지 않습니다.
+1. 받은 ZIP을 **마우스 오른쪽 → 모두 압축 풀기**로 전체 해제합니다. 예를 들어 v0.7.4는 `C:\Games\ImperialWings-v0.7.4`에 풉니다. ZIP 안에서 바로 실행하거나 EXE 하나만 꺼내지 않습니다.
 2. 파일 탐색기에서 압축을 푼 폴더를 열고 **`ImperialWingsLauncher.exe`**를 더블클릭합니다. ZIP 이름의 하위 폴더가 한 번 더 있으면 그 안으로 들어갑니다. 브라우저 주소창에 파일 경로를 붙여넣는 방식이 아니라, 탐색기에서 실행 파일을 엽니다.
 3. 실행기 옆에 **`Windows`·`Guidance`·`Prerequisites`** 폴더와 `START_HERE.ko.md`가 있는지 확인합니다. 폴더 구성을 유지해야 하며, 기본 실행은 바깥쪽의 `ImperialWingsLauncher.exe`를 사용합니다.
 4. Visual C++ 실행 구성 요소가 없다는 메시지가 나오면 **`Prerequisites\vc_redist.x64.exe`**를 실행해 설치한 뒤 실행기를 다시 엽니다.
@@ -43,19 +45,43 @@
 3. **CONFIRM & SAVE**로 저장한 뒤 **스로틀 최저·나머지 축 중립**에서 **ENABLE RADIO**를 누릅니다. 패널을 닫고 Space로 ARM합니다.
 4. 다음 실행부터는 같은 조종기를 연결하고 최저 스로틀에서 **F8 / CONNECT SAVED RADIO**로 저장된 설정을 불러옵니다. 다른 장치에 이전 보정 파일을 그대로 복사하지 않습니다.
 
+| 스틱 배치 | 왼쪽 좌우 | 왼쪽 위아래 | 오른쪽 좌우 | 오른쪽 위아래 |
+|---|---|---|---|---|
+| Mode 1 | Yaw | Pitch | Roll | Throttle |
+| Mode 2 | Yaw | Throttle | Roll | Pitch |
+
+<a id="manual-throttle"></a>
+### 선택 사항: 정밀 스로틀 — v0.7.4
+
+새 사용자 기본값은 **THROTTLE: DIRECT**입니다. 작은 스틱 움직임으로 출력이 크게 변한다고 느끼면 모든 수동 기체를 착륙·DISARM한 뒤 조종기 설정의 **THROTTLE: DIRECT**를 눌러 **THROTTLE: PRECISION**으로 바꿉니다. 간소·고급 화면 모두에서 선택할 수 있으며, 보정 중이나 수동 기체가 ARM 상태일 때는 변경할 수 없습니다. 저장이 완료되면 USB가 해제되므로 최저 스로틀에서 **ENABLE RADIO / F8**로 명시적으로 다시 연결합니다. 키보드 수동 스로틀에도 같은 선택이 적용됩니다.
+
+Precision은 **입력55% 부근의 변화량을 줄이는 곡선**입니다. 최저0%·최대100%·입력55%의 출력은 유지하고, 중심에서 입력 변화에 대한 출력 변화율은0.65입니다.55%는 모든 기체·배터리에서 실제로 호버하는 지점을 뜻하지 않습니다. **ANGLE은 자세를 수평으로 복원하며 고도는 계속 스로틀로 조절합니다.** Precision에도 자동 고도 유지가 없고 자율비행 스로틀에는 이 곡선을 적용하지 않습니다.
+
+조종기 보정과 USB 활성화·ARM의 최저 스로틀 판정은 **정밀 곡선 적용 전 입력**을 사용합니다. 이 옵션은 모터 자체의 추력 곡선을 바꾸지 않습니다. 설정은 사용자 저장 폴더의 `Config/PilotControls.json`에 별도로 저장하며 `RadioProfile.json`의 실제 축·범위·중립을 변경하지 않습니다. 저장에 실패하면 이전 선택을 유지하고, 설정 파일이 잘못됐거나 지원하지 않는 버전이면 다음 시작에서 DIRECT를 사용합니다.
+
 **다른 앱으로 창을 전환하면 수동 기체는 DISARM됩니다.** USB는 게임으로 돌아온 뒤 최저 스로틀에서 F8로 다시 연결하고 ARM합니다. 상세 안내는 [다른 PC에서 실행·조종기 설정](docs/PORTABLE_QUICK_START.ko.md)을 확인합니다.
 
-**업데이트:** 새 버전 ZIP을 별도 폴더에 전체 압축 해제합니다. 이전 실행본에 일부 파일만 덮어쓰지 않습니다. 사용자 보정은 `%LOCALAPPDATA%\ImperialWingsSimulator\Saved\Config\RadioProfile.json`에 별도로 저장되므로 같은 Windows 사용자·같은 조종기의 설정은 새 버전에서도 불러올 수 있습니다. 이전 버전은 새 버전을 확인한 뒤 정리합니다.
+**업데이트:** 새 버전 ZIP을 별도 폴더에 전체 압축 해제합니다. 이전 실행본에 일부 파일만 덮어쓰지 않습니다. 사용자 보정은 `%LOCALAPPDATA%\ImperialWingsSimulator\Saved\Config\RadioProfile.json`, 정밀 스로틀 선택은 같은 폴더의 `PilotControls.json`에 따로 저장합니다. 같은 Windows 사용자·같은 조종기의 설정은 새 버전에서도 불러올 수 있으며 USB 활성화·ARM은 자동 복원하지 않습니다. 이전 버전은 새 버전을 확인한 뒤 정리합니다.
 
 **다운로드/실행 문제:**
 
 - 탐색기에 `file:///E:/...exe` 또는 `%20`이 들어간 경로를 붙여 넣어 “찾을 수 없습니다”가 나오면, 브라우저 주소를 실행한 것입니다. 파일 탐색기로 **실제 압축 해제 폴더**를 연 뒤 `ImperialWingsLauncher.exe`를 더블클릭합니다. 내려받은 PC에는 개발 PC의 `E:\...` 경로가 없습니다.
 - 실행 파일이 없으면 `Source code`를 받았는지, 아직 ZIP 내부를 보고 있는지 확인합니다. 이름에 `ImperialWings-Windows-`가 포함된 실행용 ZIP을 다시 확인합니다.
-- 파일 손상/누락은 ZIP을 다시 내려받고 새 폴더에 전체 압축을 풀어 확인합니다. GitHub 릴리스의 `SHA256SUMS.txt`로 다운로드 무결성을 확인할 수 있습니다. 확인 예: PowerShell에서 `Get-FileHash -Algorithm SHA256 -LiteralPath 'C:\Users\본인\Downloads\ImperialWings-Windows-v0.7.3-r1.zip'`을 실행하고 같은 파일명의 해시와 비교합니다. 버전·사용자 이름·저장 위치는 본인 PC에 맞춥니다.
+- 파일 손상/누락은 ZIP을 다시 내려받고 새 폴더에 전체 압축을 풀어 확인합니다. GitHub 릴리스의 `SHA256SUMS.txt`로 다운로드 무결성을 확인할 수 있습니다. 확인 예: PowerShell에서 `Get-FileHash -Algorithm SHA256 -LiteralPath 'C:\Users\본인\Downloads\ImperialWings-Windows-v0.7.4-r2.zip'`을 실행하고 같은 파일명의 해시와 비교합니다. 버전·사용자 이름·저장 위치는 실제 내려받은 파일에 맞춥니다.
 - 조종기가 보이지 않으면 Windows의 `joy.cpl`에서 먼저 확인합니다. 게임의 **EXPORT DEVICE REPORT**는 진단용이며 자동으로 보정을 완료하거나 실제 스틱 입력을 만들어 주지 않습니다.
 - 실행 후 문제가 있으면 **다운로드한 버전·오류 문구·발생 단계**와 사용자 저장 폴더의 진단 파일을 함께 확인합니다. 개인 보정 파일과 전체 사용자 폴더는 공개 저장소에 올리지 않습니다.
 
-공개 실행본의 변경·시험 범위는 [v0.7.3 검증 기록](docs/releases/v0.7.3.md)에서 확인합니다. Mode 1·Mode 2 설정과 검사 범위를 정리했으며, 시간 계산·자율 착륙 변경은 [v0.7.2 기록](docs/releases/v0.7.2.md)을 따릅니다. 실제 다운로드 가능 여부는 Releases의 Assets를 기준으로 확인합니다.
+최신 검사 범위는 **[v0.7.4 변경·검증 기록](docs/releases/v0.7.4.md)**과 [기계 판독 결과](docs/verification/v0.7.4-summary.json)에 있습니다. Mode 1·Mode 2의 이전 근거는 [v0.7.3](docs/releases/v0.7.3.md), 시간 계산·자율 착륙 변경은 [v0.7.2](docs/releases/v0.7.2.md)를 보존합니다. 미완료 항목은 [순차 작업 목록](docs/sequential-work-2026-10-27.md)을 따릅니다. 실제 다운로드 가능 여부는 Releases의 Assets를 기준으로 확인합니다.
+
+<a id="feedback-form"></a>
+### 테스트 결과 보내기 — v0.7.4 배포 양식
+
+1. ZIP 전체를 압축 해제한 폴더에서 실행기 옆의 **`feedback-form.html`**을 Edge 또는 Chrome으로 엽니다. 인터넷이나 로그인이 필요하지 않습니다.
+2. 실제 실행한 **버전·ZIP 이름·조종기 배치·입력 방식**과 직접 확인한 증상, 재현 순서, 기대한 동작·실제 동작을 적습니다. 정밀 스로틀 문제라면 DIRECT/PRECISION 선택도 기록합니다.
+3. **보고서 미리보기 → 내용 확인란 → TXT 보고서 저장 / JSON 보고서 저장** 순서로 저장합니다. 브라우저 다운로드 목록에서 파일이 생겼는지 확인합니다. 내용을 수정했다면 미리보기를 다시 확인하고 창 닫기·새로고침 전에 저장합니다.
+4. 저장한 보고서와 필요한 화면·F6 비행 기록을 배포자에게 직접 전달합니다. 양식은 자동 전송하지 않으며 첨부란은 파일 이름·설명 메모입니다. 파일을 자동으로 읽거나 보고서에 포함하지 않습니다. 개인 `RadioProfile.json`이나 사용자 `Saved` 폴더 전체는 보내지 않습니다.
+
+HTML은 게임·조종기 설정을 변경하지 않습니다. 양식을 열거나 저장할 수 없으면 같은 내용을 텍스트로 작성해 전달합니다. 검토한 [양식 원본](docs/feedback-form.html)과 배포 ZIP의 HTML·체크섬이 일치함을 확인했습니다. 실제 브라우저의 파일 연결 방식은 PC 환경에 따라 다릅니다.
 
 첫 실행의 간소 조종기 화면에서 **실제 장치 카드 선택 → MODE 1 / MODE 2 선택 → STICK SETUP → CONFIRM & SAVE → ENABLE RADIO** 순서로 보정합니다. 상단 STEP 안내로 다음 행동을 확인합니다. 이미 보정한 장치는 **CONNECT SAVED RADIO / F8**로 연결할 수 있습니다. 스로틀 최저에서 패널을 닫고 Space로 ARM합니다. 보정값은 각 Windows 사용자의 `%LOCALAPPDATA%\ImperialWingsSimulator\Saved`에 저장하고 다른 사람의 보정값을 배포하지 않습니다.
 
@@ -64,6 +90,8 @@
 Unreal Engine 5.8 기반 Windows 드론축구 시뮬레이터입니다. 기본 시점은 **경기장 밖 조종자 위치에서 기체를 보는 LOS(육안) 조종**입니다. FIDA Class40의 경기장·기체 규격과 5대5 경기 흐름, USB 조종기 보정 UI, 실제 SDACS APF를 사용하는 자율 훈련을 함께 개발합니다.
 
 기체는 네 모터의 개별 힘과 회전 모멘트, 중력·항력·Chaos 접촉으로 움직입니다. 정상 비행에서 위치를 강제로 갱신하지 않으며 초기화에서만 물리 위치를 되돌립니다. 실기체와 일치하도록 실측 보정된 제품은 아닙니다.
+
+**v0.7.4 전력 제한:** 모터가 요구한 전력과 배터리에서 공급 가능한 전력을 연결해, 공급이 부족하면 실제 모터 추력·반작용 토크를 함께 낮춥니다. 항전 장비의 전력도 반영하고 빈 배터리에서는 모터 전력을 공급하지 않습니다. 화면의 **POWER LIMITED / THRUST %** 또는 **BATTERY EMPTY / NO MOTOR POWER**가 상태를 알립니다. 이는 실험용 모델이며 실제 기체의 배터리·ESC·추력 실측 보정을 완료한 것은 아닙니다. 정밀 스로틀과 전력 제한은 서로 다른 기능입니다.
 
 ![v0.7 내부 기자재의 실제 Unreal 렌더](docs/images/equipment-v07.png)
 
@@ -205,13 +233,19 @@ Saved/
 | `flight_mode` | 비행 제어 모드 |
 | `position_m` | 경기장 좌표 `[X, Y, Z]`, 미터 |
 | `speed_mps` | 속력, m/s |
-| `throttle` | 기체에 적용되는 스로틀 명령0~1 |
+| `throttle` | 정밀 곡선 적용 전 스로틀 입력0~1. USB인 경우 축 보정은 완료된 값이며 원시 HID 패킷은 아님 |
+| `throttle_command / precision_throttle` | v0.7.4의 실제 스로틀 명령0~1 / 해당 수동 기체의 정밀 곡선 사용 여부 |
+| `flight_model_s / sensor_model_s` | 누적 비행 모델 / 센서 모델 계산 시간, 초 |
+| `battery_current_a / battery_consumed_ah` | 배터리 전류A / 누적 소모량Ah |
+| `battery_delivered_power_w / battery_power_limited` | 배터리 공급 전력W / 공급 한도에 따른 제한 여부 |
+| `motor_requested_power_w / motor_available_power_w / motor_applied_power_w` | 모터 요구 / 사용 가능 / 실제 적용 전력W |
+| `motor_thrust_scale` | 전력 한도를 적용한 추력 비율0~1 |
 | `tilt_deg` | 기체 기울기, 도 |
 | `rotation_deg` | `[Roll, Pitch, Yaw]`, 도 |
 
 USB `stick`은 원시 HID 패킷이나 키보드 키 입력 기록이 아닙니다. `radio_enabled`와 각 기체의 `input_source`를 함께 확인합니다. JSONL의 숫자 `id=0`은 CSV의 `IW-01`에 대응합니다.
 
-**현재 F6 기록에 없는 항목:** 연속 배터리 전압·개별 모터 힘/RPM·자이로·PID 각 항·키보드 누른 키 전체·확정 득점/심판 사건·영상. 배터리와 보정 상태는 F5로 순간 확인할 수 있습니다. 더 풍부한 진단·경기 사건 기록은 [개발 계획](docs/development-roadmap.md#feedback-data-plan)에 있습니다.
+**현재 F6 기록에 없는 항목:** 연속 배터리 전압·개별 모터 힘/RPM·자이로·PID 각 항·키보드 누른 키 전체·확정 득점/심판 사건·영상. 배터리 잔량·전압과 보정 상태는 F5로 순간 확인할 수 있습니다. v0.7.4의 스로틀 명령·전력 제한 항목은 이전 버전의 기록에 없을 수 있으므로 실제 기록의 버전·필드부터 확인합니다. 더 풍부한 진단·경기 사건 기록은 [개발 계획](docs/development-roadmap.md#feedback-data-plan)에 있습니다.
 
 F6 파일명과 `utc`는 UTC 기준입니다. Windows 파일 탐색기의 표시 시간, CSV 파일명의 PC 시각과 구분합니다. 비정상 종료로 `stop`이 없거나 마지막 줄이 미완성일 수 있으며 이를 정상 종료 기록으로 바꾸어 해석하지 않습니다.
 

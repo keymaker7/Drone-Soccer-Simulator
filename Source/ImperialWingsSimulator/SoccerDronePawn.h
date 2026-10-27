@@ -111,6 +111,16 @@ public:
     double GetSensorModelSeconds() const { return SensorElapsedSeconds; }
     double GetBatteryConsumedAh() const { return BatteryState.ConsumedAh; }
     double GetBatteryCurrentA() const { return BatteryState.CurrentA; }
+    double GetBatteryDeliveredPowerW() const { return BatteryState.DeliveredPowerW; }
+    bool IsBatteryPowerLimited() const { return BatteryState.PowerLimited; }
+    double GetMotorElectricalPowerW() const;
+    float GetThrottleCommand() const;
+    bool UsesPrecisionThrottle() const;
+    double GetRequestedMotorPowerW() const { return PowerBudget.RequestedMotorPowerW; }
+    double GetAvailableMotorPowerW() const { return PowerBudget.AvailableMotorPowerW; }
+    double GetMotorThrustScale() const { return PowerBudget.ThrustScale; }
+    /** Explicit power-budget fixture only; never loads or changes a USB profile. */
+    void SetPowerVerificationConditions(double MaximumCurrentA,double Soc);
     float GetNetDeflection() const;
     float GetGuardIntegrityPercent() const { return static_cast<float>(GuardState.Integrity*100); }
     int32 GetGuardImpactCount() const { return static_cast<int32>(GuardState.ImpactCount); }
@@ -294,6 +304,7 @@ private:
     UPROPERTY() TObjectPtr<UPhysicalMaterial> CagePhysicalMaterial;
     ImperialPhysics::Parameters PhysicalParams;
     ImperialPhysics::BatteryState BatteryState;
+    ImperialPhysics::PowerBudgetResult PowerBudget;
     std::array<ImperialPhysics::MotorState,4> MotorStates;
     std::array<ImperialPhysics::NetState,5> NetStates;
     ImperialPhysics::SensorPipeline Sensors;

@@ -120,6 +120,142 @@ int main()
     BatteryStep(LongStep, Ideal.NominalVoltageV * 10, 3600, Ideal);
     Check(Near(LongStep.Soc, 0) && Near(LongStep.ConsumedAh, Ideal.CapacityAh), "large step cannot consume more than stored battery charge");
 
+    // Reproduce the production ordering: candidates are already producing thrust,
+    // then the battery reports a current/power limit. The actual motors must share
+    // that power limit, rather than only reporting a smaller battery current.
+    std::array<MotorState,4> PowerLimitedMotors{};
+    double CandidatePowerW = 0;
+    for (auto& State : PowerLimitedMotors)
+    {
+        State.ThrustN = 3.0;
+        State.OmegaRadS = P.Motor.MaximumOmegaRadS * std::sqrt(State.ThrustN / P.Motor.MaxThrustN);
+        CandidatePowerW += EstimateRotorPowerW(State.ThrustN, P.Motor);
+    }
+    BatteryParams LimitedSupply = P.Battery; LimitedSupply.MaximumCurrentA = 5.0;
+    BatteryState LimitedBattery;
+    const auto LimitedBudget = ApplyBatteryPowerBudget(PowerLimitedMotors, LimitedBattery, 0.01, P.Motor, LimitedSupply);
+    const double MotorBudgetW = std::max(0.0, LimitedBattery.DeliveredPowerW - LimitedSupply.AvionicsCurrentA * LimitedSupply.FullVoltageV);
+    double ActualMotorPowerW = 0;
+    for (const auto& State : PowerLimitedMotors) ActualMotorPowerW += EstimateRotorPowerW(State.ThrustN, P.Motor);
+    Check(ActualMotorPowerW <= MotorBudgetW + 1e-8, "limited battery power must constrain actual four-motor thrust");
+    Check(LimitedBudget.Limited && LimitedBudget.ThrustScale < 1 && Near(LimitedBudget.RequestedMotorPowerW, CandidatePowerW), "power budget reports the original candidate demand and applied limit");
+    Check(Near(LimitedBudget.AppliedMotorPowerW, ActualMotorPowerW) && Near(LimitedBudget.AvailableMotorPowerW, MotorBudgetW), "power budget telemetry uses the same applied motor states and supply");
+
+    const auto CandidateMotors = [&](const std::array<double,4>& Thrusts)
+    {
+        std::array<MotorState,4> States{};
+        for (std::size_t Index = 0; Index < States.size(); ++Index)
+        {
+            States[Index].ThrustN = Thrusts[Index];
+            States[Index].OmegaRadS = std::isfinite(Thrusts[Index]) && Thrusts[Index] >= 0
+                ? P.Motor.MaximumOmegaRadS * std::sqrt(Thrusts[Index] / P.Motor.MaxThrustN) : NaN;
+        }
+        return States;
+    };
+    const auto FiniteBudget = [](const PowerBudgetResult& Budget)
+    {
+        return std::isfinite(Budget.RequestedMotorPowerW) && std::isfinite(Budget.AppliedMotorPowerW) &&
+            std::isfinite(Budget.AvailableMotorPowerW) && std::isfinite(Budget.ThrustScale) &&
+            Budget.AppliedMotorPowerW >= 0 && Budget.AvailableMotorPowerW >= 0 && Budget.ThrustScale >= 0 && Budget.ThrustScale <= 1;
+    };
+    auto LightMotors = CandidateMotors({{1,1,1,1}});
+    BatteryState LightBattery, ReferenceBattery;
+    const double LightDemand = 4 * EstimateRotorPowerW(1, P.Motor);
+    BatteryStep(ReferenceBattery, LightDemand, 0.02, P.Battery);
+    const auto LightBudget = ApplyBatteryPowerBudget(LightMotors, LightBattery, 0.02, P.Motor, P.Battery);
+    Check(!LightBudget.Limited && Near(LightBudget.ThrustScale, 1) && Near(LightMotors[0].ThrustN, 1), "unlimited supply preserves actual candidate thrust");
+    Check(Near(LightBattery.Soc, ReferenceBattery.Soc) && Near(LightBattery.ConsumedAh, ReferenceBattery.ConsumedAh) &&
+          Near(LightBattery.VoltageV, ReferenceBattery.VoltageV) && Near(LightBattery.CurrentA, ReferenceBattery.CurrentA), "allocation advances the battery exactly once per positive step");
+    auto UnequalMotors = CandidateMotors({{4,2,1,0}});
+    BatteryState UnequalBattery;
+    const auto UnequalBudget = ApplyBatteryPowerBudget(UnequalMotors, UnequalBattery, 0.01, P.Motor, LimitedSupply);
+    Check(UnequalBudget.Limited && Near(UnequalMotors[0].ThrustN / 4, UnequalMotors[1].ThrustN / 2) &&
+          Near(UnequalMotors[1].ThrustN / 2, UnequalMotors[2].ThrustN) && Near(UnequalMotors[3].ThrustN, 0), "shared power allocation preserves asymmetric mixer proportions and stopped motors");
+    bool OmegaConsistent = true;
+    for (const auto& State : UnequalMotors)
+        if (!Near(State.OmegaRadS, P.Motor.MaximumOmegaRadS * std::sqrt(State.ThrustN / P.Motor.MaxThrustN))) OmegaConsistent = false;
+    Check(OmegaConsistent, "power-limited thrust and gyro rotor angular speed stay consistent");
+    Check(Near(UnequalBudget.ThrustScale, std::pow(UnequalBudget.AvailableMotorPowerW / UnequalBudget.RequestedMotorPowerW, 2.0 / 3.0)), "shared thrust limit uses inverse T to the three-halves electrical power law");
+
+    bool ZeroSuppliesSafe = true;
+    for (double Limit : {0.0, -1.0, NaN, std::numeric_limits<double>::infinity()})
+    {
+        BatteryParams NoSupply = P.Battery; NoSupply.MaximumCurrentA = Limit;
+        BatteryState Battery;
+        auto Motors = CandidateMotors({{3,2,1,4}});
+        const auto Budget = ApplyBatteryPowerBudget(Motors, Battery, 0.02, P.Motor, NoSupply);
+        if (!FiniteBudget(Budget) || !Budget.Limited || Budget.AppliedMotorPowerW != 0 || Budget.AvailableMotorPowerW != 0 ||
+            Battery.CurrentA != 0 || Battery.ConsumedAh != 0 || Battery.Soc != 1) ZeroSuppliesSafe = false;
+        for (const auto& State : Motors) if (State.ThrustN != 0 || State.OmegaRadS != 0) ZeroSuppliesSafe = false;
+    }
+    Check(ZeroSuppliesSafe, "zero negative and non-finite current limits provide no phantom battery or motor power");
+    BatteryState EmptySupply; EmptySupply.Soc = 0;
+    auto EmptyMotors = CandidateMotors({{2,2,2,2}});
+    const auto EmptyBudget = ApplyBatteryPowerBudget(EmptyMotors, EmptySupply, 0.01, P.Motor, P.Battery);
+    Check(EmptyBudget.Limited && EmptyBudget.AppliedMotorPowerW == 0 && EmptySupply.CurrentA == 0 && EmptyMotors[0].OmegaRadS == 0, "empty pack cannot fund residual motor-state thrust");
+    BatteryParams LastChargeParams = P.Battery;
+    LastChargeParams.AvionicsCurrentA = 0; LastChargeParams.CapacityAh = 0.1;
+    BatteryState LastCharge; LastCharge.Soc = 0.00001;
+    const double RemainingAh = LastCharge.Soc * LastChargeParams.CapacityAh;
+    auto LastChargeMotors = CandidateMotors({{2,2,2,2}});
+    const auto LastChargeBudget = ApplyBatteryPowerBudget(LastChargeMotors, LastCharge, 0.01, P.Motor, LastChargeParams);
+    Check(Near(LastCharge.Soc, 0, 1e-12) && Near(LastCharge.ConsumedAh, RemainingAh) && LastChargeBudget.AppliedMotorPowerW > 0 &&
+          LastChargeBudget.AppliedMotorPowerW <= LastChargeBudget.AvailableMotorPowerW + 1e-9, "last partial-charge step retains only energy actually delivered before SOC reaches zero");
+    LastChargeMotors = CandidateMotors({{2,2,2,2}});
+    const auto AfterEmptyBudget = ApplyBatteryPowerBudget(LastChargeMotors, LastCharge, 0.01, P.Motor, LastChargeParams);
+    Check(AfterEmptyBudget.AppliedMotorPowerW < 1e-9 && LastChargeMotors[0].ThrustN < 1e-8, "step after final charge cannot continue unfunded motor thrust");
+    BatteryState BaselineBattery; BaselineBattery.Soc = 0.5;
+    auto BaselineMotors = CandidateMotors({{4,3,2,1}});
+    BatteryParams DisabledSupply = P.Battery; DisabledSupply.MaximumCurrentA = 0;
+    const auto BaselineBudget = ApplyBatteryPowerBudget(BaselineMotors, BaselineBattery, 0.1, P.Motor, DisabledSupply, 1.225, false);
+    Check(!BaselineBudget.Limited && BaselineBudget.ThrustScale == 1 && BaselineMotors[0].ThrustN == 4 &&
+          BaselineBattery.Soc == 0.5 && BaselineBattery.ConsumedAh == 0 && Near(BaselineBattery.VoltageV, P.Battery.NominalVoltageV), "explicitly disabled battery preserves motor baseline without draining charge");
+    bool InvalidStepsSafe = true;
+    for (double InvalidDt : {0.0, -0.01, NaN, std::numeric_limits<double>::infinity()})
+    {
+        BatteryState Battery; Battery.Soc = 0.6; Battery.ConsumedAh = 0.2;
+        auto Motors = CandidateMotors({{4,3,2,1}});
+        const auto Budget = ApplyBatteryPowerBudget(Motors, Battery, InvalidDt, P.Motor, P.Battery);
+        if (!FiniteBudget(Budget) || Budget.AppliedMotorPowerW != 0 || Budget.AvailableMotorPowerW != 0 ||
+            Battery.Soc != 0.6 || Battery.ConsumedAh != 0.2) InvalidStepsSafe = false;
+        for (const auto& State : Motors) if (State.ThrustN != 0 || State.OmegaRadS != 0) InvalidStepsSafe = false;
+    }
+    Check(InvalidStepsSafe, "nonpositive or non-finite step rejects output without advancing battery charge");
+    auto InvalidMotors = CandidateMotors({{NaN,-1,std::numeric_limits<double>::infinity(),2}});
+    BatteryState ValidSupply;
+    const auto InvalidCandidateBudget = ApplyBatteryPowerBudget(InvalidMotors, ValidSupply, 0.01, P.Motor, P.Battery, NaN);
+    Check(FiniteBudget(InvalidCandidateBudget) && InvalidMotors[0].ThrustN == 0 && InvalidMotors[1].ThrustN == 0 &&
+          InvalidMotors[2].ThrustN == 0 && InvalidMotors[3].ThrustN > 0, "invalid motor candidates are removed while valid channels retain a finite budget");
+    BatteryState UnknownCharge; UnknownCharge.Soc = NaN;
+    auto UnknownChargeMotors = CandidateMotors({{2,2,2,2}});
+    const auto UnknownChargeBudget = ApplyBatteryPowerBudget(UnknownChargeMotors, UnknownCharge, 0.01, P.Motor, P.Battery);
+    Check(FiniteBudget(UnknownChargeBudget) && UnknownCharge.Soc == 0 && UnknownChargeBudget.AppliedMotorPowerW == 0, "unknown SOC is never fabricated into a fully charged motor supply");
+
+    bool RateBudgetConserved = true, RateChargeConsistent = true;
+    for (int Hz : {20,30,60,120,240})
+    {
+        BatteryParams Supply = P.Battery; Supply.MaximumCurrentA = 7;
+        BatteryState Battery;
+        const double Dt = 1.0 / Hz;
+        double DeliveredEnergyJ = 0, AppliedEnergyJ = 0, AvionicsEnergyJ = 0;
+        for (int Index = 0; Index < Hz * 20; ++Index)
+        {
+            const double Ocv = Supply.EmptyVoltageV + (Supply.FullVoltageV - Supply.EmptyVoltageV) * Battery.Soc;
+            auto Motors = CandidateMotors({{4,3,2,1}});
+            const auto Budget = ApplyBatteryPowerBudget(Motors, Battery, Dt, P.Motor, Supply);
+            if (!FiniteBudget(Budget) || !Budget.Limited || Budget.AppliedMotorPowerW > Budget.AvailableMotorPowerW + 1e-8 ||
+                Battery.CurrentA > Supply.MaximumCurrentA + 1e-12 || Battery.Soc < 0 || Battery.Soc > 1) RateBudgetConserved = false;
+            DeliveredEnergyJ += Battery.DeliveredPowerW * Dt;
+            AppliedEnergyJ += Budget.AppliedMotorPowerW * Dt;
+            AvionicsEnergyJ += Supply.AvionicsCurrentA * Ocv * Dt;
+        }
+        if (!Near(DeliveredEnergyJ, AppliedEnergyJ + AvionicsEnergyJ, 1e-6)) RateBudgetConserved = false;
+        if (!Near(Battery.ConsumedAh, Supply.MaximumCurrentA * 20.0 / 3600.0, 1e-10) ||
+            !Near(Battery.Soc, 1.0 - Supply.MaximumCurrentA * 20.0 / (3600.0 * Supply.CapacityAh), 1e-10)) RateChargeConsistent = false;
+    }
+    Check(RateBudgetConserved, "20 through 240 Hz allocations conserve delivered motor plus avionics electrical energy");
+    Check(RateChargeConsistent, "20 through 240 Hz current-limited charge usage matches the same analytical duration");
+
     const Vec3 V{3, -4, 2};
     const Vec3 Drag = DragForce(V, P.Aero);
     Check(Dot(Drag, V) < 0, "aerodynamic drag always removes relative kinetic energy");

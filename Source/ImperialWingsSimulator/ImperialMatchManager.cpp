@@ -75,7 +75,7 @@ void AImperialMatchManager::BeginPlay()
     // Shipping ignores the engine's developer-only -FPS override. Configure only
     // these explicit non-USB verification scenarios, then report actual Tick dt.
     double FixtureFPS=0;
-    if((bSmoke||bAngleSmoke||bContactSmoke||bViewSmoke)&&FParse::Param(FCommandLine::Get(),TEXT("UseFixedTimeStep"))&&FParse::Value(FCommandLine::Get(),TEXT("FPS="),FixtureFPS)&&FixtureFPS>=20&&FixtureFPS<=240)
+    if((bSmoke||bAngleSmoke||bContactSmoke||bViewSmoke||FParse::Param(FCommandLine::Get(),TEXT("ImperialPowerSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialThrottleSmoke")))&&FParse::Param(FCommandLine::Get(),TEXT("UseFixedTimeStep"))&&FParse::Value(FCommandLine::Get(),TEXT("FPS="),FixtureFPS)&&FixtureFPS>=20&&FixtureFPS<=240)
     {FApp::SetFixedDeltaTime(1./FixtureFPS);FApp::SetUseFixedTimeStep(true);}
     bDemo=FParse::Param(FCommandLine::Get(),TEXT("ImperialDemo"));
     FParse::Value(FCommandLine::Get(),TEXT("ImperialCapture="),CaptureFile);
@@ -391,8 +391,12 @@ void AImperialMatchManager::RecordFlightSample(const FString& Event)
         Row->SetStringField(TEXT("input_source"),D->GetInputSource());Row->SetStringField(TEXT("flight_mode"),D->GetFlightModeName());
         Row->SetArrayField(TEXT("position_m"),JsonVector(D->GetActorLocation()/100.));Row->SetNumberField(TEXT("speed_mps"),D->GetFlightSpeed());
         Row->SetNumberField(TEXT("throttle"),D->GetThrottle());Row->SetNumberField(TEXT("tilt_deg"),D->GetTiltDegrees());
+        Row->SetNumberField(TEXT("throttle_command"),D->GetThrottleCommand());Row->SetBoolField(TEXT("precision_throttle"),D->UsesPrecisionThrottle());
         Row->SetNumberField(TEXT("flight_model_s"),D->GetFlightModelSeconds());Row->SetNumberField(TEXT("sensor_model_s"),D->GetSensorModelSeconds());
         Row->SetNumberField(TEXT("battery_consumed_ah"),D->GetBatteryConsumedAh());Row->SetNumberField(TEXT("battery_current_a"),D->GetBatteryCurrentA());
+        Row->SetNumberField(TEXT("battery_delivered_power_w"),D->GetBatteryDeliveredPowerW());Row->SetBoolField(TEXT("battery_power_limited"),D->IsBatteryPowerLimited());
+        Row->SetNumberField(TEXT("motor_requested_power_w"),D->GetRequestedMotorPowerW());Row->SetNumberField(TEXT("motor_applied_power_w"),D->GetMotorElectricalPowerW());
+        Row->SetNumberField(TEXT("motor_available_power_w"),D->GetAvailableMotorPowerW());Row->SetNumberField(TEXT("motor_thrust_scale"),D->GetMotorThrustScale());
         Row->SetNumberField(TEXT("guard_integrity_pct"),D->GetGuardIntegrityPercent());Row->SetNumberField(TEXT("guard_impact_count"),D->GetGuardImpactCount());
         const auto Rotation=D->GetBodyMesh()->GetComponentRotation();Row->SetArrayField(TEXT("rotation_deg"),JsonVector(FVector(Rotation.Roll,Rotation.Pitch,Rotation.Yaw)));
         Rows.Add(MakeShared<FJsonValueObject>(Row));

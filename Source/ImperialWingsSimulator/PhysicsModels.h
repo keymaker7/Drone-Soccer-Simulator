@@ -68,6 +68,24 @@ void BatteryStep(BatteryState& State, double ElectricalPowerW, double Dt,
                  const BatteryParams& Params, bool Enabled = true);
 double BatteryThrustFactor(const BatteryState& State, const BatteryParams& Params, bool Enabled = true);
 
+struct PowerBudgetResult
+{
+    double RequestedMotorPowerW = 0;
+    double AppliedMotorPowerW = 0;
+    double AvailableMotorPowerW = 0;
+    double ThrustScale = 1;
+    bool Limited = false;
+};
+// Allocate candidate (post-ESC) motor states against this step's actual terminal
+// battery power. Advances Battery exactly once for a finite positive Dt. Electrical
+// power is proportional to T^(3/2), so a common T scale preserves mixer proportions.
+// Thrust and rotor omega are updated together before any force/gyro/wake use.
+// Invalid Dt rejects output (zero motors) without advancing battery charge.
+// Disabled battery leaves valid motor candidates unchanged and does not drain SOC.
+PowerBudgetResult ApplyBatteryPowerBudget(std::array<MotorState,4>& Motors, BatteryState& Battery,
+    double Dt, const MotorParams& Motor, const BatteryParams& BatteryParameters,
+    double DensityKgM3 = 1.225, bool Enabled = true);
+
 struct AeroParams { double DensityKgM3 = 1.225, EffectiveCdAreaM2 = 0.015; };
 // Relative velocity is aircraft velocity minus ambient/wake air velocity.
 // Effective Cd*A is configurable and does not assume a solid sphere drag coefficient.

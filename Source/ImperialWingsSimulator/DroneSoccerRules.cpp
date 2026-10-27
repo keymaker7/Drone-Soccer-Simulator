@@ -158,7 +158,10 @@ void MatchRules::Update(const std::array<Vec3,10>& positions,double dt,const std
             for(int id=team*5;id<team*5+5;++id)if(active[id])
             {
                 const double x=Interpolate(previous[id],positions[id],fraction).x;
-                if(team==0?x+RuleProfileFIDA40::BallRadius>=0:x-RuleProfileFIDA40::BallRadius<=0)retreated=false;
+                // Interpolation can place an exactly touching body a fraction
+                // of a floating-point unit across the line. Require positive
+                // clearance before lifting offside, symmetrically for both teams.
+                if(team==0?x+RuleProfileFIDA40::BallRadius>=-Epsilon:x-RuleProfileFIDA40::BallRadius<=Epsilon)retreated=false;
             }
             if(retreated)offside[team]=false;
         }
