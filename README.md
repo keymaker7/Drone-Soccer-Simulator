@@ -10,6 +10,8 @@
 <a id="download-steps"></a>
 이번 점수 검사는 **101개 규칙 조건**과 실제 기체의 골대 통과를 확인했습니다. 중앙선 접촉에서 오프사이드가 먼저 풀리는 오류를 수정했습니다. [득점 검사 상세](docs/scoring-test-2026-10-27.md) · [Liftoff·VelociDrone·Uncrashed·DRL 참고 비교](docs/simulator-reference-comparison.md).
 
+GitHub에 공개한 실행 ZIP·소스 ZIP을 다시 다운로드해 검증한 원본과 SHA-256이 같음을 확인했습니다. [업로드·다운로드 확인 기록](docs/verification/v0.7.4-publication.json).
+
 ### 1. 다운로드 방법
 
 1. [GitHub Releases 페이지](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases)를 엽니다. 개발 시험판에는 `Pre-release`가 표시되므로 `Latest` 표시만 찾지 말고 **버전과 변경·검증 기록**을 확인합니다.

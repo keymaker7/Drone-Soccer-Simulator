@@ -1,0 +1,27 @@
+{
+  "version": "0.7.4",
+  "verified_utc": "2026-10-27T07:55:22.8322225Z",
+  "release_url": "https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/tag/v0.7.4",
+  "release_source_commit": "77b85135c8ac568c01be826284773bfee0e21eb8",
+  "source_sha256": "33e6f4eaed5089dc6a8e71a2c4e0b3cefa7c1d26e6d105616b67c6e9c6b2fe3b",
+  "source_archive_build_inputs": 123,
+  "source_archive_extracted_fingerprint_matches": true,
+  "published_summary_download_matches": true,
+  "assets": [
+    {
+      "name": "ImperialWings-Windows-v0.7.4-r2.zip",
+      "bytes": 374786305,
+      "sha256": "2bb10cc56b25a80e66a017b26b1cc236fe483460a15a8ea4e06ba39475b89cc6",
+      "downloaded_from_github": true,
+      "matches_tested_local_archive": true
+    },
+    {
+      "name": "Drone-Soccer-Simulator-v0.7.4-r2-source.zip",
+      "bytes": 37962049,
+      "sha256": "05df94131a6e4de6279b0d9343d2cf43b524f6dfdccf7a63e238df2c135d2e74",
+      "downloaded_from_github": true,
+      "matches_tested_local_archive": true
+    }
+  ],
+  "scope": "Actual release download and SHA-256 comparison; local source archive extraction. Does not certify another physical PC or USB hardware."
+}
