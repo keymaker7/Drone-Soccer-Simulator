@@ -19,8 +19,9 @@
 - Default to keyboard and disarmed motors until the actual Boxer/USB device,
   channel mapping, ranges, neutral values, inversion, and low throttle are
   verified. Never fabricate physical controller input or calibration evidence.
-- The user confirmed Mode 2 (left vertical throttle). Preserve the staged stick
-  setup and its explicit review/save/enable steps. R5 tested idle rejection and
+- Support user-selected Mode 1 (right vertical throttle) and Mode 2 (left
+  vertical throttle, legacy default). Preserve staged setup and explicit
+  review/save/enable; do not remap a saved profile on layout selection. R5 tested idle rejection and
   cancel with the actual Boxer, not completed physical mapping or USB flight.
 - The user subsequently requested ANGLE for every aircraft. Manual roll/pitch
   now command a 35-degree maximum target tilt and self-level at neutral; yaw and

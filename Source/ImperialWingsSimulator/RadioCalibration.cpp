@@ -70,8 +70,23 @@ const char* ErrorText(Error Value)
     case Error::EndpointNotHeld: return "Hold the indicated final end, then confirm this step.";
     case Error::InputNotStable: return "Keep the sticks still for a moment before confirming.";
     case Error::IncompleteSweep: return "Sweep BOTH sides of the starting center. Retry from a centered stick.";
+    case Error::InvalidStickMode: return "Choose Mode 1 or Mode 2, then calibrate the actual stick layout.";
     }
     return "Unknown calibration error.";
+}
+
+bool IsValidStickMode(StickMode Mode)
+{
+    return Mode == StickMode::Mode1 || Mode == StickMode::Mode2;
+}
+
+int StickForChannel(StickMode Mode, int Channel)
+{
+    if (!IsValidStickMode(Mode) || Channel < 0 || Channel >= static_cast<int>(ChannelCount)) return -1;
+    if (Channel == 0) return 1; // Roll is right horizontal in both modes.
+    if (Channel == 2) return 0; // Yaw is left horizontal in both modes.
+    const int ThrottleStick = Mode == StickMode::Mode1 ? 1 : 0;
+    return Channel == 3 ? ThrottleStick : 1 - ThrottleStick;
 }
 
 double NormalizeDriverAxis(double Value, double Minimum, double Maximum)
@@ -107,6 +122,7 @@ Error ValidateMapping(const Profile& Value, const AxisMask& Available)
 
 Error ValidateProfile(const Profile& Value, const AxisMask& Available, bool RequireConfirmation)
 {
+    if (!IsValidStickMode(Value.Mode)) return Error::InvalidStickMode;
     const Error MappingError = ValidateMapping(Value, Available);
     if (MappingError != Error::None)
     {
@@ -349,13 +365,15 @@ Error GuidedCapture::Interrupt(Error Reason)
     return Reason;
 }
 
-Error GuidedCapture::Begin(const AxisMask& Available, bool Connected, double Deadzone)
+Error GuidedCapture::Begin(const AxisMask& Available, bool Connected, double Deadzone, StickMode Mode)
 {
     Cancel();
+    if (!IsValidStickMode(Mode)) return Error::InvalidStickMode;
     if (!Connected) return Error::Disconnected;
     if (std::count(Available.begin(), Available.end(), true) < 4) return Error::UnavailableAxis;
     if (!std::isfinite(Deadzone) || Deadzone < 0 || Deadzone > 0.25) return Error::InvalidDeadzone;
     Value = Profile{};
+    Value.Mode = Mode;
     Value.Mapping.fill(-1);
     Value.Deadzone = Deadzone;
     Mask = Available;

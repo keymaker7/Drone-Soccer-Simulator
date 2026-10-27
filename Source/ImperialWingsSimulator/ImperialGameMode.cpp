@@ -7,6 +7,7 @@
 #include "ImperialRoleRibbons.h"
 #include "ImperialInputSafetyVerifier.h"
 #include "ImperialTimeVerifier.h"
+#include "ImperialRadioModeVerifier.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 AImperialGameMode::AImperialGameMode()
@@ -21,5 +22,6 @@ void AImperialGameMode::StartPlay()
     GetWorld()->SpawnActor<AImperialRoleRibbons>();
     if(FParse::Param(FCommandLine::Get(),TEXT("ImperialInputSmoke")))GetWorld()->SpawnActor<AImperialInputSafetyVerifier>();
     if(FParse::Param(FCommandLine::Get(),TEXT("ImperialTimeSmoke")))GetWorld()->SpawnActor<AImperialTimeVerifier>();
+    if(FParse::Param(FCommandLine::Get(),TEXT("ImperialRadioModeSmoke")))GetWorld()->SpawnActor<AImperialRadioModeVerifier>();
     Super::StartPlay();
 }

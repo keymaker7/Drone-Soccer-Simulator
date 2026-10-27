@@ -5,13 +5,13 @@
 
 **[다운로드 방법](#download-steps) · [실행 방법](#run-steps) · [첫 조종기 설정](#first-controller-setup)**
 
-2026-10-27 확인 기준 공개 실행본은 **v0.7.2**입니다. [Windows x64 실행용 ZIP 바로 다운로드](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/download/v0.7.2/ImperialWings-Windows-v0.7.2-r2.zip). 개발 중인 소스의 버전과 공개 실행본은 다를 수 있으므로, 지인과 테스트할 때는 **같은 릴리스의 같은 ZIP**을 사용합니다.
+2026-10-27 확인 기준 공개 실행본은 **v0.7.3**입니다. [Windows x64 실행용 ZIP 바로 다운로드](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/download/v0.7.3/ImperialWings-Windows-v0.7.3-r1.zip). 개발 중인 소스의 버전과 공개 실행본은 다를 수 있으므로, 지인과 테스트할 때는 **같은 릴리스의 같은 ZIP**을 사용합니다.
 
 <a id="download-steps"></a>
 ### 1. 다운로드 방법
 
 1. [GitHub Releases 페이지](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases)를 엽니다. 개발 시험판에는 `Pre-release`가 표시되므로 `Latest` 표시만 찾지 말고 **버전과 변경·검증 기록**을 확인합니다.
-2. 받을 버전의 **Assets**를 펼치고 **`ImperialWings-Windows-<버전>-<빌드>.zip`**을 누릅니다. 위에서 확인한 공개 파일명은 **`ImperialWings-Windows-v0.7.2-r2.zip`**이며 용량은 약375MB입니다.
+2. 받을 버전의 **Assets**를 펼치고 **`ImperialWings-Windows-<버전>-<빌드>.zip`**을 누릅니다. 위에서 확인한 공개 파일명은 **`ImperialWings-Windows-v0.7.3-r1.zip`**이며 용량은 약375MB입니다.
 3. 다운로드가 완료될 때까지 기다립니다. 브라우저의 다운로드 목록에서 **폴더에서 보기**를 누르거나, 파일 탐색기의 **다운로드** 폴더에서 ZIP을 찾습니다. 이어서 아래 [실행 방법](#run-steps)을 따릅니다.
 
 | 다운로드 항목 | 용도 |
@@ -25,7 +25,7 @@
 
 **실행 환경:** Windows 10/11 x64, DirectX12·Shader Model6를 지원하는 GPU가 필요합니다. Unreal Engine·Python·Git을 별도로 설치할 필요는 없습니다.
 
-1. 받은 ZIP을 **마우스 오른쪽 → 모두 압축 풀기**로 전체 해제합니다. 예를 들어 `C:\Games\ImperialWings-v0.7.2`에 풉니다. ZIP 안에서 바로 실행하거나 EXE 하나만 꺼내지 않습니다.
+1. 받은 ZIP을 **마우스 오른쪽 → 모두 압축 풀기**로 전체 해제합니다. 예를 들어 `C:\Games\ImperialWings-v0.7.3`에 풉니다. ZIP 안에서 바로 실행하거나 EXE 하나만 꺼내지 않습니다.
 2. 파일 탐색기에서 압축을 푼 폴더를 열고 **`ImperialWingsLauncher.exe`**를 더블클릭합니다. ZIP 이름의 하위 폴더가 한 번 더 있으면 그 안으로 들어갑니다. 브라우저 주소창에 파일 경로를 붙여넣는 방식이 아니라, 탐색기에서 실행 파일을 엽니다.
 3. 실행기 옆에 **`Windows`·`Guidance`·`Prerequisites`** 폴더와 `START_HERE.ko.md`가 있는지 확인합니다. 폴더 구성을 유지해야 하며, 기본 실행은 바깥쪽의 `ImperialWingsLauncher.exe`를 사용합니다.
 4. Visual C++ 실행 구성 요소가 없다는 메시지가 나오면 **`Prerequisites\vc_redist.x64.exe`**를 실행해 설치한 뒤 실행기를 다시 엽니다.
@@ -36,8 +36,10 @@
 <a id="first-controller-setup"></a>
 ### 3. USB 조종기 처음 설정하기
 
+**v0.7.3부터 Mode 1·Mode 2를 화면에서 선택할 수 있습니다.**
+
 1. 조종기의 **데이터 전송용 USB 포트**에 데이터 케이블을 연결합니다. 기종에 따라 전원을 켜고 **USB Joystick / 게임 컨트롤러 모드**를 선택합니다.
-2. 게임에서 **실제 장치 선택 → STICK SETUP / MODE 2**를 누르고 화면 안내대로 스틱의 전체 범위와 중립을 보정합니다. Mode 2는 **왼쪽 스틱 위아래가 스로틀**인 배치입니다. 다른 배치는 **ADVANCED OPTIONS**에서 실제 축·방향을 확인해 수동 설정합니다.
+2. 게임에서 **실제 장치 선택 → MODE 1 또는 MODE 2 선택 → STICK SETUP**를 누르고 화면 안내대로 스틱의 전체 범위와 중립을 보정합니다. **MODE 1은 오른쪽 위아래가 스로틀**, **MODE 2는 왼쪽 위아래가 스로틀**입니다. 화면이 선택한 모드에 맞게 피치·스로틀 손 위치를 안내합니다. 모드를 바꾸면 USB가 해제되며 새 보정을 저장하기 전까지 이전 모드의 축으로 활성화하지 않습니다.
 3. **CONFIRM & SAVE**로 저장한 뒤 **스로틀 최저·나머지 축 중립**에서 **ENABLE RADIO**를 누릅니다. 패널을 닫고 Space로 ARM합니다.
 4. 다음 실행부터는 같은 조종기를 연결하고 최저 스로틀에서 **F8 / CONNECT SAVED RADIO**로 저장된 설정을 불러옵니다. 다른 장치에 이전 보정 파일을 그대로 복사하지 않습니다.
 
@@ -49,13 +51,13 @@
 
 - 탐색기에 `file:///E:/...exe` 또는 `%20`이 들어간 경로를 붙여 넣어 “찾을 수 없습니다”가 나오면, 브라우저 주소를 실행한 것입니다. 파일 탐색기로 **실제 압축 해제 폴더**를 연 뒤 `ImperialWingsLauncher.exe`를 더블클릭합니다. 내려받은 PC에는 개발 PC의 `E:\...` 경로가 없습니다.
 - 실행 파일이 없으면 `Source code`를 받았는지, 아직 ZIP 내부를 보고 있는지 확인합니다. 이름에 `ImperialWings-Windows-`가 포함된 실행용 ZIP을 다시 확인합니다.
-- 파일 손상/누락은 ZIP을 다시 내려받고 새 폴더에 전체 압축을 풀어 확인합니다. GitHub 릴리스의 `SHA256SUMS.txt`로 다운로드 무결성을 확인할 수 있습니다. 확인 예: PowerShell에서 `Get-FileHash -Algorithm SHA256 -LiteralPath 'C:\Users\본인\Downloads\ImperialWings-Windows-v0.7.2-r2.zip'`을 실행하고 같은 파일명의 해시와 비교합니다. 버전·사용자 이름·저장 위치는 본인 PC에 맞춥니다.
+- 파일 손상/누락은 ZIP을 다시 내려받고 새 폴더에 전체 압축을 풀어 확인합니다. GitHub 릴리스의 `SHA256SUMS.txt`로 다운로드 무결성을 확인할 수 있습니다. 확인 예: PowerShell에서 `Get-FileHash -Algorithm SHA256 -LiteralPath 'C:\Users\본인\Downloads\ImperialWings-Windows-v0.7.3-r1.zip'`을 실행하고 같은 파일명의 해시와 비교합니다. 버전·사용자 이름·저장 위치는 본인 PC에 맞춥니다.
 - 조종기가 보이지 않으면 Windows의 `joy.cpl`에서 먼저 확인합니다. 게임의 **EXPORT DEVICE REPORT**는 진단용이며 자동으로 보정을 완료하거나 실제 스틱 입력을 만들어 주지 않습니다.
 - 실행 후 문제가 있으면 **다운로드한 버전·오류 문구·발생 단계**와 사용자 저장 폴더의 진단 파일을 함께 확인합니다. 개인 보정 파일과 전체 사용자 폴더는 공개 저장소에 올리지 않습니다.
 
-공개 실행본의 변경·시험 범위는 [v0.7.2 검증 기록](docs/releases/v0.7.2.md)에서 확인합니다. 시간 계산·자율 착륙 수정과 검증 한계도 같은 기록에 구분했습니다. 실제 다운로드 가능 여부는 Releases의 Assets를 기준으로 확인합니다.
+공개 실행본의 변경·시험 범위는 [v0.7.3 검증 기록](docs/releases/v0.7.3.md)에서 확인합니다. Mode 1·Mode 2 설정과 검사 범위를 정리했으며, 시간 계산·자율 착륙 변경은 [v0.7.2 기록](docs/releases/v0.7.2.md)을 따릅니다. 실제 다운로드 가능 여부는 Releases의 Assets를 기준으로 확인합니다.
 
-첫 실행의 간소 조종기 화면에서 **실제 장치 카드 선택 → STICK SETUP / MODE 2 → CONFIRM & SAVE → ENABLE RADIO** 순서로 보정합니다. 상단 STEP 안내로 다음 행동을 확인합니다. 이미 보정한 장치는 **CONNECT SAVED RADIO / F8**로 연결할 수 있습니다. 스로틀 최저에서 패널을 닫고 Space로 ARM합니다. 보정값은 각 Windows 사용자의 `%LOCALAPPDATA%\ImperialWingsSimulator\Saved`에 저장하고 다른 사람의 보정값을 배포하지 않습니다.
+첫 실행의 간소 조종기 화면에서 **실제 장치 카드 선택 → MODE 1 / MODE 2 선택 → STICK SETUP → CONFIRM & SAVE → ENABLE RADIO** 순서로 보정합니다. 상단 STEP 안내로 다음 행동을 확인합니다. 이미 보정한 장치는 **CONNECT SAVED RADIO / F8**로 연결할 수 있습니다. 스로틀 최저에서 패널을 닫고 Space로 ARM합니다. 보정값은 각 Windows 사용자의 `%LOCALAPPDATA%\ImperialWingsSimulator\Saved`에 저장하고 다른 사람의 보정값을 배포하지 않습니다.
 
 [다른 PC에서 실행·조종기 설정](docs/PORTABLE_QUICK_START.ko.md)을 확인하세요. Windows 10/11 x64와 DirectX12 / Shader Model6 GPU가 필요합니다. 필수 Visual C++ 설치 파일과 자율 훈련용 독립 실행 환경을 포함합니다. 개발 PC에서 설치 도구 경로를 제거하고 한글·공백 경로로 옮긴 새 사용자 데이터 환경을 검사했으며, 실제 다른 PC 전체에서의 비행을 인증한 것은 아닙니다.
 
@@ -106,7 +108,7 @@ v0.7은 FC/ESC·수신기·모터 권선·배터리·커넥터·배선과 비틀
 2. 키보드라면 조종기 창에서 **USE KEYBOARD → CLOSE**를 선택합니다. USB 조종기는 안내에 따라 실제 장치를 보정·저장·활성화한 뒤 창을 닫습니다.
 3. 오른쪽 기체 목록 또는 **Tab**으로 기체를 고릅니다. 처음에는 파란 팀 Striker로 연습합니다.
 4. 처음 비행은 **START MATCH를 누르지 않고 Practice**에서 진행합니다. **1**은 경기장 밖 LOS, **3**은 전체 관찰입니다.
-5. 키보드는 **↓**로 THR을0%까지 내리고, 조종기는 스로틀을 맨 아래로 둡니다. Mode 2는 왼쪽 스틱 위아래가 스로틀입니다.
+5. 키보드는 **↓**로 THR을0%까지 내리고, 조종기는 스로틀을 맨 아래로 둡니다. Mode 1은 오른쪽, Mode 2는 왼쪽 스틱 위아래가 스로틀입니다.
 6. **Space / ARM**으로 모터를 허용합니다. 키보드는 **↑**를 짧게 눌러 스로틀을 올립니다. 키를 놓아도 변경한 스로틀은 유지됩니다.
 7. **W/S, A/D, Q/E**로 기울기·회전을 조금씩 조절합니다. ANGLE은 수평 자세를 복원하며 고도·위치를 자동 고정하지 않습니다.
 8. 스로틀을 조금씩 내려 착륙하고 Space로 DISARM합니다. 선택 기체는 **Backspace**, 전체 상태는 **Home / RESET**으로 초기화합니다.
@@ -379,7 +381,7 @@ $SdacsRoot = [IO.Path]::GetFullPath((Join-Path $PWD '..\swarm-drone-atc'))
 
 조종기는 실제 장치 선택 후 축 배정·최대/최소·중립·반전·최저 스로틀을 확인합니다. 기본값은 키보드이며 미보정 USB 입력으로 ARM하지 않습니다. 개발 PC에서 사용한 조종기의 실제4축 보정·저장·USB 활성화·최저 스로틀 ARM은 확인했고 연속 USB 비행·케이블 분리 복구·입력 지연 검증은 남아 있습니다. 자기 PC의 장치는 직접 확인합니다. [USB 조종기 설정](docs/BOXER_SETUP.md)을 참고합니다.
 
-**STICK SETUP / MODE 2**는 오른쪽 Roll/Pitch,왼쪽 Yaw/Throttle을 한 단계씩 실제로 움직여 축과 방향을 찾는 안내 화면입니다. 각 단계에서 Enter로 시작·끝값 확인을 할 수 있고,중립·최저 스로틀 확인 후 검토 화면에서 따로 저장합니다. 설정 중에는 비행 단축키가 차단되며 취소하면 이전 프로필이 유지됩니다. 이 기능을 추가한 것과 실물 스틱 보정·USB 비행을 완료한 것은 구분합니다.
+**MODE 1 / MODE 2**를 선택한 뒤 **STICK SETUP**에서 각 축을 한 단계씩 실제로 움직여 축과 방향을 찾는 안내 화면입니다. 각 단계에서 Enter로 시작·끝값 확인을 할 수 있고,중립·최저 스로틀 확인 후 검토 화면에서 따로 저장합니다. 설정 중에는 비행 단축키가 차단되며 취소하면 이전 프로필이 유지됩니다. 이 기능을 추가한 것과 실물 스틱 보정·USB 비행을 완료한 것은 구분합니다.
 
 v0.6.1의 기본 화면은 **장치 선택 → 안내 보정 → 검토/저장 → 활성화**를 상단 STEP으로 표시합니다. 수동 축 배정·반전·데드존·범위 수집·프로필 저장/불러오기는 **ADVANCED OPTIONS**에 있습니다. **SIMPLE VIEW**로 돌아올 수 있으며, 설정 창을 다시 열면 간소 화면에서 시작합니다. 이미 보정한 장치는 **CONNECT SAVED RADIO**를 누릅니다. 연결과 ARM은 별도입니다.
 

@@ -54,7 +54,15 @@ struct GuidedFixture
     GuidedCapture Session;
     Axes Sample{{0.5, 0.5, 0.0, 0.0, 0.0, 0.5}};
     double Time = 0;
-    GuidedFixture() { Session.Begin(AllAxes, true); Time+=.01; Session.Observe(Sample,AllAxes,true,Time); }
+    explicit GuidedFixture(StickMode Mode = StickMode::Mode2)
+    {
+        // These virtual sticks deliberately expose nonconsecutive axes. Their
+        // physical hands stay fixed; only pitch/throttle placement changes.
+        Sample[1] = Mode == StickMode::Mode1 ? .9 : .5;
+        Sample[2] = Mode == StickMode::Mode1 ? .5 : .9;
+        Session.Begin(AllAxes, true, .04, Mode);
+        Time+=.01; Session.Observe(Sample,AllAxes,true,Time);
+    }
     void Hold(int Count = 70)
     {
         for (int I = 0; I < Count; ++I) { Time += .01; Session.Observe(Sample, AllAxes, true, Time); }
@@ -69,7 +77,8 @@ struct GuidedFixture
     }
     void FourSteps()
     {
-        const int Mapping[] = {0, 1, 5, 2};
+        const bool Mode1 = Session.Candidate().Mode == StickMode::Mode1;
+        const int Mapping[] = {0, Mode1 ? 2 : 1, 5, Mode1 ? 1 : 2};
         const bool EndHigh[] = {true, false, true, true};
         for (int I = 0; I < 4; ++I)
         {
@@ -80,6 +89,69 @@ struct GuidedFixture
         }
     }
 };
+
+void StickModeTests()
+{
+    Check(Profile{}.Mode == StickMode::Mode2, "legacy/default profile starts as Mode 2");
+    const StickMode Invalid = static_cast<StickMode>(3);
+    Check(!IsValidStickMode(Invalid), "unsupported mode rejected");
+    Check(StickForChannel(Invalid, 0) == -1 && StickForChannel(StickMode::Mode1, -1) == -1 &&
+          StickForChannel(StickMode::Mode2, 4) == -1, "invalid hand requests never guess a stick");
+    GuidedCapture InvalidSession;
+    Check(InvalidSession.Begin(AllAxes, true, .04, Invalid) == Error::InvalidStickMode && !InvalidSession.Active(),
+          "unsupported mode cannot begin guided capture");
+
+    for (const StickMode Mode : {StickMode::Mode1, StickMode::Mode2})
+    {
+        const bool Mode1 = Mode == StickMode::Mode1;
+        Check(StickForChannel(Mode, 0) == 1 && StickForChannel(Mode, 2) == 0,
+              "both modes use right roll and left yaw");
+        Check(StickForChannel(Mode, 1) == (Mode1 ? 0 : 1) && StickForChannel(Mode, 3) == (Mode1 ? 1 : 0),
+              "pitch and throttle physical hands follow selected mode");
+        GuidedFixture Fixture(Mode);
+        Check(Fixture.Session.Candidate().Mode == Mode, "guided candidate preserves selected layout");
+        Profile Original; Original.Mode = Mode1 ? StickMode::Mode2 : StickMode::Mode1;
+        const auto OriginalMapping = Original.Mapping;
+        Fixture.Sweep(0, true);
+        Fixture.Session.Cancel();
+        Check(Fixture.Session.ConfirmedProfile(Original, true) == Error::NotConfirmed &&
+              Original.Mapping == OriginalMapping && Original.Mode != Mode,
+              "cancelled opposite-mode guide does not overwrite caller profile");
+
+        GuidedFixture Complete(Mode);
+        Complete.FourSteps();
+        Check(Complete.Session.FinishNeutral(true) == Error::None, "both layouts accept centered axes and low throttle");
+        Profile Captured;
+        Check(Complete.Session.ConfirmedProfile(Captured, true) == Error::None && Captured.Mode == Mode,
+              "explicit review exports calibrated layout and channels together");
+        Check(Captured.Mapping == std::array<int,4>{{0, Mode1 ? 2 : 1, 5, Mode1 ? 1 : 2}},
+              "USB channels are measured for each physical layout");
+        Check(CanEnable(Captured, Complete.Sample, AllAxes, true), "both layouts require measured physical minimum throttle");
+        const Controls Center = MapControls(Captured, Complete.Sample, AllAxes, true);
+        Check(Center.Valid && Near(Center.Roll, 0) && Near(Center.Pitch, 0) && Near(Center.Yaw, 0) && Near(Center.Throttle, 0),
+              "both layouts normalize neutral without a nonzero flight command");
+        Axes Pitch = Complete.Sample;
+        Pitch[Captured.Mapping[1]] = .1;
+        const Controls Pitched = MapControls(Captured, Pitch, AllAxes, true);
+        Check(Near(Pitched.Pitch, 1) && Near(Pitched.Throttle, 0), "forward pitch does not change throttle in either layout");
+        Pitch[Captured.Mapping[1]] = .9;
+        Check(Near(MapControls(Captured, Pitch, AllAxes, true).Pitch, -1), "backward pitch reaches the opposite full command");
+        Axes Throttle = Complete.Sample;
+        Throttle[Captured.Mapping[3]] = .1;
+        const Controls Raised = MapControls(Captured, Throttle, AllAxes, true);
+        Check(Near(Raised.Throttle, 1) && Near(Raised.Pitch, 0), "raising throttle does not change pitch in either layout");
+        Check(!CanEnable(Captured, Throttle, AllAxes, true), "high physical throttle blocks both layouts despite neutral pitch");
+        Throttle[Captured.Mapping[1]] = .9;
+        Check(!CanEnable(Captured, Throttle, AllAxes, true), "lowering the wrong stick cannot satisfy low-throttle enable");
+        Profile InvalidProfile = Captured; InvalidProfile.Mode = Invalid;
+        Check(ValidateProfile(InvalidProfile, AllAxes) == Error::InvalidStickMode &&
+              !MapControls(InvalidProfile, Complete.Sample, AllAxes, true).Valid,
+              "unknown loaded layout cannot produce controls");
+        Complete.Session.MarkSaved();
+        Check(Complete.Session.Phase() == GuidedPhase::Complete && Complete.Session.Candidate().Mode == Mode,
+              "saved guided completion retains its layout");
+    }
+}
 
 void GuidedTests()
 {
@@ -296,6 +368,7 @@ int main()
     }
     Check(SafeInvalidMappings, "out of bounds mapping cannot index a control array");
     GuidedTests();
+    StickModeTests();
     std::cout << "Radio calibration fixtures: " << Checks << " checks, " << Failures << " failures. No hardware calibration performed.\n";
     return Failures == 0 ? 0 : 1;
 }

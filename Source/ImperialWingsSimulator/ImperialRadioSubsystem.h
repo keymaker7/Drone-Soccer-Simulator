@@ -49,6 +49,8 @@ public:
     bool IsConnected() const;
     bool IsCalibrated() const;
     bool IsEnabled() const;
+    ImperialRadio::StickMode GetStickMode() const { return SelectedMode; }
+    bool SetStickMode(ImperialRadio::StickMode Mode);
     bool IsCalibrating() const { return bCalibrationActive || Guided.Active(); }
     FString GetStatus() const;
     bool HasSavedProfiles() const;
@@ -96,6 +98,8 @@ private:
     TArray<float> EmptyAxes;
     uint32 Buttons = 0;
     ImperialRadio::Profile Calibration;
+    ImperialRadio::StickMode SelectedMode = ImperialRadio::StickMode::Mode2;
+    bool bStickModeChosen = false;
     ImperialRadio::Capture RangeCapture;
     ImperialRadio::GuidedCapture Guided;
     bool bConnected = false;

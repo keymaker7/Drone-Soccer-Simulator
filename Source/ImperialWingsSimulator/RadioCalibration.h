@@ -12,12 +12,19 @@ constexpr std::size_t ChannelCount = 4;
 using Axes = std::array<double, AxisCount>;
 using AxisMask = std::array<bool, AxisCount>;
 
+// Physical hand placement is distinct from the driver channel order. Guided
+// capture still measures each channel instead of assuming USB axis indices.
+enum class StickMode { Mode1 = 1, Mode2 = 2 };
+bool IsValidStickMode(StickMode Mode);
+// Left = 0, right = 1; unsupported mode/channel = -1.
+int StickForChannel(StickMode Mode, int Channel);
+
 enum class Error
 {
     None, Disconnected, InvalidAxis, DuplicateAxis, UnavailableAxis, InvalidDeadzone,
     InsufficientSamples, InsufficientRange, InvalidCenter, ThrottleNotLow,
     NotCapturing, MissingRange, MissingNeutral, NotConfirmed, InvalidSample,
-    AmbiguousMovement, EndpointNotHeld, InputNotStable, IncompleteSweep
+    AmbiguousMovement, EndpointNotHeld, InputNotStable, IncompleteSweep, InvalidStickMode
 };
 const char* ErrorText(Error Value);
 
@@ -30,6 +37,7 @@ struct AxisRange
 
 struct Profile
 {
+    StickMode Mode = StickMode::Mode2;
     // Channel order is roll, pitch, yaw, throttle. Axis order is X, Y, Z, R, U, V.
     std::array<int, ChannelCount> Mapping{{0, 1, 2, 3}};
     std::array<bool, ChannelCount> Inverted{{false, false, false, false}};
@@ -80,7 +88,7 @@ enum class GuidedPhase { Idle, Ready, Capturing, Neutral, Review, Complete, Inte
 class GuidedCapture
 {
 public:
-    Error Begin(const AxisMask& Available, bool Connected, double Deadzone = 0.04);
+    Error Begin(const AxisMask& Available, bool Connected, double Deadzone = 0.04, StickMode Mode = StickMode::Mode2);
     Error StartStep(bool Connected);
     Error Observe(const Axes& Sample, const AxisMask& Available, bool Connected, double TimeSeconds);
     Error FinishStep(bool Connected);

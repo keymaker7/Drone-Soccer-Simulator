@@ -388,7 +388,8 @@ try {
             $deviceState = Export-FleetSnapshot "01d-guided-device-$attempt" -ViaShortcut
         }
         Assert-Check 'Guided setup uses selected physical device' ($deviceState.Rows[0].radio_connected -eq '1' -and $deviceState.Rows[0].radio_device_id -eq $GuidedDeviceId) "Actual selected driver ID is $GuidedDeviceId."
-        Invoke-HudClick 486 536 # STICK SETUP / MODE 2.
+        Invoke-HudClick 528 536 # Select MODE 2 for this physical Mode 2 fixture.
+        Invoke-HudClick 706 536 # STICK SETUP / MODE 2.
         Save-ClientScreenshot '01e-guided-mode2-ready'
         $guideReady = Export-FleetSnapshot '01e-guided-ready' -ViaShortcut
         Assert-Check 'Guided setup opens at first ready step' ($guideReady.Rows[0].radio_setup_phase -eq '1' -and $guideReady.Rows[0].radio_setup_channel -eq '0') 'No channel assignment is inferred before actual physical movement.'

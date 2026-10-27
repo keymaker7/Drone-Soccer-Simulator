@@ -1,0 +1,422 @@
+{
+  "version": "0.7.3",
+  "build": {
+    "version": "0.7.3",
+    "source_commit": "44809a2487c5034e0eaf439709e3111f0d6bcdd5",
+    "source_dirty": true,
+    "source_sha256": "a307273e71778f07e102b83fd4269e59129a49b3012937e5f46a9085855cdcb4",
+    "build_utc": "2026-10-27T07:01:04Z",
+    "target": "ImperialWingsSimulator"
+  },
+  "radio_unit": {
+    "checks": 205,
+    "failures": 0,
+    "scope": "synthetic calibration fixtures; no physical controller"
+  },
+  "radio_ui_json": {
+    "ok": true,
+    "checks": [
+      {
+        "check": "Mode 1 JSON round trip",
+        "ok": true
+      },
+      {
+        "check": "Mode 2 JSON round trip",
+        "ok": true
+      },
+      {
+        "check": "legacy profile without stick_mode loads as Mode 2",
+        "ok": true
+      },
+      {
+        "check": "reject invalid metadata {\"stick_mode\":0} without changing output",
+        "ok": true
+      },
+      {
+        "check": "reject invalid metadata {\"stick_mode\":3} without changing output",
+        "ok": true
+      },
+      {
+        "check": "reject invalid metadata {\"stick_mode\":1.5} without changing output",
+        "ok": true
+      },
+      {
+        "check": "reject invalid metadata {\"stick_mode\":\"1\"} without changing output",
+        "ok": true
+      },
+      {
+        "check": "reject invalid metadata {\"stick_mode\":null} without changing output",
+        "ok": true
+      },
+      {
+        "check": "reject invalid metadata {\"stick_mode\":true} without changing output",
+        "ok": true
+      },
+      {
+        "check": "new user defaults to Mode 2 and disabled USB",
+        "ok": true
+      },
+      {
+        "check": "fixture starts with low throttle ARM",
+        "ok": true
+      },
+      {
+        "check": "opening settings disarms selected aircraft",
+        "ok": true
+      },
+      {
+        "check": "Mode 1 HUD button selects Mode 1",
+        "ok": true
+      },
+      {
+        "check": "mode choice cannot enable USB or arm",
+        "ok": true
+      },
+      {
+        "check": "unsupported mode rejected",
+        "ok": true
+      },
+      {
+        "check": "mode choice does not invent a profile",
+        "ok": true
+      },
+      {
+        "check": "chosen layout survives panel close and reopen",
+        "ok": true
+      },
+      {
+        "check": "Mode 2 HUD button selects Mode 2",
+        "ok": true
+      },
+      {
+        "check": "switching back leaves USB disabled and aircraft disarmed",
+        "ok": true
+      },
+      {
+        "check": "UI test never writes a calibration file",
+        "ok": true
+      }
+    ],
+    "build": {
+      "version": "0.7.3",
+      "source_commit": "44809a2487c5034e0eaf439709e3111f0d6bcdd5",
+      "source_dirty": true,
+      "source_sha256": "a307273e71778f07e102b83fd4269e59129a49b3012937e5f46a9085855cdcb4",
+      "build_utc": "2026-10-27T07:01:04Z",
+      "target": "ImperialWingsSimulator"
+    },
+    "scope": "explicit HUD button APIs and actual JSON mode codec in isolated user data; no device selected, no HID injection, no physical-controller verification"
+  },
+  "input_safety": {
+    "ok": true,
+    "checks": [
+      {
+        "check": "fixture starts with a manual keyboard aircraft",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "explicit low-throttle ARM accepted",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "real engine bindings accumulated keyboard throttle",
+        "ok": true,
+        "actual": 0.14135079085826874
+      },
+      {
+        "check": "engine saw held roll key",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "viewport focus loss immediately disarms manual aircraft",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "viewport focus loss immediately clears stored throttle",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "viewport focus loss immediately clears motor demand",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "native radio remains disabled",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "old repeated keys cannot restore throttle",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "old repeated roll key stays released in engine",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "queued pre-interruption key press is rejected",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "GameAndUI always requests focus-loss key flushing",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "repeat cannot re-arm after focus loss",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "focus regain does not re-arm",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "fresh Space press re-arms at zero throttle",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "observer view preserves manual ARM",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "overview preserves manual ARM",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "opening radio menu disarms selected aircraft",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "menu typing cannot arm or add throttle",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "closing menu rejects old repeated throttle/ARM",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "focus loss preserves explicit practice autonomy",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "autonomous forces still run after focus loss",
+        "ok": true,
+        "actual": 9.83296012878418
+      },
+      {
+        "check": "second throttle setup reached engine bindings",
+        "ok": true,
+        "actual": 0.10500559210777283
+      },
+      {
+        "check": "aircraft selection clears held-input throttle on new aircraft",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "equipment inspection opened disarmed",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "equipment view blocks held flight keys",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "equipment exit rejects stale throttle/ARM repeats",
+        "ok": true,
+        "actual": 0
+      },
+      {
+        "check": "reset setup accumulated keyboard throttle",
+        "ok": true,
+        "actual": 0.10501828789710999
+      },
+      {
+        "check": "Backspace reset clears pending throttle repeats",
+        "ok": true,
+        "actual": 0
+      }
+    ],
+    "scope": "explicit Unreal simulated keyboard events and real viewport/controller APIs; not physical keyboard, OS Alt-Tab or USB/HID input",
+    "build": {
+      "version": "0.7.3",
+      "source_commit": "44809a2487c5034e0eaf439709e3111f0d6bcdd5",
+      "source_dirty": true,
+      "source_sha256": "a307273e71778f07e102b83fd4269e59129a49b3012937e5f46a9085855cdcb4",
+      "build_utc": "2026-10-27T07:01:04Z",
+      "target": "ImperialWingsSimulator"
+    }
+  },
+  "physical_controller_verified": false,
+  "extracted_zip_radio_ui_json": {
+    "ok": true,
+    "checks": [
+      {
+        "check": "Mode 1 JSON round trip",
+        "ok": true
+      },
+      {
+        "check": "Mode 2 JSON round trip",
+        "ok": true
+      },
+      {
+        "check": "legacy profile without stick_mode loads as Mode 2",
+        "ok": true
+      },
+      {
+        "check": "reject invalid metadata {\"stick_mode\":0} without changing output",
+        "ok": true
+      },
+      {
+        "check": "reject invalid metadata {\"stick_mode\":3} without changing output",
+        "ok": true
+      },
+      {
+        "check": "reject invalid metadata {\"stick_mode\":1.5} without changing output",
+        "ok": true
+      },
+      {
+        "check": "reject invalid metadata {\"stick_mode\":\"1\"} without changing output",
+        "ok": true
+      },
+      {
+        "check": "reject invalid metadata {\"stick_mode\":null} without changing output",
+        "ok": true
+      },
+      {
+        "check": "reject invalid metadata {\"stick_mode\":true} without changing output",
+        "ok": true
+      },
+      {
+        "check": "new user defaults to Mode 2 and disabled USB",
+        "ok": true
+      },
+      {
+        "check": "fixture starts with low throttle ARM",
+        "ok": true
+      },
+      {
+        "check": "opening settings disarms selected aircraft",
+        "ok": true
+      },
+      {
+        "check": "Mode 1 HUD button selects Mode 1",
+        "ok": true
+      },
+      {
+        "check": "mode choice cannot enable USB or arm",
+        "ok": true
+      },
+      {
+        "check": "unsupported mode rejected",
+        "ok": true
+      },
+      {
+        "check": "mode choice does not invent a profile",
+        "ok": true
+      },
+      {
+        "check": "chosen layout survives panel close and reopen",
+        "ok": true
+      },
+      {
+        "check": "Mode 2 HUD button selects Mode 2",
+        "ok": true
+      },
+      {
+        "check": "switching back leaves USB disabled and aircraft disarmed",
+        "ok": true
+      },
+      {
+        "check": "UI test never writes a calibration file",
+        "ok": true
+      }
+    ],
+    "build": {
+      "version": "0.7.3",
+      "source_commit": "44809a2487c5034e0eaf439709e3111f0d6bcdd5",
+      "source_dirty": true,
+      "source_sha256": "a307273e71778f07e102b83fd4269e59129a49b3012937e5f46a9085855cdcb4",
+      "build_utc": "2026-10-27T07:01:04Z",
+      "target": "ImperialWingsSimulator"
+    },
+    "scope": "explicit HUD button APIs and actual JSON mode codec in isolated user data; no device selected, no HID injection, no physical-controller verification"
+  },
+  "relocated_portable": {
+    "ok": true,
+    "checks": [
+      {
+        "name": "all released file hashes match",
+        "passed": true
+      },
+      {
+        "name": "no pilot settings or generated Saved directory",
+        "passed": true
+      },
+      {
+        "name": "native launcher resolves relocated files without developer tools",
+        "passed": true
+      },
+      {
+        "name": "frozen APF starts with no installed Python or Git on PATH",
+        "passed": true
+      },
+      {
+        "name": "frozen APF provenance matches released upstream",
+        "passed": true
+      },
+      {
+        "name": "actual bundled APF responds to ten-aircraft protocol 2",
+        "passed": true
+      },
+      {
+        "name": "bounded APF test exits cleanly",
+        "passed": true
+      },
+      {
+        "name": "fresh standalone Unreal storage result",
+        "passed": true
+      },
+      {
+        "name": "fresh keyboard startup and profile safety",
+        "passed": true
+      },
+      {
+        "name": "fresh writes only to explicit per-user data path",
+        "passed": true
+      },
+      {
+        "name": "first use never invents a controller profile",
+        "passed": true
+      },
+      {
+        "name": "package remains free of generated pilot data after execution",
+        "passed": true
+      }
+    ]
+  },
+  "windows_zip": {
+    "filename": "ImperialWings-Windows-v0.7.3-r1.zip",
+    "bytes": 374769289,
+    "sha256": "19c9b6308bd068d0f5b9ad24dabaed8a4352cb990ced4a9f4bef83056f24c3b4"
+  }
+}

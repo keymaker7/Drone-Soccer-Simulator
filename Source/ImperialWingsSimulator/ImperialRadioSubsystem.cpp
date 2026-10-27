@@ -1,6 +1,7 @@
 #include "ImperialRadioSubsystem.h"
 #include "ImperialUserData.h"
 #include "ImperialBuildInfo.h"
+#include "RadioProfileJson.h"
 
 #include "Dom/JsonObject.h"
 #include "Engine/GameInstance.h"
@@ -296,12 +297,31 @@ bool UImperialRadioSubsystem::IsConnected() const
 
 bool UImperialRadioSubsystem::IsCalibrated() const
 {
-    return !Guided.Active() && IsConnected() && ImperialRadio::ValidateProfile(Calibration, AvailableAxes()) == ImperialRadio::Error::None;
+    return !Guided.Active() && Calibration.Mode == SelectedMode && IsConnected() &&
+        ImperialRadio::ValidateProfile(Calibration, AvailableAxes()) == ImperialRadio::Error::None;
 }
 
 bool UImperialRadioSubsystem::IsEnabled() const
 {
     return bEnabled && IsCalibrated();
+}
+
+bool UImperialRadioSubsystem::SetStickMode(ImperialRadio::StickMode Mode)
+{
+    if (!ImperialRadio::IsValidStickMode(Mode))
+        return SetCalibrationStatus(ImperialRadio::Error::InvalidStickMode, FString());
+    if (Guided.Active() || bCalibrationActive)
+    {
+        Status = TEXT("Finish or cancel calibration before changing the stick layout.");
+        return false;
+    }
+    bEnabled = false;
+    SelectedMode = Mode;
+    bStickModeChosen = true;
+    Status = Calibration.Mode == SelectedMode
+        ? FString::Printf(TEXT("Mode %d selected. USB disabled; verify low throttle before enabling."), static_cast<int>(Mode))
+        : FString::Printf(TEXT("Mode %d selected. Run STICK SETUP and save before enabling. Previous saved profile is unchanged."), static_cast<int>(Mode));
+    return true;
 }
 
 const TArray<float>& UImperialRadioSubsystem::GetRawAxes() const
@@ -328,7 +348,8 @@ ImperialRadio::AxisMask UImperialRadioSubsystem::AvailableAxes() const
 
 ImperialRadio::Controls UImperialRadioSubsystem::CurrentControls() const
 {
-    return Guided.Active() ? ImperialRadio::Controls{} : ImperialRadio::MapControls(Calibration, CurrentSample(), AvailableAxes(), IsConnected());
+    return Guided.Active() || Calibration.Mode != SelectedMode ? ImperialRadio::Controls{}
+        : ImperialRadio::MapControls(Calibration, CurrentSample(), AvailableAxes(), IsConnected());
 }
 
 float UImperialRadioSubsystem::GetNormalizedRoll() const { return static_cast<float>(CurrentControls().Roll); }
@@ -436,8 +457,9 @@ bool UImperialRadioSubsystem::BeginGuidedCalibration()
     bCalibrationActive = false;
     RangeCapture = ImperialRadio::Capture{};
     PollSelectedDevice();
-    return SetCalibrationStatus(Guided.Begin(AvailableAxes(), IsConnected(), Calibration.Deadzone),
-        TEXT("Mode 2 setup ready. Center the sticks, lower throttle, then START THIS STEP."));
+    return SetCalibrationStatus(Guided.Begin(AvailableAxes(), IsConnected(), Calibration.Deadzone, SelectedMode),
+        FString::Printf(TEXT("Mode %d setup ready. Center roll/pitch/yaw, lower %s throttle, then START THIS STEP."),
+            static_cast<int>(SelectedMode), SelectedMode == ImperialRadio::StickMode::Mode1 ? TEXT("RIGHT") : TEXT("LEFT")));
 }
 
 bool UImperialRadioSubsystem::StartGuidedStep()
@@ -477,9 +499,10 @@ bool UImperialRadioSubsystem::SaveGuidedCalibration()
     Calibration = Candidate;
     if (!WriteProfile()) { Calibration = Previous; return false; }
     Guided.MarkSaved();
-    UE_LOG(LogTemp, Display, TEXT("IMPERIAL_RADIO_GUIDED_SAVED mode=2 axes=%d,%d,%d,%d keyboard=1"),
-        Calibration.Mapping[0], Calibration.Mapping[1], Calibration.Mapping[2], Calibration.Mapping[3]);
-    Status = TEXT("Mode 2 setup saved. Keyboard active; ENABLE RADIO is a separate action at low throttle.");
+    bStickModeChosen = false;
+    UE_LOG(LogTemp, Display, TEXT("IMPERIAL_RADIO_GUIDED_SAVED mode=%d axes=%d,%d,%d,%d keyboard=1"),
+        static_cast<int>(Calibration.Mode), Calibration.Mapping[0], Calibration.Mapping[1], Calibration.Mapping[2], Calibration.Mapping[3]);
+    Status = FString::Printf(TEXT("Mode %d setup saved. Keyboard active; ENABLE RADIO is a separate action at low throttle."), static_cast<int>(Calibration.Mode));
     return true;
 }
 
@@ -488,6 +511,8 @@ void UImperialRadioSubsystem::CancelGuidedCalibration()
     if (!Guided.Active() && Guided.Phase() != ImperialRadio::GuidedPhase::Interrupted) return;
     Guided.Cancel();
     bEnabled = false;
+    SelectedMode = Calibration.Mode;
+    bStickModeChosen = false;
     Status = TEXT("Stick setup cancelled. Previous calibration retained; keyboard active.");
 }
 
@@ -499,6 +524,7 @@ bool UImperialRadioSubsystem::BeginCalibration()
     const auto MappingError = ImperialRadio::ValidateMapping(Calibration, AvailableAxes());
     if (MappingError != ImperialRadio::Error::None) return SetCalibrationStatus(MappingError, FString());
     bEnabled = false;
+    Calibration.Mode = SelectedMode;
     RangeCapture.Begin(Calibration);
     bCalibrationActive = true;
     RangeCapture.Observe(CurrentSample(), AvailableAxes(), true);
@@ -546,6 +572,11 @@ bool UImperialRadioSubsystem::EnableRadio()
     PollSelectedDevice();
     bEnabled = false;
     if (Guided.Active()) { Status = TEXT("Finish and save stick setup before enabling radio."); return false; }
+    if (Calibration.Mode != SelectedMode)
+    {
+        Status = TEXT("Selected stick layout needs calibration. Complete STICK SETUP and save, or select the saved layout.");
+        return false;
+    }
     if (!IsConnected()) return SetCalibrationStatus(ImperialRadio::Error::Disconnected, FString());
     const auto Error = ImperialRadio::ValidateProfile(Calibration, AvailableAxes());
     if (Error != ImperialRadio::Error::None) return SetCalibrationStatus(Error, FString());
@@ -559,6 +590,11 @@ bool UImperialRadioSubsystem::EnableSavedRadio()
 {
     bEnabled=false;
     if(Guided.Active()||bCalibrationActive){Status=TEXT("Finish or cancel calibration before connecting saved radio.");return false;}
+    if (GetSelectedDevice() && Calibration.Mode != SelectedMode)
+    {
+        Status = TEXT("Stick layout changed. Complete STICK SETUP, or select the saved layout before CONNECT SAVED RADIO.");
+        return false;
+    }
     RefreshDevices();
     TSharedPtr<FJsonObject> Root;
     const TSharedPtr<FJsonObject>* Profiles=nullptr;
@@ -571,6 +607,20 @@ bool UImperialRadioSubsystem::EnableSavedRadio()
         if((*Profiles)->TryGetObjectField(Device.Identity,Entry)&&Entry&&Entry->IsValid()&&(*Entry)->TryGetBoolField(TEXT("confirmed"),Confirmed)&&Confirmed)Matches.Add(Device.Id);
     }
     if(Matches.Num()!=1){Status=TEXT("Select the connected radio explicitly in C / RADIO; no unique saved device found.");return false;}
+    if (bStickModeChosen)
+    {
+        // F8 must not silently undo an explicit choice made before selecting a
+        // device. An untouched cold start can still restore either saved mode.
+        const auto* Match = Devices.FindByPredicate([&](const FImperialRadioDevice& Device) { return Device.Id == Matches[0]; });
+        const TSharedPtr<FJsonObject>* Entry = nullptr;
+        ImperialRadio::Profile SavedMode;
+        if (!Match || !(*Profiles)->TryGetObjectField(Match->Identity, Entry) || !Entry ||
+            !ImperialRadio::ReadProfileMode(*Entry, SavedMode) || SavedMode.Mode != SelectedMode)
+        {
+            Status = TEXT("Saved layout differs from your choice. Select the device and calibrate its actual layout before enabling.");
+            return false;
+        }
+    }
     return SelectDevice(Matches[0])&&IsCalibrated()&&EnableRadio();
 }
 
@@ -601,6 +651,7 @@ bool UImperialRadioSubsystem::ExportDeviceReport()
     Root->SetStringField(TEXT("build"),ImperialBuildInfo::Label());
     Root->SetStringField(TEXT("source_sha256"),ImperialBuildInfo::SourceHash());
     Root->SetStringField(TEXT("input_api"),TEXT("Windows WinMM joyGetPosEx"));
+    Root->SetNumberField(TEXT("stick_mode"), static_cast<int>(SelectedMode));
     Root->SetStringField(TEXT("profile_path"),ProfilePath());
     Root->SetBoolField(TEXT("connected"),IsConnected());Root->SetBoolField(TEXT("calibrated"),IsCalibrated());Root->SetBoolField(TEXT("enabled"),IsEnabled());
     TArray<TSharedPtr<FJsonValue>> Entries;
@@ -630,6 +681,11 @@ bool UImperialRadioSubsystem::SaveProfile()
 
 bool UImperialRadioSubsystem::WriteProfile()
 {
+    if (Calibration.Mode != SelectedMode)
+    {
+        Status = TEXT("Cannot save another layout's calibration. Complete STICK SETUP for the selected mode.");
+        return false;
+    }
     const FImperialRadioDevice* Device = GetSelectedDevice();
     if (!Device || !IsConnected()) return SetCalibrationStatus(ImperialRadio::Error::Disconnected, FString());
     const auto Error = ImperialRadio::ValidateProfile(Calibration, AvailableAxes());
@@ -651,6 +707,7 @@ bool UImperialRadioSubsystem::WriteProfile()
     TSharedPtr<FJsonObject> Profiles = Root->TryGetObjectField(TEXT("profiles"), StoredProfiles) && StoredProfiles && StoredProfiles->IsValid()
         ? *StoredProfiles : MakeShared<FJsonObject>();
     auto Entry = MakeShared<FJsonObject>();
+    ImperialRadio::WriteProfileMode(Entry, Calibration);
     Entry->SetStringField(TEXT("identity"), Device->Identity);
     Entry->SetStringField(TEXT("device_name"), Device->Name);
     Entry->SetNumberField(TEXT("manufacturer_id"), Device->ManufacturerId);
@@ -716,7 +773,8 @@ bool UImperialRadioSubsystem::LoadProfile()
     const TSharedPtr<FJsonObject> Entry = *EntryPtr;
     FString Identity;
     ImperialRadio::Profile Candidate;
-    if (!Entry->TryGetStringField(TEXT("identity"), Identity) || Identity != Device->Identity ||
+    if (!ImperialRadio::ReadProfileMode(Entry, Candidate) ||
+        !Entry->TryGetStringField(TEXT("identity"), Identity) || Identity != Device->Identity ||
         !ReadFinite(Entry, TEXT("deadzone"), Candidate.Deadzone) ||
         !Entry->TryGetBoolField(TEXT("ranges_captured"), Candidate.RangeCaptured) ||
         !Entry->TryGetBoolField(TEXT("neutral_captured"), Candidate.NeutralCaptured) ||
@@ -748,6 +806,8 @@ bool UImperialRadioSubsystem::LoadProfile()
     }
     if (ImperialRadio::ValidateProfile(Candidate, AvailableAxes()) != ImperialRadio::Error::None) return Reject();
     Calibration = Candidate;
-    Status = TEXT("Matching device calibration loaded. Keyboard active; minimum throttle and explicit ENABLE USB required.");
+    SelectedMode = Candidate.Mode;
+    bStickModeChosen = false;
+    Status = FString::Printf(TEXT("Mode %d device calibration loaded. Keyboard active; minimum throttle and explicit ENABLE USB required."), static_cast<int>(SelectedMode));
     return true;
 }

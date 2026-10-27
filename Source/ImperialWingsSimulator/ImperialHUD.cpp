@@ -275,13 +275,17 @@ void AImperialHUD::DrawRadioPanel(AImperialMatchManager& Manager)
     const bool Guided=Radio->IsGuidedActive();
     const bool Calibrated=Radio->IsCalibrated();
     const bool Enabled=Radio->IsEnabled();
+    const auto StickMode=Radio->GetStickMode();
+    const int32 ModeNumber=static_cast<int32>(StickMode);
+    const int32 ThrottleStick=ImperialRadio::StickForChannel(StickMode,3);
+    const TCHAR* ThrottleSide=ThrottleStick==0?TEXT("LEFT"):TEXT("RIGHT");
     if(!Guided)Button(TEXT("Radio_Advanced"),bRadioAdvanced?TEXT("SIMPLE VIEW"):TEXT("ADVANCED OPTIONS"),985,148,170,32,bRadioAdvanced);
     FString NextStep;
     if(Guided)NextStep=Radio->GetGuidedPhase()==ImperialRadio::GuidedPhase::Review
         ?TEXT("STEP 3 / 4  REVIEW THE MEASURED AXES, THEN CLICK CONFIRM & SAVE")
         :TEXT("STEP 2 / 4  FOLLOW THE STICK GUIDE BELOW; ENTER CONFIRMS EACH HELD END");
     else if(!Device||!Connected)NextStep=TEXT("STEP 1 / 4  SELECT YOUR CONNECTED RADIO BELOW; NEVER GUESS THE AXES");
-    else if(!Calibrated)NextStep=TEXT("STEP 2 / 4  CLICK STICK SETUP / MODE 2; MOVE ONE STICK DIRECTION AT A TIME");
+    else if(!Calibrated)NextStep=TEXT("STEP 2 / 4  CHOOSE MODE 1 OR MODE 2, THEN STICK SETUP; FOLLOW EACH STICK GUIDE");
     else if(!Enabled)NextStep=TEXT("STEP 4 / 4  LOWER THROTTLE, THEN CLICK ENABLE RADIO; MOTORS STAY DISARMED");
     else NextStep=TEXT("READY  CLOSE THIS PANEL, THEN SPACE ARMS AT LOW THROTTLE");
     Text(NextStep,348,181,11,Enabled?Green:Cyan);
@@ -361,32 +365,36 @@ void AImperialHUD::DrawRadioPanel(AImperialMatchManager& Manager)
         if(Radio->IsCalibrated())Rect(1150,Y+28,101*(I==3?V:(V+1)*.5f),2,Green);
     }
     const bool FourAxes=UsedAxes.Num()==4&&!UsedAxes.Contains(INDEX_NONE);
-    Text(FourAxes?TEXT("FOUR DISTINCT AXES ASSIGNED"):(bRadioAdvanced?TEXT("ASSIGN FOUR DIFFERENT AXES"):TEXT("MODE 2 SETUP FINDS THE FOUR AXES")),830,506,10,FourAxes?Muted:Amber);
+    Text(FourAxes?TEXT("FOUR DISTINCT AXES ASSIGNED"):(bRadioAdvanced?TEXT("ASSIGN FOUR DIFFERENT AXES"):TEXT("STICK SETUP FINDS THE FOUR AXES")),830,506,10,FourAxes?Muted:Amber);
     if(Guided)
     {
         Button(TEXT("Radio_GuidedCancel"),TEXT("CANCEL SETUP"),1090,522,162,28);
         Rect(348,562,904,1,Edge);
         const auto Phase=Radio->GetGuidedPhase();
         const int32 Channel=FMath::Clamp(Radio->GetGuidedChannel(),0,3);
-        const TCHAR* Titles[]={TEXT("1 / 5  ROLL - RIGHT STICK LEFT / RIGHT"),TEXT("2 / 5  PITCH - RIGHT STICK FORWARD / BACK"),TEXT("3 / 5  YAW - LEFT STICK LEFT / RIGHT"),TEXT("4 / 5  THROTTLE - LEFT STICK UP / DOWN")};
-        const TCHAR* Endpoints[]={TEXT("Finish by holding the RIGHT stick fully RIGHT."),TEXT("Finish by holding the RIGHT stick fully FORWARD."),TEXT("Finish by holding the LEFT stick fully RIGHT."),TEXT("Finish by holding the LEFT stick fully DOWN (minimum).")} ;
-        Text(Phase==ImperialRadio::GuidedPhase::Neutral?TEXT("5 / 5  NEUTRAL AND MINIMUM THROTTLE"):(Phase==ImperialRadio::GuidedPhase::Review?TEXT("REVIEW MODE 2 ASSIGNMENTS"):Titles[Channel]),348,580,16,White);
+        const int32 ActiveStick=ImperialRadio::StickForChannel(StickMode,Channel);
+        const TCHAR* ActiveSide=ActiveStick==0?TEXT("LEFT"):TEXT("RIGHT");
+        const TCHAR* Travel=Channel==1?TEXT("FORWARD / BACK"):(Channel==3?TEXT("UP / DOWN"):TEXT("LEFT / RIGHT"));
+        const TCHAR* Endpoint=Channel==1?TEXT("FORWARD"):(Channel==3?TEXT("DOWN (minimum)"):TEXT("RIGHT"));
+        const FString Title=FString::Printf(TEXT("%d / 5  %s - %s STICK %s"),Channel+1,Channels[Channel],ActiveSide,Travel);
+        Text(Phase==ImperialRadio::GuidedPhase::Neutral?FString(TEXT("5 / 5  NEUTRAL AND MINIMUM THROTTLE")):(Phase==ImperialRadio::GuidedPhase::Review?FString::Printf(TEXT("REVIEW MODE %d ASSIGNMENTS"),ModeNumber):Title),348,580,16,White);
+        Text(FString::Printf(TEXT("MODE %d  /  %s THROTTLE"),ModeNumber,ThrottleSide),348,531,12,Cyan);
         if(Phase==ImperialRadio::GuidedPhase::Ready)
         {
-            Text(TEXT("Center the other sticks and lower throttle before starting this step."),348,609,12,Muted);
+            Text(FString::Printf(TEXT("Center roll / pitch / yaw. Hold %s throttle DOWN before starting."),ThrottleSide),348,609,12,Muted);
             Text(TEXT("Press START THIS STEP or ENTER when ready."),348,631,12,Cyan);
             Button(TEXT("Radio_GuidedStart"),TEXT("START THIS STEP"),931,667,285,38);
         }
         else if(Phase==ImperialRadio::GuidedPhase::Capturing)
         {
             Text(TEXT("Move only this direction through its full travel. Hold EACH end for 1 second."),348,609,12,Muted);
-            Text(Endpoints[Channel],348,631,12,Cyan);
+            Text(FString::Printf(TEXT("Finish by holding the %s stick fully %s."),ActiveSide,Endpoint),348,631,12,Cyan);
             Button(TEXT("Radio_GuidedStep"),TEXT("CONFIRM HELD END / ENTER"),897,666,319,38);
             Button(TEXT("Radio_GuidedStart"),TEXT("RETRY THIS STEP"),997,715,219,32);
         }
         else if(Phase==ImperialRadio::GuidedPhase::Neutral)
         {
-            Text(TEXT("Release roll / pitch / yaw to their centers. Hold LEFT throttle fully DOWN."),348,609,12,Muted);
+            Text(FString::Printf(TEXT("Release roll / pitch / yaw to their centers. Hold %s throttle fully DOWN."),ThrottleSide),348,609,12,Muted);
             Text(TEXT("Keep still for 1 second, then CAPTURE NEUTRAL or ENTER."),348,631,12,Cyan);
             Button(TEXT("Radio_GuidedNeutral"),TEXT("CAPTURE NEUTRAL"),931,667,285,38);
         }
@@ -396,27 +404,32 @@ void AImperialHUD::DrawRadioPanel(AImperialMatchManager& Manager)
             Text(TEXT("CONFIRM & SAVE stores this device profile. ENABLE RADIO follows separately."),348,631,12,Cyan);
             Button(TEXT("Radio_GuidedSave"),TEXT("CONFIRM & SAVE"),931,667,285,38);
         }
-        // Mode 2 hand placement; the accent marks the physical stick for this step.
+        // The accent follows the chosen physical layout, not the driver's axis order.
         for(int32 Stick=0;Stick<2;++Stick)
         {
             const float CX=437+Stick*176.f,CY=704;
-            const bool Active=Phase==ImperialRadio::GuidedPhase::Neutral||(Phase!=ImperialRadio::GuidedPhase::Review&&((Channel<2)==(Stick==1)));
+            const bool Active=Phase==ImperialRadio::GuidedPhase::Neutral||(Phase!=ImperialRadio::GuidedPhase::Review&&Stick==ActiveStick);
             const auto Color=Active?Cyan:Muted;
             Rect(CX-38,CY-38,76,76,Edge);Rect(CX-37,CY-37,74,74,Navy);
             Rect(CX-31,CY,62,1,Color);Rect(CX,CY-31,1,62,Color);
-            float PX=CX,PY=CY;
-            if(Active&&Phase==ImperialRadio::GuidedPhase::Capturing){if(Channel==0||Channel==2)PX+=28;else PY+=Channel==3?28:-28;}
-            else if(Stick==0)PY+=28;
+            float PX=CX,PY=CY+(Stick==ThrottleStick?28.f:0.f);
+            if(Active&&Phase==ImperialRadio::GuidedPhase::Capturing){if(Channel==0||Channel==2)PX+=28;else PY=CY+(Channel==3?28.f:-28.f);}
             Rect(PX-4,PY-4,8,8,Color);
-            Text(Stick==0?TEXT("LEFT / THROTTLE + YAW"):TEXT("RIGHT / PITCH + ROLL"),CX-70,CY+44,10,Color);
+            Text(Stick==0?(ThrottleStick==0?TEXT("LEFT / THROTTLE + YAW"):TEXT("LEFT / PITCH + YAW")):(ThrottleStick==1?TEXT("RIGHT / THROTTLE + ROLL"):TEXT("RIGHT / PITCH + ROLL")),CX-70,CY+44,10,Color);
         }
-        Text(FString::Printf(TEXT("MODE 2  /  %d CURRENT-STEP SAMPLES"),Radio->GetCaptureSampleCount()),741,738,9,Muted);
+        Text(FString::Printf(TEXT("MODE %d  /  %d CURRENT-STEP SAMPLES"),ModeNumber,Radio->GetCaptureSampleCount()),741,738,9,Muted);
         Rect(348,778,904,49,FLinearColor(.035f,.065f,.09f,1));
         Text(Fit(Radio->GetStatus(),12,871),364,796,12,Amber);
         Text(TEXT("CLOSE cancels unfinished setup. Previous saved calibration is retained until final save."),348,844,11,Muted);
         ButtonPriority=10;return;
     }
-    Button(TEXT("Radio_GuidedBegin"),TEXT("STICK SETUP / MODE 2"),348,522,292,28,!Calibrated);
+    if(!Radio->IsCalibrating())
+    {
+        Button(TEXT("Radio_Mode1"),TEXT("MODE 1"),348,522,112,28,StickMode==ImperialRadio::StickMode::Mode1);
+        Button(TEXT("Radio_Mode2"),TEXT("MODE 2"),472,522,112,28,StickMode==ImperialRadio::StickMode::Mode2);
+    }
+    else Text(FString::Printf(TEXT("MODE %d / FINISH RANGE SETUP FIRST"),ModeNumber),348,531,10,Muted);
+    Button(TEXT("Radio_GuidedBegin"),FString::Printf(TEXT("STICK SETUP / MODE %d"),ModeNumber),596,522,220,28,!Calibrated);
     Text(FString::Printf(TEXT("DEADZONE  %.0f %%"),Radio->GetDeadzone()*100),830,532,11,Muted);
     if(bRadioAdvanced)
     {
@@ -436,9 +449,9 @@ void AImperialHUD::DrawRadioPanel(AImperialMatchManager& Manager)
     }
     else
     {
-        Text(Calibrated?TEXT("YOUR CONTROLLER IS CALIBRATED"):TEXT("FIRST USE: SELECT > MODE 2 SETUP > REVIEW / SAVE > ENABLE"),348,580,12,Calibrated?Green:White);
-        Text(TEXT("Already set up? Connect the matching saved device with one explicit click."),348,605,12,Muted);
-        Text(TEXT("New device? Use STICK SETUP / MODE 2 above. Manual options are in ADVANCED."),348,627,12,Muted);
+        Text(FString::Printf(TEXT("MODE %d: LEFT %s + YAW  /  RIGHT %s + ROLL"),ModeNumber,ThrottleStick==0?TEXT("THROTTLE"):TEXT("PITCH"),ThrottleStick==1?TEXT("THROTTLE"):TEXT("PITCH")),348,580,12,White);
+        Text(Calibrated?TEXT("YOUR CONTROLLER IS CALIBRATED. Lower throttle, then ENABLE RADIO."):TEXT("Choose your transmitter's physical layout, then STICK SETUP > REVIEW / SAVE > ENABLE."),348,605,12,Calibrated?Green:Cyan);
+        Text(TEXT("A layout change needs fresh setup. To reuse saved settings, keep the saved mode."),348,627,12,Muted);
         Button(TEXT("Radio_ConnectSaved"),TEXT("CONNECT SAVED RADIO"),348,658,335,36,Radio->HasSavedProfiles()&&!Enabled);
         Text(TEXT("Low throttle required. This does not arm the aircraft."),706,669,11,Cyan);
     }
@@ -452,7 +465,7 @@ void AImperialHUD::DrawRadioPanel(AImperialMatchManager& Manager)
         Button(TEXT("Radio_Load"),TEXT("LOAD PROFILE"),875,783,144,36);
     }
     Text(Radio->IsEnabled()?TEXT("USB RADIO ACTIVE"):TEXT("KEYBOARD ACTIVE"),1252,797,11,Radio->IsEnabled()?Green:Muted,true);
-    Text(Fit(TEXT("First use: NEXT DEVICE > STICK SETUP / MODE 2 > SAVE > ENABLE RADIO. Space arms after closing."),10,670),348,844,10,Muted);
+    Text(Fit(TEXT("First use: SELECT DEVICE > CHOOSE MODE > STICK SETUP > SAVE > ENABLE RADIO."),10,670),348,844,10,Muted);
     Button(TEXT("Radio_Report"),TEXT("EXPORT DEVICE REPORT"),1032,835,220,28);
     ButtonPriority=10;
 }
@@ -473,6 +486,15 @@ void AImperialHUD::NotifyHitBoxClick(FName BoxName)
         if(N==TEXT("Radio_Refresh"))R->RefreshDevices();
         else if(N==TEXT("Radio_Device"))R->CycleDevice();
         else if(N==TEXT("Radio_Advanced")){if(!R->IsGuidedActive())bRadioAdvanced=!bRadioAdvanced;}
+        else if(N==TEXT("Radio_Mode1")||N==TEXT("Radio_Mode2"))
+        {
+            if(!R->IsCalibrating())
+            {
+                M->ManualSelected();
+                if(auto* Pilot=Cast<AImperialPlayerController>(PlayerOwner))Pilot->FlushPilotContextKeys();
+                R->SetStickMode(N==TEXT("Radio_Mode1")?ImperialRadio::StickMode::Mode1:ImperialRadio::StickMode::Mode2);
+            }
+        }
         else if(N==TEXT("Radio_ConnectSaved")){M->ManualSelected();R->EnableSavedRadio();}
         else if(N.StartsWith(TEXT("Radio_Select_"))){M->ManualSelected();R->SelectDevice(FCString::Atoi(*N.RightChop(13)));}
         else if(N.StartsWith(TEXT("Radio_Axis_")))R->CycleAxis(FCString::Atoi(*N.RightChop(11)));
