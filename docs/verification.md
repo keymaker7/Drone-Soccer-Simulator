@@ -363,3 +363,27 @@ float로 저장한 실제 모터 추력에서 전력을 추정하면 double 공�
 최종 로컬 원본은 Editor `Saved/Verification/flight-trace-20261027-090216-011829/results.json`, Shipping `Saved/Verification/flight-trace-20261027-090245-610934/results.json`, 새 ZIP `Saved/Verification/flight-trace-20261027-090443-893557/results.json`이다. 옵션/기록 보호6개는 `Saved/Verification/flight-trace-options-20261027-090205-810108/results.json`, 포터블은 `Saved/Verification/portable-trace-r2/result.json`, 최신 카운터 회귀는 `Saved/Verification/solver-probe-20261027-090244-449724/results.json`에 있다. 새 로컬 QA r2 ZIP은374,810,923바이트·SHA-256 `33ec007b00d6e1075690ad2cb1c8096330af1aeda207dbc37de27643870df67c`이며 공식 실행용 다운로드를 교체하지 않는다.
 
 완료된 범위는 **CTL-13 단계1의 현재 게임 물리 프레임 해상도에서의 궤적·전류·에너지 baseline 비교**다. 내부 Chaos 서브스텝의 연속 궤적, 서로 다른 FPS끼리의 동일 궤적, 실제 고정120Hz 비행 제어·상태 버퍼/힘 이관·GPU 성능·실물 USB·새 하드웨어·다른 물리 PC 검증은 주장하지 않는다. [남은 개발](sequential-work-2026-10-27.md#r9-flight-trace).
+
+<a id="ctl-13-r9-solver-bridge"></a>
+## 2026-10-27 v0.7.5-dev / R9 입력 전달·물리 단계별 힘 — 기반 검증 완료
+
+별도 구형 강체의 입력/출력 전달과 내부 핸들 힘 적용을 구현·검증했다. 최종 소스 입력129개·지문 `4ed812ec3ebad3bee96ec4c4235dbf060ac1e53ff54a4038d1dd5a070b7bb838`, 빌드 부모 커밋 `a1092dc8b33fde9d372566fef36d9f0d63ae5661`이며 빌드 시 작업 사본은 dirty였다. 이후 게시 커밋이 실행 파일에 포함돼 있다고 주장하지 않고 실제 검사한 소스 지문으로 대조한다. [상세 보고서](solver-bridge-2026-10-27.md) · [기계 판독 결과](verification/solver-bridge-2026-10-27.json).
+
+질량2kg·반지름0.25m, 중력·감쇠·접촉이 없는 구형 강체에서 매 solver 단계의 내부 속도·각속도와 힘/토크 적용 횟수를 기록했다. 독립 분석기는 미리 정한 입력 구간을 정답으로 삼아 `Δv = F/m × dt`, 구형 관성 `I=0.05kg·m²`의 `Δω = τ/I × dt`를 단계별·누적으로 대조한다. 힘(2,-1,0.5)N과 질량중심에서 월드축(0,0.05,0)m 떨어진 작용점을 사용하며 기체 자체의 중심은 원점과 같다.
+
+| 검사 | 최종 결과 |
+|---|---|
+| Editor·Shipping20/30/45/60/120/240FPS |각6회 통과. 실행당 단계 수630/675/609/810/1080/1080 |
+| 새 압축 해제본20/45/240FPS |3회 통과. 전체15회·12,087개 실제 물리 단계 |
+|9개 명령 구간 |DISARM·ARM·DISARM·오래된 입력·잘못된 세대·비유한 입력·재전송·새 ARM·DISARM. 재전송은 같은 순번/새 내용과 더 오래된 순번1을 모두 거부 |
+| 분석기와 옵션 거부 |각 실행 환경에서 손상 결과19개·옵션4개 통과. 세 환경 옵션 거부 합계12개 |
+| 실제 해석값 오차 |단계별 속도 최대3.258e-8m/s·각속도9.344e-8rad/s, 누적 속도2.213e-6m/s·각속도3.918e-6rad/s |
+| 종료·잔류 힘 |강체를 유지한 callback 등록 해제·소멸 확인. 종료 뒤 callback 호출0회·관성 운동 속도 변화0 |
+| 같은 소스의 일반 비행 회귀 |Shipping60FPS43초 baseline/observer1쌍, 각각10대 기록25,800행·분석기18개 통과 |
+| 새 포터블 |13개 통과. 로컬 QA용 ZIP374,825,451바이트·SHA-256 `d1afd549e8ffc622d07692e1dfa03f263905588049e2d9a2d6516318bf4235f9` |
+
+구간은 약0.5게임초씩이며 전체4.5초(45FPS에서는 프레임 경계로 약4.51111초)다. 패키징 초기 객체에서 질량을 설정하던 문제를 실제 `BeginPlay`로 옮겼고, 같은 순번의 새 내용을 허용하던 경로를 차단했다. 병렬 검사의 결과 폴더 충돌은 기존 자료를 덮어쓰지 않고 실패했으며 고유 식별자를 추가한 실행기로 보완했다. 예비 성공 결과를 최종 검사 대신 재사용하지 않는다.
+
+최종 원본은 Editor `Saved/Verification/solver-bridge-20261027-092934-999092-0c8e98ce/results.json`, Shipping `Saved/Verification/solver-bridge-20261027-092910-580395/results.json`, 새 경로 `Saved/Verification/solver-bridge-20261027-093111-509764-12893a4f/results.json`이다. 일반 비행 회귀는 `Saved/Verification/flight-trace-20261027-093345-744322/results.json`, 포터블은 `Saved/Verification/portable-bridge-r1/result.json`에 있다.
+
+완료 범위는 **별도 단순 강체의 입력·힘 연결 기반**이다. 일반 드론의 센서·PID·모터/배터리 이관, 중심이 치우친 기체·초기화/파괴/재바인딩·비동기 수명·정확한120Hz 비행은 후속이다. 입력 만료는 시뮬레이션 시각 기준이며 실물 USB 지연이나 실제 벽시계 정지 감시를 뜻하지 않는다. GPU·다른 물리PC 시험으로 확대하지 않는다. 공식 v0.7.4-r2 다운로드는 유지한다. [다음 작업](sequential-work-2026-10-27.md#r9-solver-bridge).
