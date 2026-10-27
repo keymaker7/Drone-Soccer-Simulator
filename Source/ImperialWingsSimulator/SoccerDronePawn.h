@@ -16,6 +16,7 @@ class UPhysicalMaterial;
 class UPrimitiveComponent;
 class USceneComponent;
 class UMaterialInstanceDynamic;
+class FPhysScene_Chaos;
 
 /** Experimental force-driven quadcopter. +X forward, +Y right, +Z up.
  *  All motor/controller constants are prototype assumptions, not measured aircraft data.
@@ -106,6 +107,10 @@ public:
     void SetWakeSources(const TArray<FVector>& PositionsM,const TArray<float>& ThrustsN);
     float GetBatteryPercent() const { return static_cast<float>(BatteryState.Soc*100.); }
     float GetBatteryVoltage() const { return static_cast<float>(BatteryState.VoltageV); }
+    double GetFlightModelSeconds() const { return FlightModelSeconds; }
+    double GetSensorModelSeconds() const { return SensorElapsedSeconds; }
+    double GetBatteryConsumedAh() const { return BatteryState.ConsumedAh; }
+    double GetBatteryCurrentA() const { return BatteryState.CurrentA; }
     float GetNetDeflection() const;
     float GetGuardIntegrityPercent() const { return static_cast<float>(GuardState.Integrity*100); }
     int32 GetGuardImpactCount() const { return static_cast<int32>(GuardState.ImpactCount); }
@@ -120,6 +125,7 @@ public:
 
 protected:
     virtual void BeginPlay() override;
+    virtual void EndPlay(const EEndPlayReason::Type Reason) override;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Drone")
     TObjectPtr<UStaticMeshComponent> Body;
@@ -269,6 +275,10 @@ private:
     float AutonomousThrottle = 0.0f;
     float AutonomousHeading = 0.0f;
     float RotorAngle = 0.0f;
+    double FlightModelSeconds = 0;
+    double SensorElapsedSeconds = 0;
+    float PreviousPhysicsSeconds = 0;
+    void PhysicsStep(FPhysScene_Chaos* Scene,float Dt);
     float MotorThrustN[4] = {0, 0, 0, 0};
     FVector IntegralError = FVector::ZeroVector;
     FVector AutonomousVelocityIntegral = FVector::ZeroVector;
@@ -321,6 +331,6 @@ private:
     void UpdateGuardMaterial();
     void ResetFromPilotInput();
     void UpdateRoleTag();
-    FVector CalculateAutonomousRate(float& OutCollectiveThrustN);
+    FVector CalculateAutonomousRate(float& OutCollectiveThrustN,float Step);
     UImperialRadioSubsystem* GetRadio() const;
 };

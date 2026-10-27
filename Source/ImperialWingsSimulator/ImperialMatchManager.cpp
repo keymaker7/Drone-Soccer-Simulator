@@ -1,4 +1,5 @@
 #include "ImperialMatchManager.h"
+#include "Physics/Experimental/PhysScene_Chaos.h"
 #include "ImperialUserData.h"
 #include "ImperialHUD.h"
 #include "Misc/App.h"
@@ -93,9 +94,18 @@ void AImperialMatchManager::BeginPlay()
     }
     Log(TEXT("10 aircraft ready. Keyboard input selected; USB axes are uncalibrated."));
     UE_LOG(LogTemp,Display,TEXT("IMPERIAL_RUNTIME_READY drones=%d physics=Chaos backend=SDACS_APF"),Drones.Num());
+    if(auto* Scene=GetWorld()->GetPhysicsScene())Scene->OnPhysScenePreTick.AddUObject(this,&AImperialMatchManager::OnPhysicsTime);
+}
+void AImperialMatchManager::OnPhysicsTime(FPhysScene_Chaos* Scene,float Dt)
+{
+    const uint64 Previous=SimulationTime.LimitedFrames;
+    SimulationTime.Record(GetWorld()->GetDeltaSeconds(),Dt);
+    if(SimulationTime.LimitedFrames>Previous)
+        UE_LOG(LogTemp,Warning,TEXT("IMPERIAL_TIME_LIMIT game_dt_s=%.6f physics_dt_s=%.6f omitted_total_s=%.6f deferred_s=0 match_clock=game"),GetWorld()->GetDeltaSeconds(),Dt,SimulationTime.DroppedSeconds);
 }
 void AImperialMatchManager::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+    if(auto* Scene=GetWorld()->GetPhysicsScene())Scene->OnPhysScenePreTick.RemoveAll(this);
     if(IsRecordingFlight()){RecordFlightSample(TEXT("stop"));FlightLogPath.Empty();}
     AdvanceGuidanceCommand();
     Super::EndPlay(EndPlayReason);
@@ -369,6 +379,7 @@ void AImperialMatchManager::RecordFlightSample(const FString& Event)
     Root->SetStringField(TEXT("utc"),FDateTime::UtcNow().ToIso8601());Root->SetNumberField(TEXT("wall_s"),FPlatformTime::Seconds());
     Root->SetNumberField(TEXT("game_s"),Elapsed);Root->SetNumberField(TEXT("selected"),Selected);
     Root->SetStringField(TEXT("source_sha256"),ImperialBuildInfo::SourceHash());
+    Root->SetObjectField(TEXT("timing"),SimulationTime.Json());
     auto* Radio=GetWorld()->GetGameInstance()->GetSubsystem<UImperialRadioSubsystem>();
     Root->SetBoolField(TEXT("radio_connected"),Radio&&Radio->IsConnected());Root->SetBoolField(TEXT("radio_enabled"),Radio&&Radio->IsEnabled());
     if(Radio){Root->SetArrayField(TEXT("stick"),{MakeShared<FJsonValueNumber>(Radio->GetNormalizedRoll()),MakeShared<FJsonValueNumber>(Radio->GetNormalizedPitch()),MakeShared<FJsonValueNumber>(Radio->GetNormalizedYaw()),MakeShared<FJsonValueNumber>(Radio->GetThrottle())});}
@@ -380,6 +391,8 @@ void AImperialMatchManager::RecordFlightSample(const FString& Event)
         Row->SetStringField(TEXT("input_source"),D->GetInputSource());Row->SetStringField(TEXT("flight_mode"),D->GetFlightModeName());
         Row->SetArrayField(TEXT("position_m"),JsonVector(D->GetActorLocation()/100.));Row->SetNumberField(TEXT("speed_mps"),D->GetFlightSpeed());
         Row->SetNumberField(TEXT("throttle"),D->GetThrottle());Row->SetNumberField(TEXT("tilt_deg"),D->GetTiltDegrees());
+        Row->SetNumberField(TEXT("flight_model_s"),D->GetFlightModelSeconds());Row->SetNumberField(TEXT("sensor_model_s"),D->GetSensorModelSeconds());
+        Row->SetNumberField(TEXT("battery_consumed_ah"),D->GetBatteryConsumedAh());Row->SetNumberField(TEXT("battery_current_a"),D->GetBatteryCurrentA());
         Row->SetNumberField(TEXT("guard_integrity_pct"),D->GetGuardIntegrityPercent());Row->SetNumberField(TEXT("guard_impact_count"),D->GetGuardImpactCount());
         const auto Rotation=D->GetBodyMesh()->GetComponentRotation();Row->SetArrayField(TEXT("rotation_deg"),JsonVector(FVector(Rotation.Roll,Rotation.Pitch,Rotation.Yaw)));
         Rows.Add(MakeShared<FJsonValueObject>(Row));

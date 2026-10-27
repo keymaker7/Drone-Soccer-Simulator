@@ -1,0 +1,913 @@
+{
+  "version": "0.7.2",
+  "date_kst": "2026-10-27",
+  "source_sha256": "39189d9c53e9f4337124a84a7a15c56289c70e1aaf538bda130db11318e571d7",
+  "input_count": 114,
+  "build_parent_commit": "d07d57ce8a6643bea5b0f3e33b8eae77945e439c",
+  "scope": "synchronous Chaos frame budget; one control update per physics frame, not a fixed-thread or per-substep PID; real-time clock audit and actual APF integration",
+  "time_baseline": {
+    "ok": false,
+    "game_s": 60.007165886461735,
+    "solver_s": 59.7861987203368,
+    "max_model_clock_error_s": 0.03333332389702548,
+    "max_sensor_clock_error_s": 0.22096716612575307,
+    "max_battery_integral_error_ah": 0.00015495389103972198
+  },
+  "time_contract": {
+    "practice_normal": {
+      "ok": true,
+      "injected_100ms": false,
+      "injected_250ms": false,
+      "official_manual_match": false,
+      "match_stayed_manual_disarmed": true,
+      "ledger": {
+        "policy": "sync_chaos_budget_discard_excess_no_catchup",
+        "match_clock": "game_time",
+        "model_clock": "scene_pre_tick_budget",
+        "game_s": 68.01037620007992,
+        "physics_budget_s": 68.01037620007992,
+        "dropped_physics_s": 0,
+        "deferred_physics_s": 0,
+        "last_game_dt_s": 0.016666803508996964,
+        "last_physics_dt_s": 0.016666803508996964,
+        "max_game_dt_s": 0.017536398023366928,
+        "frames": 4080,
+        "limited_frames": 0
+      },
+      "measured_dropped_s": 0,
+      "clocks_ok": true,
+      "stable": true,
+      "synchronous_physics": true,
+      "hitches": false,
+      "game_s": 60.00991390272975,
+      "match_clock_elapsed_s": 60.00991390272975,
+      "solver_s": 60.00991390273046,
+      "wall_s": 60.01063020154834,
+      "max_model_clock_error_s": 1.0231815394945443e-12,
+      "max_sensor_clock_error_s": 1.0231815394945443e-12,
+      "max_battery_integral_error_ah": 4.582028116303927e-15,
+      "max_hold_error_cm": 5.784960340291496,
+      "max_tilt_deg": 0.009396614506840706,
+      "max_speed_mps": 0.003233279101550579,
+      "actual_frames": 3600,
+      "largest_game_dt_s": 0.017536398023366928,
+      "flight_log_rows": 1020
+    },
+    "practice_hitches": {
+      "ok": true,
+      "injected_100ms": true,
+      "injected_250ms": true,
+      "official_manual_match": false,
+      "match_stayed_manual_disarmed": true,
+      "ledger": {
+        "policy": "sync_chaos_budget_discard_excess_no_catchup",
+        "match_clock": "game_time",
+        "model_clock": "scene_pre_tick_budget",
+        "game_s": 68.01061240211129,
+        "physics_budget_s": 67.6735546477139,
+        "dropped_physics_s": 0.3370577543973923,
+        "deferred_physics_s": 0,
+        "last_game_dt_s": 0.016666900366544724,
+        "last_physics_dt_s": 0.016666900366544724,
+        "max_game_dt_s": 0.2529408037662506,
+        "frames": 4048,
+        "limited_frames": 4
+      },
+      "measured_dropped_s": 0.24081681668758392,
+      "clocks_ok": true,
+      "stable": true,
+      "synchronous_physics": true,
+      "hitches": true,
+      "game_s": 60.00924150273204,
+      "match_clock_elapsed_s": 60.00924150273204,
+      "solver_s": 59.76842468604531,
+      "wall_s": 60.00962780043483,
+      "max_model_clock_error_s": 1.1013412404281553e-12,
+      "max_sensor_clock_error_s": 1.1013412404281553e-12,
+      "max_battery_integral_error_ah": 4.8656282995718225e-15,
+      "max_hold_error_cm": 5.784925115840509,
+      "max_tilt_deg": 0.009826786816120148,
+      "max_speed_mps": 0.0032341612968593836,
+      "actual_frames": 3577,
+      "largest_game_dt_s": 0.2529408037662506,
+      "flight_log_rows": 1008
+    },
+    "official_hitches": {
+      "ok": true,
+      "injected_100ms": true,
+      "injected_250ms": true,
+      "official_manual_match": true,
+      "match_stayed_manual_disarmed": true,
+      "ledger": {
+        "policy": "sync_chaos_budget_discard_excess_no_catchup",
+        "match_clock": "game_time",
+        "model_clock": "scene_pre_tick_budget",
+        "game_s": 72.0069103948772,
+        "physics_budget_s": 71.78714852407575,
+        "dropped_physics_s": 0.21976187080144882,
+        "deferred_physics_s": 0,
+        "last_game_dt_s": 0.016666699200868607,
+        "last_physics_dt_s": 0.016666699200868607,
+        "max_game_dt_s": 0.2515197992324829,
+        "frames": 4301,
+        "limited_frames": 2
+      },
+      "measured_dropped_s": 0.21976187080144882,
+      "clocks_ok": true,
+      "stable": true,
+      "synchronous_physics": true,
+      "hitches": true,
+      "game_s": 60.00673879310489,
+      "match_clock_elapsed_s": 60.00673879310489,
+      "solver_s": 59.78697692230363,
+      "wall_s": 60.00741429999471,
+      "max_model_clock_error_s": 9.237055564881302e-13,
+      "max_sensor_clock_error_s": 9.237055564881302e-13,
+      "max_battery_integral_error_ah": 2.1535177409230145e-17,
+      "max_hold_error_cm": 4.9999980943036135,
+      "max_tilt_deg": 0,
+      "max_speed_mps": 4.179020740568973e-10,
+      "actual_frames": 3581,
+      "largest_game_dt_s": 0.2515197992324829,
+      "flight_log_rows": 1013
+    }
+  },
+  "autonomy_baseline": {
+    "ok": false,
+    "ten_landed_disarmed": false,
+    "stalled_aircraft_ids": [
+      7,
+      9
+    ],
+    "reason": "upstream 10cm attraction deadband plus ground repulsion can prevent terminal landing"
+  },
+  "autonomy": {
+    "ok": true,
+    "fixture": "real-time ten Chaos aircraft using actual upstream APF HTTP; bounded server intentionally returns 503 during return; no USB or flight position corrections",
+    "source_commit": "1e9d826265069696d7e415c7778d17483d7a8580",
+    "ten_airborne": true,
+    "ten_landed_disarmed": true,
+    "finite_inside_court": true,
+    "timeout_local_hold": true,
+    "reconnect_does_not_resume": true,
+    "manual_match_auto_rejected": true,
+    "minimum_separation_m": 1.0714105367660522,
+    "hold_max_drift_cm": 29.522727966308594,
+    "armed_peak_tilt_deg": 5.19495964050293,
+    "peak_altitude_cm": 392.87139892578125,
+    "physics_defaults": {
+      "model": "STRIKER V3 reference-inspired, experimental coefficients",
+      "measured_airframe_data": false,
+      "motor_pwm_exponent": 2,
+      "motor_response_s": 0.035,
+      "battery_capacity_ah": 1.5,
+      "battery_internal_resistance_ohm": 0.035,
+      "drag_effective_cd_area_m2": 0.015,
+      "sensor_latency_s": 0.005,
+      "gyro_noise_rad_s": 0.0005,
+      "wake_coupling": 0.18,
+      "net_stiffness_n_per_m": 300,
+      "net_damping_ns_per_m": 22,
+      "guard_energy_capacity_j": 80,
+      "guard_damage_threshold_j": 0.6,
+      "goal_mass_kg": 12.5,
+      "goal_suspension_angular_damping": 1.4
+    }
+  },
+  "upstream": {
+    "source": "swarm-drone-atc",
+    "source_commit": "1e9d826265069696d7e415c7778d17483d7a8580",
+    "apf_sha256": "916598aa798c92acbba227a8facfd0ec2cb7dc23d6100446c938d5d15e75d9ff"
+  },
+  "autonomy_child_exit": 0,
+  "angle": [
+    {
+      "fixed_game_fps": 20,
+      "exit_code": 0,
+      "result": {
+        "ok": true,
+        "drones": 10,
+        "initial_self_level": true,
+        "stick_tilt_peak_deg": 17.399646759033203,
+        "overall_tilt_peak_deg": 24.81421661376953,
+        "released_worst_tilt_deg": 0.07321567833423615,
+        "released_self_level": true,
+        "input_source": "explicit non-USB verification fixture; vertical compensation isolates angle control",
+        "build": {
+          "version": "0.7.2",
+          "source_commit": "d07d57ce8a6643bea5b0f3e33b8eae77945e439c",
+          "source_dirty": true,
+          "source_sha256": "39189d9c53e9f4337124a84a7a15c56289c70e1aaf538bda130db11318e571d7",
+          "build_utc": "2026-10-27T06:42:00Z",
+          "target": "ImperialWingsSimulator"
+        },
+        "actual_min_game_dt_s": 0.05000000074505806,
+        "actual_max_game_dt_s": 0.05000000074505806,
+        "physics_defaults": {
+          "model": "STRIKER V3 reference-inspired, experimental coefficients",
+          "measured_airframe_data": false,
+          "motor_pwm_exponent": 2,
+          "motor_response_s": 0.035,
+          "battery_capacity_ah": 1.5,
+          "battery_internal_resistance_ohm": 0.035,
+          "drag_effective_cd_area_m2": 0.015,
+          "sensor_latency_s": 0.005,
+          "gyro_noise_rad_s": 0.0005,
+          "wake_coupling": 0.18,
+          "net_stiffness_n_per_m": 300,
+          "net_damping_ns_per_m": 22,
+          "guard_energy_capacity_j": 80,
+          "guard_damage_threshold_j": 0.6,
+          "goal_mass_kg": 12.5,
+          "goal_suspension_angular_damping": 1.4
+        }
+      }
+    },
+    {
+      "fixed_game_fps": 30,
+      "exit_code": 0,
+      "result": {
+        "ok": true,
+        "drones": 10,
+        "initial_self_level": true,
+        "stick_tilt_peak_deg": 17.127424240112305,
+        "overall_tilt_peak_deg": 24.81421661376953,
+        "released_worst_tilt_deg": 0.06338710337877274,
+        "released_self_level": true,
+        "input_source": "explicit non-USB verification fixture; vertical compensation isolates angle control",
+        "build": {
+          "version": "0.7.2",
+          "source_commit": "d07d57ce8a6643bea5b0f3e33b8eae77945e439c",
+          "source_dirty": true,
+          "source_sha256": "39189d9c53e9f4337124a84a7a15c56289c70e1aaf538bda130db11318e571d7",
+          "build_utc": "2026-10-27T06:42:00Z",
+          "target": "ImperialWingsSimulator"
+        },
+        "actual_min_game_dt_s": 0.03333333507180214,
+        "actual_max_game_dt_s": 0.03333333507180214,
+        "physics_defaults": {
+          "model": "STRIKER V3 reference-inspired, experimental coefficients",
+          "measured_airframe_data": false,
+          "motor_pwm_exponent": 2,
+          "motor_response_s": 0.035,
+          "battery_capacity_ah": 1.5,
+          "battery_internal_resistance_ohm": 0.035,
+          "drag_effective_cd_area_m2": 0.015,
+          "sensor_latency_s": 0.005,
+          "gyro_noise_rad_s": 0.0005,
+          "wake_coupling": 0.18,
+          "net_stiffness_n_per_m": 300,
+          "net_damping_ns_per_m": 22,
+          "guard_energy_capacity_j": 80,
+          "guard_damage_threshold_j": 0.6,
+          "goal_mass_kg": 12.5,
+          "goal_suspension_angular_damping": 1.4
+        }
+      }
+    },
+    {
+      "fixed_game_fps": 60,
+      "exit_code": 0,
+      "result": {
+        "ok": true,
+        "drones": 10,
+        "initial_self_level": true,
+        "stick_tilt_peak_deg": 17.58135986328125,
+        "overall_tilt_peak_deg": 24.81421661376953,
+        "released_worst_tilt_deg": 0.08896995335817337,
+        "released_self_level": true,
+        "input_source": "explicit non-USB verification fixture; vertical compensation isolates angle control",
+        "build": {
+          "version": "0.7.2",
+          "source_commit": "d07d57ce8a6643bea5b0f3e33b8eae77945e439c",
+          "source_dirty": true,
+          "source_sha256": "39189d9c53e9f4337124a84a7a15c56289c70e1aaf538bda130db11318e571d7",
+          "build_utc": "2026-10-27T06:42:00Z",
+          "target": "ImperialWingsSimulator"
+        },
+        "actual_min_game_dt_s": 0.01666666753590107,
+        "actual_max_game_dt_s": 0.01666666753590107,
+        "physics_defaults": {
+          "model": "STRIKER V3 reference-inspired, experimental coefficients",
+          "measured_airframe_data": false,
+          "motor_pwm_exponent": 2,
+          "motor_response_s": 0.035,
+          "battery_capacity_ah": 1.5,
+          "battery_internal_resistance_ohm": 0.035,
+          "drag_effective_cd_area_m2": 0.015,
+          "sensor_latency_s": 0.005,
+          "gyro_noise_rad_s": 0.0005,
+          "wake_coupling": 0.18,
+          "net_stiffness_n_per_m": 300,
+          "net_damping_ns_per_m": 22,
+          "guard_energy_capacity_j": 80,
+          "guard_damage_threshold_j": 0.6,
+          "goal_mass_kg": 12.5,
+          "goal_suspension_angular_damping": 1.4
+        }
+      }
+    },
+    {
+      "fixed_game_fps": 120,
+      "exit_code": 0,
+      "result": {
+        "ok": true,
+        "drones": 10,
+        "initial_self_level": true,
+        "stick_tilt_peak_deg": 17.842430114746094,
+        "overall_tilt_peak_deg": 24.81421661376953,
+        "released_worst_tilt_deg": 0.08233817666769028,
+        "released_self_level": true,
+        "input_source": "explicit non-USB verification fixture; vertical compensation isolates angle control",
+        "build": {
+          "version": "0.7.2",
+          "source_commit": "d07d57ce8a6643bea5b0f3e33b8eae77945e439c",
+          "source_dirty": true,
+          "source_sha256": "39189d9c53e9f4337124a84a7a15c56289c70e1aaf538bda130db11318e571d7",
+          "build_utc": "2026-10-27T06:42:00Z",
+          "target": "ImperialWingsSimulator"
+        },
+        "actual_min_game_dt_s": 0.008333333767950535,
+        "actual_max_game_dt_s": 0.008333333767950535,
+        "physics_defaults": {
+          "model": "STRIKER V3 reference-inspired, experimental coefficients",
+          "measured_airframe_data": false,
+          "motor_pwm_exponent": 2,
+          "motor_response_s": 0.035,
+          "battery_capacity_ah": 1.5,
+          "battery_internal_resistance_ohm": 0.035,
+          "drag_effective_cd_area_m2": 0.015,
+          "sensor_latency_s": 0.005,
+          "gyro_noise_rad_s": 0.0005,
+          "wake_coupling": 0.18,
+          "net_stiffness_n_per_m": 300,
+          "net_damping_ns_per_m": 22,
+          "guard_energy_capacity_j": 80,
+          "guard_damage_threshold_j": 0.6,
+          "goal_mass_kg": 12.5,
+          "goal_suspension_angular_damping": 1.4
+        }
+      }
+    },
+    {
+      "fixed_game_fps": 240,
+      "exit_code": 0,
+      "result": {
+        "ok": true,
+        "drones": 10,
+        "initial_self_level": true,
+        "stick_tilt_peak_deg": 17.857685089111328,
+        "overall_tilt_peak_deg": 24.81421661376953,
+        "released_worst_tilt_deg": 0.16654500365257263,
+        "released_self_level": true,
+        "input_source": "explicit non-USB verification fixture; vertical compensation isolates angle control",
+        "build": {
+          "version": "0.7.2",
+          "source_commit": "d07d57ce8a6643bea5b0f3e33b8eae77945e439c",
+          "source_dirty": true,
+          "source_sha256": "39189d9c53e9f4337124a84a7a15c56289c70e1aaf538bda130db11318e571d7",
+          "build_utc": "2026-10-27T06:42:00Z",
+          "target": "ImperialWingsSimulator"
+        },
+        "actual_min_game_dt_s": 0.004166666883975267,
+        "actual_max_game_dt_s": 0.004166666883975267,
+        "physics_defaults": {
+          "model": "STRIKER V3 reference-inspired, experimental coefficients",
+          "measured_airframe_data": false,
+          "motor_pwm_exponent": 2,
+          "motor_response_s": 0.035,
+          "battery_capacity_ah": 1.5,
+          "battery_internal_resistance_ohm": 0.035,
+          "drag_effective_cd_area_m2": 0.015,
+          "sensor_latency_s": 0.005,
+          "gyro_noise_rad_s": 0.0005,
+          "wake_coupling": 0.18,
+          "net_stiffness_n_per_m": 300,
+          "net_damping_ns_per_m": 22,
+          "guard_energy_capacity_j": 80,
+          "guard_damage_threshold_j": 0.6,
+          "goal_mass_kg": 12.5,
+          "goal_suspension_angular_damping": 1.4
+        }
+      }
+    }
+  ],
+  "runtime": [
+    {
+      "fixed_game_fps": 30,
+      "exit_code": 0,
+      "result": {
+        "ok": true,
+        "drones": 10,
+        "hover_error_cm": 3.297,
+        "hover_max_z_cm": 231.674,
+        "hover_min_z_cm": 219.909,
+        "floor_wall_contact": true,
+        "net_contact": true,
+        "net_peak_m": 0.05318,
+        "net_visible_peak_m": 0.05041,
+        "net_rebound_mps": 1.123,
+        "striker_physical_goal": true,
+        "blue_score": 1,
+        "csv_export": true,
+        "build": {
+          "version": "0.7.2",
+          "source_commit": "d07d57ce8a6643bea5b0f3e33b8eae77945e439c",
+          "source_dirty": true,
+          "source_sha256": "39189d9c53e9f4337124a84a7a15c56289c70e1aaf538bda130db11318e571d7",
+          "build_utc": "2026-10-27T06:42:00Z",
+          "target": "ImperialWingsSimulator"
+        },
+        "actual_min_game_dt_s": 0.03333333507180214,
+        "actual_max_game_dt_s": 0.03333333507180214,
+        "physics_defaults": {
+          "model": "STRIKER V3 reference-inspired, experimental coefficients",
+          "measured_airframe_data": false,
+          "motor_pwm_exponent": 2,
+          "motor_response_s": 0.035,
+          "battery_capacity_ah": 1.5,
+          "battery_internal_resistance_ohm": 0.035,
+          "drag_effective_cd_area_m2": 0.015,
+          "sensor_latency_s": 0.005,
+          "gyro_noise_rad_s": 0.0005,
+          "wake_coupling": 0.18,
+          "net_stiffness_n_per_m": 300,
+          "net_damping_ns_per_m": 22,
+          "guard_energy_capacity_j": 80,
+          "guard_damage_threshold_j": 0.6,
+          "goal_mass_kg": 12.5,
+          "goal_suspension_angular_damping": 1.4
+        }
+      }
+    },
+    {
+      "fixed_game_fps": 60,
+      "exit_code": 0,
+      "result": {
+        "ok": true,
+        "drones": 10,
+        "hover_error_cm": 3.15,
+        "hover_max_z_cm": 231.869,
+        "hover_min_z_cm": 219.915,
+        "floor_wall_contact": true,
+        "net_contact": true,
+        "net_peak_m": 0.06753,
+        "net_visible_peak_m": 0.0646,
+        "net_rebound_mps": 1.0562,
+        "striker_physical_goal": true,
+        "blue_score": 1,
+        "csv_export": true,
+        "build": {
+          "version": "0.7.2",
+          "source_commit": "d07d57ce8a6643bea5b0f3e33b8eae77945e439c",
+          "source_dirty": true,
+          "source_sha256": "39189d9c53e9f4337124a84a7a15c56289c70e1aaf538bda130db11318e571d7",
+          "build_utc": "2026-10-27T06:42:00Z",
+          "target": "ImperialWingsSimulator"
+        },
+        "actual_min_game_dt_s": 0.01666666753590107,
+        "actual_max_game_dt_s": 0.01666666753590107,
+        "physics_defaults": {
+          "model": "STRIKER V3 reference-inspired, experimental coefficients",
+          "measured_airframe_data": false,
+          "motor_pwm_exponent": 2,
+          "motor_response_s": 0.035,
+          "battery_capacity_ah": 1.5,
+          "battery_internal_resistance_ohm": 0.035,
+          "drag_effective_cd_area_m2": 0.015,
+          "sensor_latency_s": 0.005,
+          "gyro_noise_rad_s": 0.0005,
+          "wake_coupling": 0.18,
+          "net_stiffness_n_per_m": 300,
+          "net_damping_ns_per_m": 22,
+          "guard_energy_capacity_j": 80,
+          "guard_damage_threshold_j": 0.6,
+          "goal_mass_kg": 12.5,
+          "goal_suspension_angular_damping": 1.4
+        }
+      }
+    },
+    {
+      "fixed_game_fps": 120,
+      "exit_code": 0,
+      "result": {
+        "ok": true,
+        "drones": 10,
+        "hover_error_cm": 2.988,
+        "hover_max_z_cm": 231.982,
+        "hover_min_z_cm": 219.921,
+        "floor_wall_contact": true,
+        "net_contact": true,
+        "net_peak_m": 0.075,
+        "net_visible_peak_m": 0.07437,
+        "net_rebound_mps": 1.0764,
+        "striker_physical_goal": true,
+        "blue_score": 1,
+        "csv_export": true,
+        "build": {
+          "version": "0.7.2",
+          "source_commit": "d07d57ce8a6643bea5b0f3e33b8eae77945e439c",
+          "source_dirty": true,
+          "source_sha256": "39189d9c53e9f4337124a84a7a15c56289c70e1aaf538bda130db11318e571d7",
+          "build_utc": "2026-10-27T06:42:00Z",
+          "target": "ImperialWingsSimulator"
+        },
+        "actual_min_game_dt_s": 0.008333333767950535,
+        "actual_max_game_dt_s": 0.008333333767950535,
+        "physics_defaults": {
+          "model": "STRIKER V3 reference-inspired, experimental coefficients",
+          "measured_airframe_data": false,
+          "motor_pwm_exponent": 2,
+          "motor_response_s": 0.035,
+          "battery_capacity_ah": 1.5,
+          "battery_internal_resistance_ohm": 0.035,
+          "drag_effective_cd_area_m2": 0.015,
+          "sensor_latency_s": 0.005,
+          "gyro_noise_rad_s": 0.0005,
+          "wake_coupling": 0.18,
+          "net_stiffness_n_per_m": 300,
+          "net_damping_ns_per_m": 22,
+          "guard_energy_capacity_j": 80,
+          "guard_damage_threshold_j": 0.6,
+          "goal_mass_kg": 12.5,
+          "goal_suspension_angular_damping": 1.4
+        }
+      }
+    }
+  ],
+  "contact_view": [
+    {
+      "fps": 30,
+      "scenario": "Contact",
+      "result": {
+        "ok": true,
+        "fixture": "two practice and one competition initial-velocity Chaos collisions; idle damping and explicit reset; no USB input",
+        "guard_after_first_pct": 89.48497772216797,
+        "guard_after_second_pct": 77.4837417602539,
+        "guard_before_reset_pct": 40.8906364440918,
+        "goal_contact_events": 2,
+        "goal_peak_sway_cm": 5.414381980895996,
+        "goal_settled_sway_cm": 1.134331226348877,
+        "goal_mass_kg": 12.5,
+        "goal_settled_offset_cm": [
+          1.1343312603374898,
+          -2.5417926575138572e-21,
+          0.00428908605141487
+        ],
+        "goal_settled_omega_rad_s": [
+          -1.4014926571092525e-21,
+          -0.026559550315141678,
+          6.42310680761249e-23
+        ],
+        "guard_chip_bursts": 2,
+        "idle_contact_does_not_wear": true,
+        "competition_peak_sway_cm": 0.19916784763336182,
+        "competition_suspension_stable": true,
+        "reset_repairs_guard_and_centres_goal": true,
+        "build": {
+          "version": "0.7.2",
+          "source_commit": "d07d57ce8a6643bea5b0f3e33b8eae77945e439c",
+          "source_dirty": true,
+          "source_sha256": "39189d9c53e9f4337124a84a7a15c56289c70e1aaf538bda130db11318e571d7",
+          "build_utc": "2026-10-27T06:42:00Z",
+          "target": "ImperialWingsSimulator"
+        },
+        "actual_min_game_dt_s": 0.03333333507180214,
+        "actual_max_game_dt_s": 0.03333333507180214,
+        "physics_defaults": {
+          "model": "STRIKER V3 reference-inspired, experimental coefficients",
+          "measured_airframe_data": false,
+          "motor_pwm_exponent": 2,
+          "motor_response_s": 0.035,
+          "battery_capacity_ah": 1.5,
+          "battery_internal_resistance_ohm": 0.035,
+          "drag_effective_cd_area_m2": 0.015,
+          "sensor_latency_s": 0.005,
+          "gyro_noise_rad_s": 0.0005,
+          "wake_coupling": 0.18,
+          "net_stiffness_n_per_m": 300,
+          "net_damping_ns_per_m": 22,
+          "guard_energy_capacity_j": 80,
+          "guard_damage_threshold_j": 0.6,
+          "goal_mass_kg": 12.5,
+          "goal_suspension_angular_damping": 1.4
+        }
+      },
+      "exit_code": 0
+    },
+    {
+      "fps": 60,
+      "scenario": "Contact",
+      "result": {
+        "ok": true,
+        "fixture": "two practice and one competition initial-velocity Chaos collisions; idle damping and explicit reset; no USB input",
+        "guard_after_first_pct": 89.66688537597656,
+        "guard_after_second_pct": 77.90645599365234,
+        "guard_before_reset_pct": 41.27284622192383,
+        "goal_contact_events": 2,
+        "goal_peak_sway_cm": 5.465148448944092,
+        "goal_settled_sway_cm": 2.1220815181732178,
+        "goal_mass_kg": 12.5,
+        "goal_settled_offset_cm": [
+          2.122081614431636,
+          -1.4290297613696073e-21,
+          0.015011519243046223
+        ],
+        "goal_settled_omega_rad_s": [
+          5.7422423802658646e-24,
+          -0.0018637542380020022,
+          1.2238351480452775e-22
+        ],
+        "guard_chip_bursts": 2,
+        "idle_contact_does_not_wear": true,
+        "competition_peak_sway_cm": 0.16712290048599243,
+        "competition_suspension_stable": true,
+        "reset_repairs_guard_and_centres_goal": true,
+        "build": {
+          "version": "0.7.2",
+          "source_commit": "d07d57ce8a6643bea5b0f3e33b8eae77945e439c",
+          "source_dirty": true,
+          "source_sha256": "39189d9c53e9f4337124a84a7a15c56289c70e1aaf538bda130db11318e571d7",
+          "build_utc": "2026-10-27T06:42:00Z",
+          "target": "ImperialWingsSimulator"
+        },
+        "actual_min_game_dt_s": 0.01666666753590107,
+        "actual_max_game_dt_s": 0.01666666753590107,
+        "physics_defaults": {
+          "model": "STRIKER V3 reference-inspired, experimental coefficients",
+          "measured_airframe_data": false,
+          "motor_pwm_exponent": 2,
+          "motor_response_s": 0.035,
+          "battery_capacity_ah": 1.5,
+          "battery_internal_resistance_ohm": 0.035,
+          "drag_effective_cd_area_m2": 0.015,
+          "sensor_latency_s": 0.005,
+          "gyro_noise_rad_s": 0.0005,
+          "wake_coupling": 0.18,
+          "net_stiffness_n_per_m": 300,
+          "net_damping_ns_per_m": 22,
+          "guard_energy_capacity_j": 80,
+          "guard_damage_threshold_j": 0.6,
+          "goal_mass_kg": 12.5,
+          "goal_suspension_angular_damping": 1.4
+        }
+      },
+      "exit_code": 0
+    },
+    {
+      "fps": 120,
+      "scenario": "Contact",
+      "result": {
+        "ok": true,
+        "fixture": "two practice and one competition initial-velocity Chaos collisions; idle damping and explicit reset; no USB input",
+        "guard_after_first_pct": 89.48280334472656,
+        "guard_after_second_pct": 77.68827819824219,
+        "guard_before_reset_pct": 41.088836669921875,
+        "goal_contact_events": 2,
+        "goal_peak_sway_cm": 5.379362106323242,
+        "goal_settled_sway_cm": 1.9859166145324707,
+        "goal_mass_kg": 12.5,
+        "goal_settled_offset_cm": [
+          1.985916612516803,
+          -1.011014477554845e-21,
+          0.013146792888733216
+        ],
+        "goal_settled_omega_rad_s": [
+          -3.3706691096353476e-22,
+          -0.01651683822274208,
+          -9.129897463793485e-25
+        ],
+        "guard_chip_bursts": 2,
+        "idle_contact_does_not_wear": true,
+        "competition_peak_sway_cm": 0.1244763508439064,
+        "competition_suspension_stable": true,
+        "reset_repairs_guard_and_centres_goal": true,
+        "build": {
+          "version": "0.7.2",
+          "source_commit": "d07d57ce8a6643bea5b0f3e33b8eae77945e439c",
+          "source_dirty": true,
+          "source_sha256": "39189d9c53e9f4337124a84a7a15c56289c70e1aaf538bda130db11318e571d7",
+          "build_utc": "2026-10-27T06:42:00Z",
+          "target": "ImperialWingsSimulator"
+        },
+        "actual_min_game_dt_s": 0.008333333767950535,
+        "actual_max_game_dt_s": 0.008333333767950535,
+        "physics_defaults": {
+          "model": "STRIKER V3 reference-inspired, experimental coefficients",
+          "measured_airframe_data": false,
+          "motor_pwm_exponent": 2,
+          "motor_response_s": 0.035,
+          "battery_capacity_ah": 1.5,
+          "battery_internal_resistance_ohm": 0.035,
+          "drag_effective_cd_area_m2": 0.015,
+          "sensor_latency_s": 0.005,
+          "gyro_noise_rad_s": 0.0005,
+          "wake_coupling": 0.18,
+          "net_stiffness_n_per_m": 300,
+          "net_damping_ns_per_m": 22,
+          "guard_energy_capacity_j": 80,
+          "guard_damage_threshold_j": 0.6,
+          "goal_mass_kg": 12.5,
+          "goal_suspension_angular_damping": 1.4
+        }
+      },
+      "exit_code": 0
+    },
+    {
+      "fps": 60,
+      "scenario": "View",
+      "result": {
+        "ok": true,
+        "views": [
+          {
+            "view": 1,
+            "camera_role": "PILOT LOS",
+            "position_cm": [
+              -950,
+              0,
+              170
+            ],
+            "read_only_arm_rejected": true,
+            "ok": true
+          },
+          {
+            "view": 2,
+            "camera_role": "OBSERVER TRACK",
+            "position_cm": [
+              -880.7082975400838,
+              -230.70829754008392,
+              172.14257613489238
+            ],
+            "read_only_arm_rejected": true,
+            "ok": true
+          },
+          {
+            "view": 3,
+            "camera_role": "ARENA OVERVIEW",
+            "position_cm": [
+              1750,
+              -2250,
+              1180
+            ],
+            "read_only_arm_rejected": true,
+            "ok": true
+          },
+          {
+            "view": 4,
+            "camera_role": "AUDIENCE STANDS",
+            "position_cm": [
+              300,
+              -1050,
+              250
+            ],
+            "read_only_arm_rejected": true,
+            "ok": true
+          },
+          {
+            "view": 5,
+            "camera_role": "REFEREE SIDELINE",
+            "position_cm": [
+              220,
+              -550,
+              170
+            ],
+            "read_only_arm_rejected": true,
+            "ok": true
+          },
+          {
+            "view": 6,
+            "camera_role": "EQUIPMENT",
+            "ok": true
+          }
+        ],
+        "fixture": "actual camera/controller API calls, camera-manager poses and arm rejection; not physical USB or native mouse input",
+        "build": {
+          "version": "0.7.2",
+          "source_commit": "d07d57ce8a6643bea5b0f3e33b8eae77945e439c",
+          "source_dirty": true,
+          "source_sha256": "39189d9c53e9f4337124a84a7a15c56289c70e1aaf538bda130db11318e571d7",
+          "build_utc": "2026-10-27T06:42:00Z",
+          "target": "ImperialWingsSimulator"
+        },
+        "actual_min_game_dt_s": 0.01666666753590107,
+        "actual_max_game_dt_s": 0.01666666753590107,
+        "physics_defaults": {
+          "model": "STRIKER V3 reference-inspired, experimental coefficients",
+          "measured_airframe_data": false,
+          "motor_pwm_exponent": 2,
+          "motor_response_s": 0.035,
+          "battery_capacity_ah": 1.5,
+          "battery_internal_resistance_ohm": 0.035,
+          "drag_effective_cd_area_m2": 0.015,
+          "sensor_latency_s": 0.005,
+          "gyro_noise_rad_s": 0.0005,
+          "wake_coupling": 0.18,
+          "net_stiffness_n_per_m": 300,
+          "net_damping_ns_per_m": 22,
+          "guard_energy_capacity_j": 80,
+          "guard_damage_threshold_j": 0.6,
+          "goal_mass_kg": 12.5,
+          "goal_suspension_angular_damping": 1.4
+        }
+      },
+      "exit_code": 0
+    }
+  ],
+  "input_safety_checks": 29,
+  "relocated_input_safety_checks": 29,
+  "layout_ok": true,
+  "portable_checks": [
+    {
+      "name": "all released file hashes match",
+      "passed": true
+    },
+    {
+      "name": "no pilot settings or generated Saved directory",
+      "passed": true
+    },
+    {
+      "name": "native launcher resolves relocated files without developer tools",
+      "passed": true
+    },
+    {
+      "name": "frozen APF starts with no installed Python or Git on PATH",
+      "passed": true
+    },
+    {
+      "name": "frozen APF provenance matches released upstream",
+      "passed": true
+    },
+    {
+      "name": "actual bundled APF responds to ten-aircraft protocol 2",
+      "passed": true
+    },
+    {
+      "name": "bounded APF test exits cleanly",
+      "passed": true
+    },
+    {
+      "name": "fresh standalone Unreal storage result",
+      "passed": true
+    },
+    {
+      "name": "fresh keyboard startup and profile safety",
+      "passed": true
+    },
+    {
+      "name": "fresh writes only to explicit per-user data path",
+      "passed": true
+    },
+    {
+      "name": "first use never invents a controller profile",
+      "passed": true
+    },
+    {
+      "name": "package remains free of generated pilot data after execution",
+      "passed": true
+    }
+  ],
+  "bridge_tests": 13,
+  "saved_real_profile_preserved": true,
+  "physical_usb_or_other_pc_tested": false,
+  "archive": {
+    "filename": "ImperialWings-Windows-v0.7.2-r2.zip",
+    "bytes": 374764753,
+    "sha256": "265be3483f3e5b618b3301872efae0b133a504adda4b938078700dd81fbbd1a3"
+  },
+  "relocated_time_contract": {
+    "ok": true,
+    "injected_100ms": true,
+    "injected_250ms": true,
+    "official_manual_match": false,
+    "match_stayed_manual_disarmed": true,
+    "ledger": {
+      "policy": "sync_chaos_budget_discard_excess_no_catchup",
+      "match_clock": "game_time",
+      "model_clock": "scene_pre_tick_budget",
+      "game_s": 68.00522009655833,
+      "physics_budget_s": 67.78487882390618,
+      "dropped_physics_s": 0.2203412726521492,
+      "deferred_physics_s": 0,
+      "last_game_dt_s": 0.016666799783706665,
+      "last_physics_dt_s": 0.016666799783706665,
+      "max_game_dt_s": 0.2514882981777191,
+      "frames": 4061,
+      "limited_frames": 2
+    },
+    "measured_dropped_s": 0.2203412726521492,
+    "clocks_ok": true,
+    "stable": true,
+    "synchronous_physics": true,
+    "hitches": true,
+    "game_s": 60.00514269992709,
+    "match_clock_elapsed_s": 60.00514269992709,
+    "solver_s": 59.784801427275795,
+    "wall_s": 60.00566630065441,
+    "max_model_clock_error_s": 1.1510792319313623e-12,
+    "max_sensor_clock_error_s": 1.1510792319313623e-12,
+    "max_battery_integral_error_ah": 4.553323863787373e-15,
+    "max_hold_error_cm": 5.784881032334069,
+    "max_tilt_deg": 0.009542562067508698,
+    "max_speed_mps": 0.0032329114619642496
+  }
+}

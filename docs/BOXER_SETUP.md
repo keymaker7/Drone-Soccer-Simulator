@@ -1,14 +1,14 @@
-# RadioMaster Boxer USB 조종기 연결·보정
+# USB 조종기 설정·연결·보정
 
 현재 Windows 빌드는 **네이티브 WinMM 조이스틱 입력과 게임 내 보정 패널**을 사용합니다. 실행할 때마다 키보드 입력으로 시작합니다. 저장된 보정값이 있어도 조종기가 자동으로 활성화되거나 기체가 자동 ARM되지는 않습니다.
 
 ## 1. Windows에서 조종기 확인
 
-1. 송신기를 켜고 데이터 전송이 가능한 USB 케이블로 PC에 연결합니다. 송신기에서 **USB Joystick**을 선택합니다.
+1. 조종기의 데이터 전송용 USB 포트에 데이터 케이블로 PC를 연결합니다. 기종에 따라 전원을 켜고 **USB Joystick / 게임 컨트롤러 모드**를 선택합니다.
 2. Windows의 `joy.cpl`에서 해당 장치를 열고 스틱을 하나씩 움직여 축 값이 실제로 변하는지 확인합니다.
-3. 조종기의 모델 출력·믹서와 USB 축 설정을 확인합니다. EdgeTX의 Classic/Advanced 설정에 따라 전달되는 축이 달라질 수 있으므로 채널 순서를 추측해서 적용하지 않습니다. 설정 설명은 [EdgeTX USB Joystick 공식 매뉴얼](https://manual.edgetx.org/color-radios/model-settings/model-setup/usb-joystick)을 참고합니다. 이 링크는 컬러 화면 매뉴얼이므로 Boxer의 펌웨어·화면에 따라 메뉴 위치와 모양은 다를 수 있습니다.
+3. 조종기의 모델 출력·믹서와 USB 축 설정을 확인합니다. EdgeTX의 Classic/Advanced 설정에 따라 전달되는 축이 달라질 수 있으므로 채널 순서를 추측해서 적용하지 않습니다. EdgeTX 기종의 설정 예시는 [공식 USB Joystick 매뉴얼](https://manual.edgetx.org/color-radios/model-settings/model-setup/usb-joystick)을 참고합니다. 이 링크는 컬러 화면 매뉴얼이므로 사용 중인 기종·펌웨어에 따라 메뉴 위치와 모양은 다를 수 있습니다.
 
-2026-10-26 Windows PnP 상위 장치 조회에서 `0416:8258`은 **Archon M1 PRO MAX**로 확인됐습니다. 사용자 재연결 후 `1209:4F54`의 USB 제품명이 **Radiomaster Boxer Joystick**으로 확인됐고, WinMM 슬롯1·6축·24버튼 실제 입력을 읽었습니다. WinMM UI에는 두 장치 모두 `Microsoft PC-joystick driver`라는 일반 이름으로 보일 수 있으므로6축·**24버튼** 장치를 선택합니다. 게임에서 실제 장치 선택·라이브 축 표시까지 확인했지만 네 스틱의 전체 범위·방향 보정은 별도 검증입니다. `Tests/radio_probe.py`는 읽기 전용 진단 도구이며 보정값을 만들어 넣거나 ARM하지 않습니다.
+참고용 과거 시험: 2026-10-26 개발 PC에서 `0416:8258`은 **Archon M1 PRO MAX**, `1209:4F54`는 **Radiomaster Boxer Joystick**으로 확인했습니다. 후자는 당시 WinMM 슬롯1·6축·24버튼이었습니다. 이 ID·축 수·슬롯은 모든 조종기에 적용할 설정값이 아닙니다. WinMM UI의 일반 드라이버 이름만으로 선택하지 말고, 본인 장치의 표시와 실제 스틱 움직임을 확인합니다. `Tests/radio_probe.py`는 읽기 전용 진단 도구이며 보정값을 만들어 넣거나 ARM하지 않습니다. 이후의 실제 보정 결과와 USB 비행 검증 한계는 버전별 검증 기록을 따릅니다.
 
 ## 2. 게임에서 장치와 네 축 선택
 
@@ -22,7 +22,7 @@
 
 ## 3. Mode 2 스틱 안내 보정
 
-사용자가 확인한 Mode 2(왼쪽 세로 스틱이 스로틀)는 **STICK SETUP / MODE 2**로 설정할 수 있습니다. 장치를 먼저 선택하고 DRIVER ID `1209:4F54`를 확인합니다. 축 번호를 기본값으로 추측하지 않고 실제 움직임에서 찾습니다.
+Mode 2(왼쪽 세로 스틱이 스로틀)는 **STICK SETUP / MODE 2**로 설정할 수 있습니다. 사용하는 실제 장치를 먼저 선택하고 라이브 축이 움직이는지 확인합니다. 제조사·장치 ID·축 번호를 다른 조종기의 값으로 추측하지 않고 실제 움직임에서 찾습니다. 스틱 배치가 다르면 **ADVANCED OPTIONS**에서 실제 축·방향·범위를 수동 설정합니다.
 
 1. 다른 스틱은 중립, 스로틀은 최저로 두고 **START THIS STEP** 또는 **Enter**를 누릅니다.
 2. 화면에서 지정한 방향만 양 끝까지 움직이고 각 끝에서 1초 유지합니다. 마지막에는 아래 표의 끝을 유지한 채 **CONFIRM HELD END** 또는 **Enter**를 누릅니다. Enter를 쓰면 마우스를 잡기 위해 스틱을 놓을 필요가 없습니다.

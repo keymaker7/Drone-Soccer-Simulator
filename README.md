@@ -1,15 +1,40 @@
 # Imperial Wings Drone Soccer Simulator
 
 <a id="windows-run"></a>
-## Windows 실행파일 다운로드 — v0.7.1
+## Windows 실행파일 다운로드 — v0.7.2
 
-[Windows x64 실행용 ZIP](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/download/v0.7.1/ImperialWings-Windows-v0.7.1-r1.zip)을 **전체 압축 해제**한 뒤 `ImperialWingsLauncher.exe`를 실행합니다. Unreal Engine·Python·Git을 설치할 필요가 없습니다. GitHub의 Source code ZIP은 개발 소스이며 실행용 ZIP과 다릅니다.
+[Windows x64 실행용 ZIP](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/download/v0.7.2/ImperialWings-Windows-v0.7.2-r2.zip)을 **전체 압축 해제**한 뒤 `ImperialWingsLauncher.exe`를 실행합니다. Unreal Engine·Python·Git을 설치할 필요가 없습니다. GitHub의 Source code ZIP은 개발 소스이며 실행용 ZIP과 다릅니다.
+
+<a id="download-steps"></a>
+### 최신 빌드 다운로드·실행 순서
+
+1. [GitHub Releases 페이지](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases)를 엽니다. 현재 공개 실행본은 **v0.7.2**입니다. 검증 중인 작업 사본과 공개 실행본은 다를 수 있습니다. 개발 시험판은 `Pre-release`로 표시되므로 `Latest` 표시만 찾지 말고 버전과 아래 검증 기록을 확인합니다.
+2. 해당 버전의 **Assets**를 펼칩니다. 실행하려면 **`ImperialWings-Windows-v0.7.2-r2.zip`**을 누릅니다. 약375MB이며, 이 문서 맨 위의 링크도 같은 파일입니다.
+3. **`Source code (zip)` / `Source code (tar.gz)` / `…-source.zip`은 개발 소스**입니다. 일반 실행용 프로그램이 들어 있지 않습니다. 저장소 상단의 **Code → Download ZIP**도 소스 다운로드이므로 실행용 ZIP과 구분합니다.
+4. 다운로드가 끝나면 파일 탐색기에서 ZIP을 찾고 **마우스 오른쪽 → 모두 압축 풀기**를 선택합니다. 예를 들어 `C:\Games\ImperialWings-v0.7.2`에 전체를 풉니다. ZIP 안에서 바로 실행하거나 EXE 하나만 꺼내지 않습니다.
+5. 압축을 푼 폴더에서 **`ImperialWingsLauncher.exe`**를 더블클릭합니다. 같은 폴더에 **`Windows`·`Guidance`·`Prerequisites`** 폴더와 `START_HERE.ko.md`가 있어야 합니다. 실제 게임은 `Windows` 안에 있고, 기본 실행은 바깥쪽 실행기를 사용합니다. 실행기는 포함된 자율 훈련 연결 프로그램과 게임을 시작합니다. Unreal Engine·Python·Git을 별도 설치하지 않습니다.
+6. Visual C++ 실행 구성 요소가 없다는 메시지가 나오면 ZIP에 포함된 **`Prerequisites\vc_redist.x64.exe`**를 실행해 설치한 뒤 실행기를 다시 엽니다. DirectX12/SM6를 지원하는 GPU와 Windows 10/11 x64가 필요합니다. 보안 프로그램이 경고하면 표시된 파일·출처를 직접 확인하며 보호 기능을 끄지 않습니다.
+7. 조종기가 없어도 **키보드로 시작**할 수 있습니다. 첫 조종기 설정 창을 닫고 기체가 DISARM 상태인지 확인합니다. 아래 [첫 비행](#first-flight)의 순서를 따릅니다. 기본은 경기장 밖 **LOS** 시점이며, **ANGLE은 자세를 수평으로 복원하지만 고도를 자동 유지하지 않습니다.** 높이는 스로틀로 조절합니다.
+8. **조종기 설정:** 조종기의 데이터 전송용 USB 포트에 데이터 케이블을 연결합니다. 기종에 따라 전원을 켜고 **USB Joystick / 게임 컨트롤러 모드**를 선택합니다. 처음 쓰는 PC/조종기는 **장치 선택 → STICK SETUP / MODE 2 → 실제 스틱 보정 → CONFIRM & SAVE → ENABLE RADIO**를 진행합니다. 이 자동 안내는 **Mode 2(왼쪽 스틱 위아래가 스로틀)** 기준입니다. 스틱 배치가 다르면 ADVANCED OPTIONS에서 실제 축·방향을 확인해 수동으로 설정합니다. 이전 PC의 보정 파일을 다른 장치에 그대로 복사하지 않습니다. 상세 절차는 [다른 PC 실행 안내](docs/PORTABLE_QUICK_START.ko.md)를 따릅니다.
+9. 게임에서 먼저 스로틀 최저·다른 축 중립을 확인하고 Space로 ARM합니다. **창을 다른 앱으로 전환하면 수동 기체는 DISARM**합니다. USB는 복귀 후 최저 스로틀에서 **F8 / CONNECT SAVED RADIO**로 다시 연결하고 ARM합니다. 비행 중에는 채팅 창으로 전환하지 않습니다.
+
+**업데이트:** 새 버전 ZIP을 별도 폴더에 전체 압축 해제합니다. 이전 실행본에 일부 파일만 덮어쓰지 않습니다. 사용자 보정은 `%LOCALAPPDATA%\ImperialWingsSimulator\Saved\Config\RadioProfile.json`에 별도로 저장되므로 같은 Windows 사용자·같은 조종기의 설정은 새 버전에서도 불러올 수 있습니다. 이전 버전은 새 버전을 확인한 뒤 정리합니다.
+
+**다운로드/실행 문제:**
+
+- 탐색기에 `file:///E:/...exe` 또는 `%20`이 들어간 경로를 붙여 넣어 “찾을 수 없습니다”가 나오면, 브라우저 주소를 실행한 것입니다. 파일 탐색기로 **실제 압축 해제 폴더**를 연 뒤 `ImperialWingsLauncher.exe`를 더블클릭합니다. 내려받은 PC에는 개발 PC의 `E:\...` 경로가 없습니다.
+- 실행 파일이 없으면 `Source code`를 받았는지, 아직 ZIP 내부를 보고 있는지 확인합니다. 이름에 `ImperialWings-Windows-`가 포함된 실행용 ZIP을 다시 확인합니다.
+- 파일 손상/누락은 ZIP을 다시 내려받고 새 폴더에 전체 압축을 풀어 확인합니다. GitHub 릴리스의 `SHA256SUMS.txt`로 다운로드 무결성을 확인할 수 있습니다. 확인 예: PowerShell에서 `Get-FileHash -Algorithm SHA256 -LiteralPath 'C:\Users\본인\Downloads\ImperialWings-Windows-v0.7.2-r2.zip'`을 실행하고 같은 파일명의 해시와 비교합니다. 사용자 이름·저장 위치는 본인 PC에 맞춥니다.
+- 조종기가 보이지 않으면 Windows의 `joy.cpl`에서 먼저 확인합니다. 게임의 **EXPORT DEVICE REPORT**는 진단용이며 자동으로 보정을 완료하거나 실제 스틱 입력을 만들어 주지 않습니다.
+- 실행 후 문제가 있으면 **다운로드한 버전·오류 문구·발생 단계**와 사용자 저장 폴더의 진단 파일을 함께 확인합니다. 개인 보정 파일과 전체 사용자 폴더는 공개 저장소에 올리지 않습니다.
+
+실행용 ZIP·변경·시험 범위는 [v0.7.2 검증 기록](docs/releases/v0.7.2.md)에서 확인합니다. 시간 계산·자율 착륙 수정의 최종 시험 결과와 한계는 해당 기록에 구분했습니다.
 
 첫 실행의 간소 조종기 화면에서 **실제 장치 카드 선택 → STICK SETUP / MODE 2 → CONFIRM & SAVE → ENABLE RADIO** 순서로 보정합니다. 상단 STEP 안내로 다음 행동을 확인합니다. 이미 보정한 장치는 **CONNECT SAVED RADIO / F8**로 연결할 수 있습니다. 스로틀 최저에서 패널을 닫고 Space로 ARM합니다. 보정값은 각 Windows 사용자의 `%LOCALAPPDATA%\ImperialWingsSimulator\Saved`에 저장하고 다른 사람의 보정값을 배포하지 않습니다.
 
 [다른 PC에서 실행·조종기 설정](docs/PORTABLE_QUICK_START.ko.md)을 확인하세요. Windows 10/11 x64와 DirectX12 / Shader Model6 GPU가 필요합니다. 필수 Visual C++ 설치 파일과 자율 훈련용 독립 실행 환경을 포함합니다. 개발 PC에서 설치 도구 경로를 제거하고 한글·공백 경로로 옮긴 새 사용자 데이터 환경을 검사했으며, 실제 다른 PC 전체에서의 비행을 인증한 것은 아닙니다.
 
-Unreal Engine 5.8 기반 Windows 드론축구 시뮬레이터입니다. 기본 시점은 **경기장 밖 조종자 위치에서 기체를 보는 LOS(육안) 조종**입니다. FIDA Class40의 경기장·기체 규격과 5대5 경기 흐름, RadioMaster Boxer용 USB 보정 UI, 실제 SDACS APF를 사용하는 자율 훈련을 함께 개발합니다.
+Unreal Engine 5.8 기반 Windows 드론축구 시뮬레이터입니다. 기본 시점은 **경기장 밖 조종자 위치에서 기체를 보는 LOS(육안) 조종**입니다. FIDA Class40의 경기장·기체 규격과 5대5 경기 흐름, USB 조종기 보정 UI, 실제 SDACS APF를 사용하는 자율 훈련을 함께 개발합니다.
 
 기체는 네 모터의 개별 힘과 회전 모멘트, 중력·항력·Chaos 접촉으로 움직입니다. 정상 비행에서 위치를 강제로 갱신하지 않으며 초기화에서만 물리 위치를 되돌립니다. 실기체와 일치하도록 실측 보정된 제품은 아닙니다.
 
@@ -27,6 +52,11 @@ v0.7은 FC/ESC·수신기·모터 권선·배터리·커넥터·배선과 비틀
 
 [v0.7.1 입력 시험과 범위](docs/releases/v0.7.1.md)에서 엔진 내부 키 이벤트 시험과 실제 키보드/USB 현장 시험을 구분합니다.
 
+**v0.7.2 시간·착륙 개선:** 긴 프레임에서도 모터·배터리·센서·네트 힘 계산이 Chaos 장면의 같은 시간 예산을 사용합니다. 100/250ms 멈춤에서 생략된 물리 시간은 HUD·F6 기록에 표시하며 경기 시계는 게임 시간으로 계속 갑니다. 실제 upstream APF의 착륙 직전 정지 문제도 보완해10대 출발·통신 장애·복구·귀환·착륙을 다시 검사했습니다. [시간 계약](docs/time-contract.md) · [최종 시험·한계](docs/releases/v0.7.2.md).
+
+[중단·미완료 작업 목록과 재개 지점](docs/work-status-2026-10-27.md)에서 현장 조종기 시험·다른 PC·고정주기 제어와 계획서 후속 기능을 확인합니다. 이번 릴리스는 전체326개 기능의 완료를 의미하지 않습니다.
+
+
 [v0.7 변경·시험 결과](docs/releases/v0.7.0.md) · [실제 기능과 미완료 항목](docs/feature-inventory-2026-10-26.md) · [자율 시험에서 찾은 문제와 수정](docs/autonomy-feedback-v07.md)
 
 ![이전 v0.6.1 Unreal 실행 장면](docs/images/simulator-runtime-v061.gif)
@@ -41,17 +71,17 @@ v0.7은 FC/ESC·수신기·모터 권선·배터리·커넥터·배선과 비틀
 - [데이터 수집 순서](#data-collection) · [저장 폴더](#saved-files)
 - [F6 비행 기록](#flight-recording) · [F5 CSV](#csv-export) · [조종기 진단](#device-report)
 - [파일 열기·피드백 공유](#feedback-files) · [기록 문제 해결](#troubleshooting)
-- [Boxer·F8 재연결](#boxer) · [화질](#graphics) · [경기·연습](#match)
+- [조종기 설정·F8 재연결](#controller) · [화질](#graphics) · [경기·연습](#match)
 - [소스 빌드](#source-build) · [버전별 검증](#verification)
 
 <a id="first-flight"></a>
 ## 처음 실행한 뒤 첫 비행
 
 1. 배포 폴더의 **ImperialWingsLauncher.exe**를 실행합니다.
-2. 키보드라면 조종기 창에서 **USE KEYBOARD → CLOSE**를 선택합니다. Boxer는 안내에 따라 실제 장치를 보정·저장·활성화한 뒤 창을 닫습니다.
+2. 키보드라면 조종기 창에서 **USE KEYBOARD → CLOSE**를 선택합니다. USB 조종기는 안내에 따라 실제 장치를 보정·저장·활성화한 뒤 창을 닫습니다.
 3. 오른쪽 기체 목록 또는 **Tab**으로 기체를 고릅니다. 처음에는 파란 팀 Striker로 연습합니다.
 4. 처음 비행은 **START MATCH를 누르지 않고 Practice**에서 진행합니다. **1**은 경기장 밖 LOS, **3**은 전체 관찰입니다.
-5. 키보드는 **↓**로 THR을0%까지 내리고, Boxer는 왼쪽 스로틀을 맨 아래로 둡니다.
+5. 키보드는 **↓**로 THR을0%까지 내리고, 조종기는 스로틀을 맨 아래로 둡니다. Mode 2는 왼쪽 스틱 위아래가 스로틀입니다.
 6. **Space / ARM**으로 모터를 허용합니다. 키보드는 **↑**를 짧게 눌러 스로틀을 올립니다. 키를 놓아도 변경한 스로틀은 유지됩니다.
 7. **W/S, A/D, Q/E**로 기울기·회전을 조금씩 조절합니다. ANGLE은 수평 자세를 복원하며 고도·위치를 자동 고정하지 않습니다.
 8. 스로틀을 조금씩 내려 착륙하고 Space로 DISARM합니다. 선택 기체는 **Backspace**, 전체 상태는 **Home / RESET**으로 초기화합니다.
@@ -319,9 +349,10 @@ $SdacsRoot = [IO.Path]::GetFullPath((Join-Path $PWD '..\swarm-drone-atc'))
 수동 비행은 모든 기체에 **ANGLE 모드**를 적용합니다. Roll/Pitch는 최대35°의 목표 기울기를 명령하며 스틱이나 키를 놓으면 수평으로 복원합니다. Yaw는 각속도,고도는 스로틀로 직접 조절합니다. 기본 조종 시점은 경기장 밖 조종자의 육안 위치에 고정합니다.
 
 <a id="boxer"></a>
-### Boxer 설정·저장 프로필·F8 재연결
+<a id="controller"></a>
+### 조종기 설정·저장 프로필·F8 재연결
 
-RadioMaster Boxer는 실제 장치 선택 후 축 배정·최대/최소·중립·반전·최저 스로틀을 확인합니다. 기본값은 키보드이며 미보정 USB 입력으로 ARM하지 않습니다. 개발 PC의 실제4축 보정·저장·USB 활성화·최저 스로틀 ARM은 확인했고 연속 USB 비행·케이블 분리 복구·입력 지연 검증은 남아 있습니다. 자기 PC의 장치는 직접 확인합니다. [USB 설정](docs/BOXER_SETUP.md)을 참고합니다.
+조종기는 실제 장치 선택 후 축 배정·최대/최소·중립·반전·최저 스로틀을 확인합니다. 기본값은 키보드이며 미보정 USB 입력으로 ARM하지 않습니다. 개발 PC에서 사용한 조종기의 실제4축 보정·저장·USB 활성화·최저 스로틀 ARM은 확인했고 연속 USB 비행·케이블 분리 복구·입력 지연 검증은 남아 있습니다. 자기 PC의 장치는 직접 확인합니다. [USB 조종기 설정](docs/BOXER_SETUP.md)을 참고합니다.
 
 **STICK SETUP / MODE 2**는 오른쪽 Roll/Pitch,왼쪽 Yaw/Throttle을 한 단계씩 실제로 움직여 축과 방향을 찾는 안내 화면입니다. 각 단계에서 Enter로 시작·끝값 확인을 할 수 있고,중립·최저 스로틀 확인 후 검토 화면에서 따로 저장합니다. 설정 중에는 비행 단축키가 차단되며 취소하면 이전 프로필이 유지됩니다. 이 기능을 추가한 것과 실물 스틱 보정·USB 비행을 완료한 것은 구분합니다.
 
@@ -348,7 +379,7 @@ USB가 이미 활성화된 상태에서 F8을 누르면 USB를 해제합니다. 
 
 **공식 경기 모드는 수동 조종**, SDACS 자동 비행은 **Practice의 훈련 보조**로 구분합니다. AUTO FLEET/Enter는 자율 훈련, HOLD/H는 현 위치 유지, RETURN/R은 홈 패드 귀환·착륙, MANUAL은 선택 기체를 수동으로 전환하고 DISARM합니다. 완전한 인간 심판 판정, 공격수 승계, 실제 페널티 경기·연장·승부치기·VAR은 구현 범위 밖입니다. 규격과 구현 한계는 [규정 근거](docs/rules-sources-2026.md)에 정리했습니다.
 
-HOLD/RETURN의 연습 전용 강제 차단과 세트 종료 처리에는 [정밀 검토에서 확인한 미완료 경로](docs/simulator-plan-review.md)가 남아 있습니다. 현재 빌드를 완전한 공식 경기 운영판으로 사용하지 않습니다.
+v0.7부터 정규 경기의 AUTO/HOLD/RETURN·직접 자율 API를 차단하고 세트 종료 시 수동 착륙 조종을 유지합니다. [v0.7 검증 기록](docs/releases/v0.7.0.md)을 참고하세요. 페널티·역할 승계·전체 심판 기능 등 [계획서의 후속 항목](docs/simulator-plan-review.md)은 남아 있어 완전한 공식 경기 운영판으로 사용하지 않습니다.
 
 ## 기체 모델과 실험 물리
 
@@ -375,7 +406,7 @@ HOLD/RETURN의 연습 전용 강제 차단과 세트 종료 처리에는 [정밀
 <a id="verification"></a>
 ## 이전 버전의 실행·검증 기록
 
-아래 R4~R6 수치는 당시 기록입니다. 최신 [v0.7.1 입력·회귀·배포 시험](docs/releases/v0.7.1.md), [v0.7 모델·접촉·시점·자율 시험](docs/releases/v0.7.0.md), [v0.6.1 기록](docs/releases/v0.6.1.md)과 [누적 검증 기록](docs/verification.md)을 확인합니다. 수집 절차 문서 추가와 실제 USB 비행·성능 측정 결과를 구분합니다.
+아래 R4~R6 수치는 당시 기록입니다. 최신 [v0.7.2 시간·착륙·배포 시험](docs/releases/v0.7.2.md), [v0.7.1 입력 시험](docs/releases/v0.7.1.md), [v0.7 모델·접촉·시점·자율 시험](docs/releases/v0.7.0.md), [v0.6.1 기록](docs/releases/v0.6.1.md)과 [누적 검증 기록](docs/verification.md)을 확인합니다. 수집 절차 문서 추가와 실제 USB 비행·성능 측정 결과를 구분합니다.
 
 ![Unreal 실제 경기장 렌더](docs/images/arena-r4.png)
 

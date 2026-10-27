@@ -295,7 +295,7 @@ class GuidanceBridge:
                         stage = "return-land"
                 if stage == "return-land":
                     goals[str(drone_id)] = home.copy()
-                    # Home is the 35cm spawn pose. Descend to 25cm before UE
+                    # Descend to 25cm before UE
                     # disarms, rather than cutting motors up to 65cm high.
                     goals[str(drone_id)][2] = ARENA_MIN[2]
                 plan.return_stages[drone_id] = stages[drone_id] = stage
@@ -379,6 +379,18 @@ class GuidanceBridge:
                 difference = float(goals[str(drone_id)][2]-position[2])
                 if difference*float(forces[str(drone_id)][2]) >= 0.0:
                     target[2] = position[2]+float(np.clip(difference, -TARGET_HORIZON_M, TARGET_HORIZON_M))
+            elif stages[drone_id] == "return-land":
+                # Upstream attraction has a 10cm deadband and still repels the
+                # ground. That can stall a stopped ball at 33-35cm forever.
+                # Terminal guidance changes only the requested height; UE still
+                # owns forces/landing and keeps its <28cm + low-speed ARM gate.
+                # Retain APF escape advice when another ball occupies the column.
+                home = goals[str(drone_id)]
+                column_clear = all(other_id == drone_id or
+                    float(np.linalg.norm(other_pos[:2]-position[:2])) >= TARGET_SEPARATION_M
+                    for other_id, other_pos, _, _ in drones)
+                if column_clear and float(np.linalg.norm(position[:2]-home[:2])) < 0.45 and position[2] <= 0.65:
+                    target[2] = ARENA_MIN[2]
             targets.append(self._constrain(target, position))
 
         # Project short targets apart. This is an extra target-space guard: actual

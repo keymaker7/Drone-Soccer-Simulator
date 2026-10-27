@@ -259,6 +259,28 @@ class BridgeTests(unittest.TestCase):
         self.assertGreaterEqual(minimum_actual_separation, 1.1, "Nominal staged return lost the 1.1m separation envelope")
         print(f"Ideal outer-controller interface: min altitude after 8 s={minimum_height:.3f} m; cross-arena return={returned_after:.1f} s; min separation={minimum_actual_separation:.3f} m")
 
+    def test_terminal_landing_overcomes_upstream_goal_deadband(self):
+        payload=request_payload('return')
+        for item in payload['drones']:
+            item['home_m'][2]=0.25
+            item['position_m'][2]=0.34
+        result=self.bridge.step(payload)
+        self.assertTrue(all(t['stage']=='return-land' for t in result['targets']))
+        self.assertTrue(all(t['target_m'][2]<=0.250001 for t in result['targets']),
+                        'A stopped aircraft 9cm above the landing target must still receive descent guidance')
+        self.assertTrue(all(item['position_m'][2]==0.34 for item in payload['drones']), 'Guidance must never mutate telemetry')
+
+    def test_terminal_landing_preserves_occupied_column_avoidance(self):
+        payload=request_payload('return')
+        payload['drones']=payload['drones'][:2]
+        payload['drones'][0]['position_m']=[-6.5,0,0.6]
+        payload['drones'][0]['home_m']=[-6.5,0,0.25]
+        payload['drones'][1]['position_m']=[-6.5,0,0.2]
+        payload['drones'][1]['home_m']=[-6.5,1.25,0.25]
+        result=self.bridge.step(payload)
+        self.assertGreater(result['targets'][0]['target_m'][2],0.6,
+                           'A lower neighbour must retain APF escape guidance rather than forced descent')
+
     def test_concurrent_requests_and_budget(self):
         payload = request_payload()
         start = time.perf_counter()

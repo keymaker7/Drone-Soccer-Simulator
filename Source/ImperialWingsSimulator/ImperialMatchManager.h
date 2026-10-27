@@ -5,10 +5,12 @@
 #include "Interfaces/IHttpResponse.h"
 #include "DroneSoccerRules.h"
 #include "GuidanceRequestWindow.h"
+#include "SimulationTime.h"
 #include "ImperialMatchManager.generated.h"
 class ASoccerDronePawn;
 class FJsonValue;
 class FJsonObject;
+class FPhysScene_Chaos;
 enum class EImperialMode { Manual, Mission, Hold, Returning };
 UCLASS()
 class IMPERIALWINGSSIMULATOR_API AImperialMatchManager : public AActor
@@ -50,12 +52,15 @@ public:
     int32 GetScore(int32 Team) const { return Rules.Score(Team); }
     double GetElapsed() const { return Rules.GetPhase()==drone_soccer::Phase::Practice?Elapsed:Rules.Remaining(); }
     float GetFPS() const { return SmoothFPS; }
+    const FImperialSimulationTime& GetSimulationTime() const { return SimulationTime; }
     float GetClosestSeparation() const { return ClosestSeparation; }
     int32 GetConflicts() const { return Conflicts; }
     int32 GetView() const { return CameraView; }
     FLinearColor GetTeamColor(int32 Id) const;
     const TArray<FString>& GetEvents() const { return Events; }
 private:
+    FImperialSimulationTime SimulationTime;
+    void OnPhysicsTime(FPhysScene_Chaos* Scene,float Dt);
     UPROPERTY() TArray<TObjectPtr<ASoccerDronePawn>> Drones;
     TArray<FVector> Homes;
     TArray<bool> GoalReady;

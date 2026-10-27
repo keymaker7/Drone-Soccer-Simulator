@@ -23,6 +23,7 @@ public class ImperialWingsSimulator : ModuleRules
             , "HTTP", "Json", "JsonUtilities", "PhysicsCore"
         });
         bUseUnity = false;
+        PrivateDependencyModuleNames.Add("Chaos");
         if (Target.Platform == UnrealTargetPlatform.Win64) PublicSystemLibraries.Add("winmm.lib");
         WriteBuildIdentity(Target);
     }

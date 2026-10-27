@@ -1,4 +1,5 @@
 #include "SoccerDronePawn.h"
+#include "Physics/Experimental/PhysScene_Chaos.h"
 #include "ImperialRadioSubsystem.h"
 #include "ImperialMatchManager.h"
 #include "ImperialPlayerController.h"
@@ -388,6 +389,13 @@ void ASoccerDronePawn::BeginPlay()
     SetChaseView(bChaseView);
     ApplyVisualMaterials();
     BuildDetailedEquipment();
+    if(auto* Scene=GetWorld()->GetPhysicsScene())Scene->OnPhysScenePreTick.AddUObject(this,&ASoccerDronePawn::PhysicsStep);
+}
+
+void ASoccerDronePawn::EndPlay(const EEndPlayReason::Type Reason)
+{
+    if(auto* Scene=GetWorld()->GetPhysicsScene())Scene->OnPhysScenePreTick.RemoveAll(this);
+    Super::EndPlay(Reason);
 }
 
 bool ASoccerDronePawn::VerifyDetailedAirframe() const
@@ -785,12 +793,6 @@ void ASoccerDronePawn::ResetFromPilotInput()
 void ASoccerDronePawn::Tick(float Dt)
 {
     Super::Tick(Dt);
-    PhysicalTime+=FMath::Max(0.f,Dt);
-    const FVector VelocityMS=Body->GetPhysicsLinearVelocity()/100.;const FQuat Rotation=Body->GetComponentQuat();
-    const FVector Specific=Rotation.UnrotateVector((VelocityMS-PreviousVelocityMS)/FMath::Max(.001f,Dt)-FVector(0,0,GetWorld()->GetGravityZ()/100.));PreviousVelocityMS=VelocityMS;
-    const FVector Rate=Rotation.UnrotateVector(Body->GetPhysicsAngularVelocityInRadians());
-    SensorSample=Sensors.Step(PhysicalTime,{Rate.X,Rate.Y,Rate.Z},{Specific.X,Specific.Y,Specific.Z},PhysicalParams.Sensors,bSensorModel);
-    ApplyNetForces(FMath::Min(Dt,.05f));
     CageCompression=FMath::FInterpTo(CageCompression,0,Dt,10);
     const float Compression=FMath::Max(CageCompression,(1.f-static_cast<float>(GuardState.Integrity))*.035f);
     FVector VisualScale(1+Compression*.25);VisualScale[CageCompressionAxis]=1-Compression;
@@ -818,7 +820,6 @@ void ASoccerDronePawn::Tick(float Dt)
         if(Modal||(RolePilot&&(RolePilot->IsInputResetThisFrame()||RolePilot->IsReadOnlyView()||RolePilot->IsEquipmentInspection()))){KeyboardThrottle=KeyboardThrottleStep=KeyRoll=KeyPitch=KeyYaw=0;}
         else KeyboardThrottle = FMath::Clamp(KeyboardThrottle + KeyboardThrottleStep * Dt * 0.35f, 0.0f, 1.0f);
     }
-    ApplyFlightForces(Dt);
     RotorAngle = FMath::Fmod(RotorAngle + (bArmed ? 1400.0f + 5000.0f * GetThrottle() : 0.0f) * Dt, 360.0f);
     for (int32 Index = 0; Index < RotorPivots.Num(); ++Index)
     {
@@ -826,7 +827,21 @@ void ASoccerDronePawn::Tick(float Dt)
     }
 }
 
-FVector ASoccerDronePawn::CalculateAutonomousRate(float& OutCollectiveThrustN)
+void ASoccerDronePawn::PhysicsStep(FPhysScene_Chaos* Scene,float Dt)
+{
+    // Scene supplies the actual synchronous Chaos frame budget after its clamp.
+    // One control update per physics frame, NOT a PID update per Chaos substep.
+    if(Dt<=KINDA_SMALL_NUMBER||!Body->IsSimulatingPhysics())return;
+    const FVector VelocityMS=Body->GetPhysicsLinearVelocity()/100.;const FQuat Rotation=Body->GetComponentQuat();
+    const float SampleSeconds=PreviousPhysicsSeconds>0?PreviousPhysicsSeconds:Dt;
+    const FVector Specific=Rotation.UnrotateVector((VelocityMS-PreviousVelocityMS)/FMath::Max(.001f,SampleSeconds)-FVector(0,0,GetWorld()->GetGravityZ()/100.));PreviousVelocityMS=VelocityMS;
+    const FVector Rate=Rotation.UnrotateVector(Body->GetPhysicsAngularVelocityInRadians());
+    SensorElapsedSeconds+=Dt;
+    SensorSample=Sensors.Step(PhysicalTime,{Rate.X,Rate.Y,Rate.Z},{Specific.X,Specific.Y,Specific.Z},PhysicalParams.Sensors,bSensorModel);
+    ApplyNetForces(Dt);ApplyFlightForces(Dt);PhysicalTime+=Dt;PreviousPhysicsSeconds=Dt;
+}
+
+FVector ASoccerDronePawn::CalculateAutonomousRate(float& OutCollectiveThrustN,float Step)
 {
     const FVector PositionErrorM = (AutonomousTarget - Body->GetComponentLocation()) * 0.01;
     const FVector VelocityMS = Body->GetPhysicsLinearVelocity() * 0.01;
@@ -840,7 +855,6 @@ FVector ASoccerDronePawn::CalculateAutonomousRate(float& OutCollectiveThrustN)
     const FVector VelocityError=DesiredVelocity-VelocityMS;
     // Bounded outer-loop integral removes residual thrust/surface-effect bias.
     // Without it a return could hover ~20cm off its corridor indefinitely.
-    const double Step=FMath::Clamp((double)GetWorld()->GetDeltaSeconds(),0.,.05);
     AutonomousVelocityIntegral+=VelocityError*(Step*.25);
     for(int32 Axis=0;Axis<3;++Axis)AutonomousVelocityIntegral[Axis]=FMath::Clamp(AutonomousVelocityIntegral[Axis],-.8,.8);
     FVector DesiredAcceleration = VelocityError * 1.6 + AutonomousVelocityIntegral;
@@ -982,7 +996,8 @@ void ASoccerDronePawn::ApplyNetForces(float Dt)
 void ASoccerDronePawn::ApplyFlightForces(float Dt)
 {
     if(Dt<=KINDA_SMALL_NUMBER||!Body->IsSimulatingPhysics())return;
-    const float Step=FMath::Min(Dt,.05f);
+    const float Step=Dt;
+    FlightModelSeconds+=Step;
     if(!bArmed)
     {
         bLastArmed=false;MotorStates={};for(float& F:MotorThrustN)F=0;
@@ -996,7 +1011,7 @@ void ASoccerDronePawn::ApplyFlightForces(float Dt)
     const FVector Rate=SensorSample.Valid?FVector(SensorSample.GyroRadS.X,SensorSample.GyroRadS.Y,SensorSample.GyroRadS.Z):IdealRate;
     if(!bLastArmed){ClearController();PreviousBodyRate=Rate;}bLastArmed=true;
     float Collective=FMath::Lerp(ArmedIdleThrustN,MaxMotorThrustN,GetThrottle());FVector TargetRate;
-    if(bAutonomousEnabled){TargetRate=CalculateAutonomousRate(Collective);AutonomousThrottle=FMath::Clamp((Collective-ArmedIdleThrustN)/(MaxMotorThrustN-ArmedIdleThrustN),0.f,1.f);}
+    if(bAutonomousEnabled){TargetRate=CalculateAutonomousRate(Collective,Step);AutonomousThrottle=FMath::Clamp((Collective-ArmedIdleThrustN)/(MaxMotorThrustN-ArmedIdleThrustN),0.f,1.f);}
     else
     {
         auto* Radio=GetRadio();const bool USB=IsLocallyControlled()&&Radio&&Radio->IsEnabled();
@@ -1010,7 +1025,7 @@ void ASoccerDronePawn::ApplyFlightForces(float Dt)
         TargetRate=FVector(TiltRate.X,TiltRate.Y,Yaw*FMath::Min(MaxRateDegrees.Z,180.)*(PI/180.));
     }
     const FVector Error=TargetRate-Rate;
-    const FVector Derivative=(Rate-PreviousBodyRate)/Step;PreviousBodyRate=Rate;
+    const FVector Derivative=(Rate-PreviousBodyRate)/(PreviousPhysicsSeconds>0?PreviousPhysicsSeconds:Step);PreviousBodyRate=Rate;
     FilteredBodyAcceleration=FMath::Lerp(FilteredBodyAcceleration,Derivative,1.f-FMath::Exp(-Step/.035f));
     ImperialPhysics::PidState Pid[3]={{IntegralError.X},{IntegralError.Y},{IntegralError.Z}};FVector Torque;
     for(int I=0;I<3;++I)Torque[I]=ImperialPhysics::PidStep(Pid[I],Error[I],FilteredBodyAcceleration[I],Step,RateKp[I],RateKi[I],RateKd[I],I==2?-.18:-.5,I==2?.18:.5);

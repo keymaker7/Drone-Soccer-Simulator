@@ -240,6 +240,8 @@ void AImperialHUD::DrawHUD()
     const auto& Events=M->GetEvents();int32 Row=0;
     for(int32 I=Events.Num()-1;I>=0&&Row<3;--I,++Row)Text(Fit(Events[I],12,640),43,851+Row*23,12,Row==0?White:Muted);
     Text(TEXT("SPACE ARM   ARROWS THROTTLE   WASD PITCH / ROLL   QE YAW"),42,956,10,Cyan);
+    const auto& Timing=M->GetSimulationTime();
+    if(Timing.LimitedFrames>0)Text(FString::Printf(TEXT("PHYSICS LIMITED: %llu frames | %.3f s omitted | match clock continues"),Timing.LimitedFrames,Timing.DroppedSeconds),42,928,11,Cyan);
     Text(TEXT("TAB SELECT   1 LOS / 2 OBSERVER / 3 ARENA"),583,956,10,Muted);
     Text(TEXT("ENTER AUTO   H HOLD   R RETURN   C RADIO"),1109,956,10,Muted);
     Text(FString::Printf(TEXT("%.0f FPS"),M->GetFPS()),1557,956,10,Muted,true);
