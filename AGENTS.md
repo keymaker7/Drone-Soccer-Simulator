@@ -45,6 +45,13 @@
 - Record milestone files, limitations and concrete test outcomes in the task
   checklist and verification document. Continue the highest-value incomplete
   item, keeping edits scoped and reversible.
+- The user requires local testing before GitHub publication. Validate the changed
+  feature, the packaged Unreal runtime, and the relocated release ZIP before
+  committing/pushing a release or uploading its executable. Compare the tested
+  build fingerprint with the published source and archive checksum. If a required
+  local check fails, fix it and rerun the affected checks before publication.
+  Keep physical-controller/other-PC checks explicitly pending when unavailable;
+  never present synthetic input or same-PC tests as physical hardware validation.
 - Keep machine-specific UE/Python/SDACS paths configurable. Preserve upstream
   SDACS provenance and licence; use the real APF source, not synthetic telemetry.
 - Keep generated binaries, environments, reports, calibration data, downloaded

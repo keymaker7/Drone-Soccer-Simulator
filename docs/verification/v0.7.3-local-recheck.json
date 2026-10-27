@@ -1,0 +1,77 @@
+{
+  "version": "0.7.3",
+  "date": "2026-10-27",
+  "ok": true,
+  "tested_source_sha256": "a307273e71778f07e102b83fd4269e59129a49b3012937e5f46a9085855cdcb4",
+  "windows_zip": {
+    "name": "ImperialWings-Windows-v0.7.3-r1.zip",
+    "sha256": "19c9b6308bd068d0f5b9ad24dabaed8a4352cb990ced4a9f4bef83056f24c3b4"
+  },
+  "angle": [
+    {
+      "fixed_game_fps": 20,
+      "ok": true,
+      "drones": 10,
+      "initial_self_level": true,
+      "released_self_level": true,
+      "released_worst_tilt_deg": 0.07321567833423615,
+      "input_source": "explicit non-USB verification fixture; vertical compensation isolates angle control"
+    },
+    {
+      "fixed_game_fps": 30,
+      "ok": true,
+      "drones": 10,
+      "initial_self_level": true,
+      "released_self_level": true,
+      "released_worst_tilt_deg": 0.06338710337877274,
+      "input_source": "explicit non-USB verification fixture; vertical compensation isolates angle control"
+    },
+    {
+      "fixed_game_fps": 60,
+      "ok": true,
+      "drones": 10,
+      "initial_self_level": true,
+      "released_self_level": true,
+      "released_worst_tilt_deg": 0.08896995335817337,
+      "input_source": "explicit non-USB verification fixture; vertical compensation isolates angle control"
+    },
+    {
+      "fixed_game_fps": 120,
+      "ok": true,
+      "drones": 10,
+      "initial_self_level": true,
+      "released_self_level": true,
+      "released_worst_tilt_deg": 0.08233817666769028,
+      "input_source": "explicit non-USB verification fixture; vertical compensation isolates angle control"
+    },
+    {
+      "fixed_game_fps": 240,
+      "ok": true,
+      "drones": 10,
+      "initial_self_level": true,
+      "released_self_level": true,
+      "released_worst_tilt_deg": 0.16654500365257263,
+      "input_source": "explicit non-USB verification fixture; vertical compensation isolates angle control"
+    }
+  ],
+  "autonomy": {
+    "ok": true,
+    "fixture": "real-time ten Chaos aircraft using actual upstream APF HTTP; bounded server intentionally returns 503 during return; no USB or flight position corrections",
+    "source_commit": "1e9d826265069696d7e415c7778d17483d7a8580",
+    "ten_airborne": true,
+    "ten_landed_disarmed": true,
+    "finite_inside_court": true,
+    "timeout_local_hold": true,
+    "reconnect_does_not_resume": true,
+    "manual_match_auto_rejected": true,
+    "minimum_separation_m": 1.085648775100708,
+    "hold_max_drift_cm": 29.810483932495117,
+    "armed_peak_tilt_deg": 5.260885238647461,
+    "peak_altitude_cm": 393.5738830566406,
+    "landed_game_s": 54.98758799955249,
+    "injected_http_503": true,
+    "process_exit_code": 0,
+    "wall_seconds": 59.281
+  },
+  "scope": "Additional local tests of the unchanged published Windows package. No physical USB input; no other physical PC validation."
+}
