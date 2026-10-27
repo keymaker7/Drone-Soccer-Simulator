@@ -1,22 +1,47 @@
 # Imperial Wings Drone Soccer Simulator
 
 <a id="windows-run"></a>
-## Windows 실행파일 다운로드 — v0.7.2
+## Windows 다운로드·실행 안내
 
-[Windows x64 실행용 ZIP](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/download/v0.7.2/ImperialWings-Windows-v0.7.2-r2.zip)을 **전체 압축 해제**한 뒤 `ImperialWingsLauncher.exe`를 실행합니다. Unreal Engine·Python·Git을 설치할 필요가 없습니다. GitHub의 Source code ZIP은 개발 소스이며 실행용 ZIP과 다릅니다.
+**[다운로드 방법](#download-steps) · [실행 방법](#run-steps) · [첫 조종기 설정](#first-controller-setup)**
+
+2026-10-27 확인 기준 공개 실행본은 **v0.7.2**입니다. [Windows x64 실행용 ZIP 바로 다운로드](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/download/v0.7.2/ImperialWings-Windows-v0.7.2-r2.zip). 개발 중인 소스의 버전과 공개 실행본은 다를 수 있으므로, 지인과 테스트할 때는 **같은 릴리스의 같은 ZIP**을 사용합니다.
 
 <a id="download-steps"></a>
-### 최신 빌드 다운로드·실행 순서
+### 1. 다운로드 방법
 
-1. [GitHub Releases 페이지](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases)를 엽니다. 현재 공개 실행본은 **v0.7.2**입니다. 검증 중인 작업 사본과 공개 실행본은 다를 수 있습니다. 개발 시험판은 `Pre-release`로 표시되므로 `Latest` 표시만 찾지 말고 버전과 아래 검증 기록을 확인합니다.
-2. 해당 버전의 **Assets**를 펼칩니다. 실행하려면 **`ImperialWings-Windows-v0.7.2-r2.zip`**을 누릅니다. 약375MB이며, 이 문서 맨 위의 링크도 같은 파일입니다.
-3. **`Source code (zip)` / `Source code (tar.gz)` / `…-source.zip`은 개발 소스**입니다. 일반 실행용 프로그램이 들어 있지 않습니다. 저장소 상단의 **Code → Download ZIP**도 소스 다운로드이므로 실행용 ZIP과 구분합니다.
-4. 다운로드가 끝나면 파일 탐색기에서 ZIP을 찾고 **마우스 오른쪽 → 모두 압축 풀기**를 선택합니다. 예를 들어 `C:\Games\ImperialWings-v0.7.2`에 전체를 풉니다. ZIP 안에서 바로 실행하거나 EXE 하나만 꺼내지 않습니다.
-5. 압축을 푼 폴더에서 **`ImperialWingsLauncher.exe`**를 더블클릭합니다. 같은 폴더에 **`Windows`·`Guidance`·`Prerequisites`** 폴더와 `START_HERE.ko.md`가 있어야 합니다. 실제 게임은 `Windows` 안에 있고, 기본 실행은 바깥쪽 실행기를 사용합니다. 실행기는 포함된 자율 훈련 연결 프로그램과 게임을 시작합니다. Unreal Engine·Python·Git을 별도 설치하지 않습니다.
-6. Visual C++ 실행 구성 요소가 없다는 메시지가 나오면 ZIP에 포함된 **`Prerequisites\vc_redist.x64.exe`**를 실행해 설치한 뒤 실행기를 다시 엽니다. DirectX12/SM6를 지원하는 GPU와 Windows 10/11 x64가 필요합니다. 보안 프로그램이 경고하면 표시된 파일·출처를 직접 확인하며 보호 기능을 끄지 않습니다.
-7. 조종기가 없어도 **키보드로 시작**할 수 있습니다. 첫 조종기 설정 창을 닫고 기체가 DISARM 상태인지 확인합니다. 아래 [첫 비행](#first-flight)의 순서를 따릅니다. 기본은 경기장 밖 **LOS** 시점이며, **ANGLE은 자세를 수평으로 복원하지만 고도를 자동 유지하지 않습니다.** 높이는 스로틀로 조절합니다.
-8. **조종기 설정:** 조종기의 데이터 전송용 USB 포트에 데이터 케이블을 연결합니다. 기종에 따라 전원을 켜고 **USB Joystick / 게임 컨트롤러 모드**를 선택합니다. 처음 쓰는 PC/조종기는 **장치 선택 → STICK SETUP / MODE 2 → 실제 스틱 보정 → CONFIRM & SAVE → ENABLE RADIO**를 진행합니다. 이 자동 안내는 **Mode 2(왼쪽 스틱 위아래가 스로틀)** 기준입니다. 스틱 배치가 다르면 ADVANCED OPTIONS에서 실제 축·방향을 확인해 수동으로 설정합니다. 이전 PC의 보정 파일을 다른 장치에 그대로 복사하지 않습니다. 상세 절차는 [다른 PC 실행 안내](docs/PORTABLE_QUICK_START.ko.md)를 따릅니다.
-9. 게임에서 먼저 스로틀 최저·다른 축 중립을 확인하고 Space로 ARM합니다. **창을 다른 앱으로 전환하면 수동 기체는 DISARM**합니다. USB는 복귀 후 최저 스로틀에서 **F8 / CONNECT SAVED RADIO**로 다시 연결하고 ARM합니다. 비행 중에는 채팅 창으로 전환하지 않습니다.
+1. [GitHub Releases 페이지](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases)를 엽니다. 개발 시험판에는 `Pre-release`가 표시되므로 `Latest` 표시만 찾지 말고 **버전과 변경·검증 기록**을 확인합니다.
+2. 받을 버전의 **Assets**를 펼치고 **`ImperialWings-Windows-<버전>-<빌드>.zip`**을 누릅니다. 위에서 확인한 공개 파일명은 **`ImperialWings-Windows-v0.7.2-r2.zip`**이며 용량은 약375MB입니다.
+3. 다운로드가 완료될 때까지 기다립니다. 브라우저의 다운로드 목록에서 **폴더에서 보기**를 누르거나, 파일 탐색기의 **다운로드** 폴더에서 ZIP을 찾습니다. 이어서 아래 [실행 방법](#run-steps)을 따릅니다.
+
+| 다운로드 항목 | 용도 |
+|---|---|
+| **`ImperialWings-Windows-…zip`** | **일반 사용자용 실행 프로그램 — 이 파일을 받습니다.** |
+| `Source code (zip)` / `Source code (tar.gz)` / `…-source.zip` | 개발자가 직접 빌드할 소스코드. 일반 실행용 프로그램이 들어 있지 않습니다. |
+| 저장소 상단 **Code → Download ZIP** | 저장소 소스코드. 실행용 ZIP과 다릅니다. |
+
+<a id="run-steps"></a>
+### 2. 실행 방법
+
+**실행 환경:** Windows 10/11 x64, DirectX12·Shader Model6를 지원하는 GPU가 필요합니다. Unreal Engine·Python·Git을 별도로 설치할 필요는 없습니다.
+
+1. 받은 ZIP을 **마우스 오른쪽 → 모두 압축 풀기**로 전체 해제합니다. 예를 들어 `C:\Games\ImperialWings-v0.7.2`에 풉니다. ZIP 안에서 바로 실행하거나 EXE 하나만 꺼내지 않습니다.
+2. 파일 탐색기에서 압축을 푼 폴더를 열고 **`ImperialWingsLauncher.exe`**를 더블클릭합니다. ZIP 이름의 하위 폴더가 한 번 더 있으면 그 안으로 들어갑니다. 브라우저 주소창에 파일 경로를 붙여넣는 방식이 아니라, 탐색기에서 실행 파일을 엽니다.
+3. 실행기 옆에 **`Windows`·`Guidance`·`Prerequisites`** 폴더와 `START_HERE.ko.md`가 있는지 확인합니다. 폴더 구성을 유지해야 하며, 기본 실행은 바깥쪽의 `ImperialWingsLauncher.exe`를 사용합니다.
+4. Visual C++ 실행 구성 요소가 없다는 메시지가 나오면 **`Prerequisites\vc_redist.x64.exe`**를 실행해 설치한 뒤 실행기를 다시 엽니다.
+5. 게임의 조종기 설정 화면이 열리면, **키보드는 USE KEYBOARD → CLOSE**로 시작합니다. USB 조종기는 아래 [첫 조종기 설정](#first-controller-setup)을 진행합니다.
+6. 처음에는 **START MATCH를 누르지 않고 Practice**에서 [첫 비행](#first-flight)을 합니다. 기본은 경기장 밖 **LOS** 시점입니다. **ANGLE은 수평 자세를 복원하며, 높이는 스로틀로 직접 조절합니다.**
+7. 종료할 때는 착륙·DISARM 후 상단 **EXIT** 또는 창 닫기를 사용합니다. F6 비행 기록을 켰다면 F6을 다시 눌러 저장을 마친 뒤 종료합니다.
+
+<a id="first-controller-setup"></a>
+### 3. USB 조종기 처음 설정하기
+
+1. 조종기의 **데이터 전송용 USB 포트**에 데이터 케이블을 연결합니다. 기종에 따라 전원을 켜고 **USB Joystick / 게임 컨트롤러 모드**를 선택합니다.
+2. 게임에서 **실제 장치 선택 → STICK SETUP / MODE 2**를 누르고 화면 안내대로 스틱의 전체 범위와 중립을 보정합니다. Mode 2는 **왼쪽 스틱 위아래가 스로틀**인 배치입니다. 다른 배치는 **ADVANCED OPTIONS**에서 실제 축·방향을 확인해 수동 설정합니다.
+3. **CONFIRM & SAVE**로 저장한 뒤 **스로틀 최저·나머지 축 중립**에서 **ENABLE RADIO**를 누릅니다. 패널을 닫고 Space로 ARM합니다.
+4. 다음 실행부터는 같은 조종기를 연결하고 최저 스로틀에서 **F8 / CONNECT SAVED RADIO**로 저장된 설정을 불러옵니다. 다른 장치에 이전 보정 파일을 그대로 복사하지 않습니다.
+
+**다른 앱으로 창을 전환하면 수동 기체는 DISARM됩니다.** USB는 게임으로 돌아온 뒤 최저 스로틀에서 F8로 다시 연결하고 ARM합니다. 상세 안내는 [다른 PC에서 실행·조종기 설정](docs/PORTABLE_QUICK_START.ko.md)을 확인합니다.
 
 **업데이트:** 새 버전 ZIP을 별도 폴더에 전체 압축 해제합니다. 이전 실행본에 일부 파일만 덮어쓰지 않습니다. 사용자 보정은 `%LOCALAPPDATA%\ImperialWingsSimulator\Saved\Config\RadioProfile.json`에 별도로 저장되므로 같은 Windows 사용자·같은 조종기의 설정은 새 버전에서도 불러올 수 있습니다. 이전 버전은 새 버전을 확인한 뒤 정리합니다.
 
@@ -24,11 +49,11 @@
 
 - 탐색기에 `file:///E:/...exe` 또는 `%20`이 들어간 경로를 붙여 넣어 “찾을 수 없습니다”가 나오면, 브라우저 주소를 실행한 것입니다. 파일 탐색기로 **실제 압축 해제 폴더**를 연 뒤 `ImperialWingsLauncher.exe`를 더블클릭합니다. 내려받은 PC에는 개발 PC의 `E:\...` 경로가 없습니다.
 - 실행 파일이 없으면 `Source code`를 받았는지, 아직 ZIP 내부를 보고 있는지 확인합니다. 이름에 `ImperialWings-Windows-`가 포함된 실행용 ZIP을 다시 확인합니다.
-- 파일 손상/누락은 ZIP을 다시 내려받고 새 폴더에 전체 압축을 풀어 확인합니다. GitHub 릴리스의 `SHA256SUMS.txt`로 다운로드 무결성을 확인할 수 있습니다. 확인 예: PowerShell에서 `Get-FileHash -Algorithm SHA256 -LiteralPath 'C:\Users\본인\Downloads\ImperialWings-Windows-v0.7.2-r2.zip'`을 실행하고 같은 파일명의 해시와 비교합니다. 사용자 이름·저장 위치는 본인 PC에 맞춥니다.
+- 파일 손상/누락은 ZIP을 다시 내려받고 새 폴더에 전체 압축을 풀어 확인합니다. GitHub 릴리스의 `SHA256SUMS.txt`로 다운로드 무결성을 확인할 수 있습니다. 확인 예: PowerShell에서 `Get-FileHash -Algorithm SHA256 -LiteralPath 'C:\Users\본인\Downloads\ImperialWings-Windows-v0.7.2-r2.zip'`을 실행하고 같은 파일명의 해시와 비교합니다. 버전·사용자 이름·저장 위치는 본인 PC에 맞춥니다.
 - 조종기가 보이지 않으면 Windows의 `joy.cpl`에서 먼저 확인합니다. 게임의 **EXPORT DEVICE REPORT**는 진단용이며 자동으로 보정을 완료하거나 실제 스틱 입력을 만들어 주지 않습니다.
 - 실행 후 문제가 있으면 **다운로드한 버전·오류 문구·발생 단계**와 사용자 저장 폴더의 진단 파일을 함께 확인합니다. 개인 보정 파일과 전체 사용자 폴더는 공개 저장소에 올리지 않습니다.
 
-실행용 ZIP·변경·시험 범위는 [v0.7.2 검증 기록](docs/releases/v0.7.2.md)에서 확인합니다. 시간 계산·자율 착륙 수정의 최종 시험 결과와 한계는 해당 기록에 구분했습니다.
+공개 실행본의 변경·시험 범위는 [v0.7.2 검증 기록](docs/releases/v0.7.2.md)에서 확인합니다. 시간 계산·자율 착륙 수정과 검증 한계도 같은 기록에 구분했습니다. 실제 다운로드 가능 여부는 Releases의 Assets를 기준으로 확인합니다.
 
 첫 실행의 간소 조종기 화면에서 **실제 장치 카드 선택 → STICK SETUP / MODE 2 → CONFIRM & SAVE → ENABLE RADIO** 순서로 보정합니다. 상단 STEP 안내로 다음 행동을 확인합니다. 이미 보정한 장치는 **CONNECT SAVED RADIO / F8**로 연결할 수 있습니다. 스로틀 최저에서 패널을 닫고 Space로 ARM합니다. 보정값은 각 Windows 사용자의 `%LOCALAPPDATA%\ImperialWingsSimulator\Saved`에 저장하고 다른 사람의 보정값을 배포하지 않습니다.
 
@@ -67,7 +92,7 @@ v0.7은 FC/ESC·수신기·모터 권선·배터리·커넥터·배선과 비틀
 
 ## 사용 안내 바로가기
 
-- [다운로드·실행](#windows-run) · [첫 비행](#first-flight) · [조작키](#controls)
+- [다운로드 방법](#download-steps) · [실행 방법](#run-steps) · [첫 조종기 설정](#first-controller-setup) · [첫 비행](#first-flight) · [조작키](#controls)
 - [데이터 수집 순서](#data-collection) · [저장 폴더](#saved-files)
 - [F6 비행 기록](#flight-recording) · [F5 CSV](#csv-export) · [조종기 진단](#device-report)
 - [파일 열기·피드백 공유](#feedback-files) · [기록 문제 해결](#troubleshooting)
