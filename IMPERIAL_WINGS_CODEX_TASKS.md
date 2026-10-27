@@ -1,5 +1,16 @@
 # Imperial Wings 작업 체크리스트
 
+<a id="readme-instructions-complete"></a>
+## DOC-01 README 다운로드·실행 안내 분리 — 2026-10-27
+
+- [x] **다운로드 방법:** GitHub Releases·Assets에서 실행용 ZIP 선택, 소스 ZIP과 구분, 다운로드 완료 후 파일 찾기.
+- [x] **실행 방법:** 전체 압축 해제, 실제 폴더의 실행기 실행, 필수 구성요소, 키보드 시작·첫 비행·종료 안내.
+- [x] **첫 조종기 설정:** USB 데이터 연결, 실제 축 보정·저장·활성화, 다음 실행의 저장 설정 연결 안내.
+- [x] GitHub에 공개된 실행 ZIP 이름·링크 대조, README의 항목별 바로가기·상대 문서 링크·중복 앵커 검사.
+
+완료 근거: [다운로드 방법](README.md#download-steps) · [실행 방법](README.md#run-steps) · [첫 조종기 설정](README.md#first-controller-setup).
+이번 완료는 문서 작성·대조·링크 검수 범위다. 지인의 다른 PC 설치·조종기·비행 현장 시험은 해당 검증 항목에서 계속 관리한다.
+
 ## v0.6.1 조종기·README·비교 조사 — 2026-10-26
 
 - [x] 간소/고급 조종기 화면·실제 장치 카드·STEP 안내·명시적 저장 장치 연결.
