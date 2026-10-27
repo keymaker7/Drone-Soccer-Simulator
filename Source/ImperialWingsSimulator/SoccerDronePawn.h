@@ -134,6 +134,7 @@ public:
     FString GetFlightModeName() const { return TEXT("ANGLE"); }
     float GetTiltDegrees() const;
     float GetAngleLimitDegrees() const { return MaximumTiltDegrees; }
+    FVector GetManualTargetRateDegrees() const { return LastManualTargetRateDegrees; }
     /** Explicit in-engine verification fixture; unavailable without its test flag. */
     void SetAngleVerificationInput(FVector Stick, float Throttle);
 
@@ -224,6 +225,7 @@ protected:
     bool bInvertThrottle = false;
 
 private:
+    FVector LastManualTargetRateDegrees=FVector::ZeroVector;
     bool bAngleVerificationInput=false;
     FVector AngleVerificationStick=FVector::ZeroVector;
     float AngleVerificationThrottle=0;

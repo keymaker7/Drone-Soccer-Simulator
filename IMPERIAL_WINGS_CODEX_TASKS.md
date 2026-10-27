@@ -1,5 +1,22 @@
 # Imperial Wings 작업 체크리스트
 
+<a id="r10-controller-response"></a>
+## 이주한 피드백: 조종기 설정 우선 — v0.7.6-dev
+
+- [x]12개 요청·완료 기준과10~12번 후속 순서를 [피드백 계획](docs/pilot-feedback-2026-10-27.md)에 보존.
+- [x] 축별 레이트·Expo·곡선/입출력 미리 보기, 저장/취소/기본값, ANGLE35도 유지.
+- [x] 실제 선택 장치의 버튼 학습·토글/2단 스위치·배정 삭제·독립 저장.
+- [x] 최저 스로틀·새 누름 요구, 메뉴/포커스/재연결 시 누른 버튼으로 자동 ARM 방지.
+- [x] 최종 지문에서4881개 응답/버튼·205개 보정, Editor/Shipping/새 ZIP각66개 설정/실제 제어 검사.
+- [x] 기존 입력 안전29·Mode1/2 UI20개를 Editor/Shipping에서 각각 재검사,10대 ANGLE20/60/240FPS·새 포터블13개·Shipping GPU 화면 확인.
+- [ ] 실제 조종기의 아밍 버튼 입력·축 방향·비행·연결 손실/재연결과 다른 PC 확인.
+- [ ] WinMM 외 입력 경로와 여러 기종 실제 지원 확대. 모든 USB 장치 지원은 미완료.
+- [ ] AI3~4대 랜덤 배치·수비/초중고급·연습과 AI 대전 분리.
+- [ ] 탑건2기둥 S코스·방 기록 경신·닉네임/ID/국적과 온라인 기록방.
+
+구현과 검사 결과는 [조종기 문서](docs/controller-response-2026-10-27.md)와
+[검증 기록](docs/verification.md#r10-controller-response)에 구분한다. 공식 실행용 v0.7.4-r2는 유지한다.
+
 <a id="readme-instructions-complete"></a>
 ## DOC-01 README 다운로드·실행 안내 분리 — 2026-10-27
 
