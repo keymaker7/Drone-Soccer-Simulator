@@ -1,5 +1,16 @@
 # Imperial Wings Drone Soccer Simulator
 
+<a id="current-development"></a>
+## 현재 개발: CTL-13 solver 관찰 실험 — v0.7.5-dev
+
+격리된 `codex/r9-solver-probe` 브랜치에서 Chaos solver callback의 횟수·순서·시간을 읽기 전용으로 계측하고 있습니다. **기존 비행 제어기나 힘 적용 경로를 바꾸지 않는 카운터 실험**이며, 실제 고정120Hz 비행 제어가 완성됐다는 뜻이 아닙니다.
+
+Editor와 새 경로의 Shipping 실행에서 **카운터24개 조건·잘못된 옵션 거부8개·43초 비행 시나리오 비교2쌍·포터블13개 검사**를 통과했습니다. [실험 결과와 한계](docs/solver-probe-2026-10-27.md) · [현재 작업·남은 검사](docs/sequential-work-2026-10-27.md#r9-ctl-13-probe).
+
+카운터 검사는 CTL-13의 계측 하위 단계입니다. 종료 시점 상태 비교만으로 연속 궤적·전체 에너지 적분의 동등성이나 CTL-13 전체 완료를 주장하지 않습니다.
+
+이 실험으로 새 일반 사용자 릴리스를 배포할 계획은 없습니다. **공식 실행용 다운로드는 아래 v0.7.4-r2 그대로**이며, 이 개발 표시가 그 ZIP의 버전·검증 범위를 바꾸지 않습니다.
+
 <a id="windows-run"></a>
 ## Windows 다운로드·실행 안내
 

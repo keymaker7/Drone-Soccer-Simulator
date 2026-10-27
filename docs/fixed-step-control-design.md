@@ -1,9 +1,11 @@
 # CTL-13: Chaos 적분과 제어 주기를 맞추는 다음 단계
 
-작성일: 2026-10-27. **설계·엔진 소스 검토이며 아직 구현하거나 실행 검증한 기능이 아니다.**
+작성일: 2026-10-27. **단계 1의 카운터 계측을 별도 개발 브랜치에서 구현·실행 검증했다.
+아래 단계 2~4의 제어기 이관·고정주기 비행은 아직 구현하지 않았다.**
+[실험 결과와 남은 비교 조건](solver-probe-2026-10-27.md)을 확인한다.
 근거는 로컬에 설치된 Unreal Engine 5.8.3의 소스다. 아래 `Engine/Source/...`와
 `Engine/Plugins/...`는 엔진 설치 폴더를 기준으로 한 상대 경로다. 다른 엔진 버전에서는
-구현과 줄 번호를 다시 확인해야 한다. 이 문서 작업에서는 게임 소스·물리 설정을 변경하지 않았다.
+구현과 줄 번호를 다시 확인해야 한다. 기본 실행의 물리 설정과 비행 힘·PID 경로는 유지한다.
 
 ## 현재 동작과 목표
 
@@ -120,13 +122,20 @@
 ### 1. 힘을 바꾸지 않는 계측 실험
 
 명시적인 검사 옵션에서만 callback을 등록한다. 기존 비행 계산은 유지하고 새 callback은
-카운터·시간·식별자와 읽기 전용 강체 상태만 기록한다. `OnPreSimulate`와
-`OnPreIntegrate`를 모두 구현해 발생 순서를 기록하되 제어기는 호출하지 않는다.
+카운터·시간·스레드 식별자를 기록한다. 현재 계측은 강체 상태조차 직접 읽지 않는다.
+`OnPreSimulate`, `OnPreIntegrate`, `OnPostIntegrate`의 발생 순서를 기록하되
+제어기는 호출하지 않는다.
 
 동기 설정의20/30/45/60/120/240FPS에서 프레임 수, solver 단계 수, 적분 횟수,
 `GetDeltaTime_Internal()` 분포와 완료 시각을 비교한다. 최대 간격 설정의 부동소수점
 경계 때문에 특정FPS에서 정확히N회라고 먼저 가정하지 않는다. 계측 전후 궤적과 전력
-소모가 허용 오차 내에서 동일해야 한다. 이 단계는 **서브스텝 관찰 완료**로만 기록한다.
+소모가 허용 오차 내에서 동일해야 한다. 현재 작은 실험은 호버·접촉·득점과 최종10대
+위치·속력·잔량·전압을 비교하는 범위다. 연속 궤적 전체와 전류 시간 적분 비교는 후속
+검사로 남긴다. 따라서 **카운터 계측 완료**와 단계1 전체 조건 충족을 구분해서 기록한다.
+
+공식 API 참고: [FPhysicsSolverBase](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/Chaos/FPhysicsSolverBase),
+[TSimCallbackObject 출력 버퍼](https://dev.epicgames.com/documentation/unreal-engine/API/Runtime/Chaos/TSimCallbackObject/GetProducerOutputData_Internal).
+실제 호출 순서와 타이밍 판단은 설치된5.8.3 엔진 소스와 실행 결과를 함께 사용한다.
 
 ### 2. 동기 서브스텝에서 단일 힘 경로로 이관
 

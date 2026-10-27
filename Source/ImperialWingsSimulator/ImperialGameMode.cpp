@@ -10,6 +10,7 @@
 #include "ImperialRadioModeVerifier.h"
 #include "ImperialPowerVerifier.h"
 #include "ImperialThrottleVerifier.h"
+#include "ImperialSolverProbe.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 AImperialGameMode::AImperialGameMode()
@@ -27,5 +28,6 @@ void AImperialGameMode::StartPlay()
     if(FParse::Param(FCommandLine::Get(),TEXT("ImperialRadioModeSmoke")))GetWorld()->SpawnActor<AImperialRadioModeVerifier>();
     if(FParse::Param(FCommandLine::Get(),TEXT("ImperialPowerSmoke")))GetWorld()->SpawnActor<AImperialPowerVerifier>();
     if(FParse::Param(FCommandLine::Get(),TEXT("ImperialThrottleSmoke")))GetWorld()->SpawnActor<AImperialThrottleVerifier>();
+    if(FParse::Param(FCommandLine::Get(),TEXT("ImperialSolverProbe")))GetWorld()->SpawnActor<AImperialSolverProbe>();
     Super::StartPlay();
 }

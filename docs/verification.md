@@ -308,3 +308,28 @@ Editor/Shipping 빌드와 보정205개·실행 UI/JSON20개·입력 안전29개�
 규칙 101개, 30/60/120FPS 실제 1득점·오프사이드, 20~240FPS 10대 ANGLE, UI 20개·입력 29개, 공식 경기 지연 60초 검사를 통과했다. 실제 APF 10대는 54.24초에 모두 착륙·DISARM했다. 최소 간격 1.11837m·HOLD 최대 이동 28.2821cm, 통신 장애 시 HOLD·복구 뒤 자동 재개 금지를 확인했다. 새 한글·공백 경로에서 ZIP 13개·정밀 설정 재실행 42개·전력 6개 검사도 통과했다.
 
 실제 USB 비행·다른 물리 PC·독립 고정 120Hz PID·전체 심판 운영은 미검증/미완료다. 이번 공식 시간 검사의 JSON 공통 scope에 HOLD라는 옛 설명이 남지만, official_manual_match와 match_stayed_manual_disarmed=true인 수동·비무장 시계 검사다. 원본 결과를 바꾸지 않고 이 차이를 명시한다.
+
+<a id="ctl-13-r9-probe-pending"></a>
+<a id="ctl-13-r9-probe"></a>
+## 2026-10-27 v0.7.5-dev / R9 CTL-13 읽기 전용 계측 — 하위 단계 검사 완료
+
+이 항목은 `codex/r9-solver-probe`의 격리된 개발 실험 결과다. 공식 실행용 v0.7.4-r2의 검증 기록·다운로드·해시는 그대로 유지한다. 이번 실험으로 새 일반 사용자 릴리스를 배포할 계획은 없다. [실험 보고서](solver-probe-2026-10-27.md) · [기계 판독 결과](verification/solver-probe-2026-10-27.json).
+
+추가 소스는 [ImperialSolverProbe](../Source/ImperialWingsSimulator/ImperialSolverProbe.cpp)와 [검사 진입점](../Tests/run-solver-probe.py)이다. 명시적으로 켠 진단에서 `OnPreSimulate`·`OnPreIntegrate`·`OnPostIntegrate`의 횟수·순서, solver advance의 `dt`, 시간 합·스레드 식별자를 관찰한다. callback은 기체·컴포넌트·강체 proxy를 읽지 않으며 PID·센서·모터 계산이나 힘·토크 적용을 추가하지 않는다. fixed120은 DISARM 상태에서 선택하는 solver 카운터 실험이며 **고정120Hz 비행 제어 또는 별도 적분 `dt`의 직접 측정 결과가 아니다.**
+
+최종 Editor와 새 경로 Shipping의 빌드 입력은125개, 지문은 `1a6b144d1404dfc32b5336125d5236f9ad3f97f0ab3019b9378943cd90cf955f`로 같다.
+
+| 확인 단계 | 최종 결과 |
+|---|---|
+|20/30/45/60/120/240FPS·동기/fixed120 각8초 | Editor12개+Shipping12개, 합계24개 통과. 각 실행본의 동기 단계 수는 순서대로1120/1200/1080/1440/1920/1920, fixed120은 모두960 |
+|43초 시나리오 baseline/observer | 각 실행본의 비교1쌍, 합계2쌍 통과. observer는 예열 후 월드0.5166667~43.0166689초·완료 tick까지7650단계를 관찰 |
+| 경과 시간 장부 | 관찰 시간 약42.5000022초, solver 간격 약0.005555556초, 누적 장부 오차 약1.75e-12초. 게임 시간43초 전체와 예열 후 관찰 시간을 구분 |
+| 잘못된 옵션 거부 | 실행본별4종, 합계8개 통과. 새 JSON의 실패 상태·구체 오류·빌드 지문 확인 |
+| 새 경로 포터블 |13개 통과. 파일 해시·런처·독립 APF·새 사용자 저장/보정 안전 확인 |
+| observer 전후 비교 | 호버·네트·골대 수치 및10대 종료 위치/속력/SOC/전압 차이는 직렬화 정밀도에서0. 연속 궤적·속도 벡터·전체 에너지 적분 검증은 아님 |
+
+실제 호버 오차3.15cm, 네트 모델 최대 처짐0.06753m·표시 와이어0.0646m·반동1.0562m/s, 스트라이커의 실제 통과와 BLUE1골을 확인했다. 종료 상태에서 비교한 속력은 크기이며 속도 벡터의 동등성으로 확대 해석하지 않는다.
+
+거부 사례도 UE Windows의 정상 `WM_QUIT` 경로에서 프로세스 종료 코드0이 나올 수 있다. 강제 종료를 사용하지 않았고, runner는 종료 코드만으로 통과시키지 않고 새 JSON의 `ok=false`·오류 사유·동일 지문을 필수로 검사했다. Python 최적화 실행 거부와 CSV의 모든 수치 유한값·8개 거부 문구 사후 검사도 통과했다.
+
+로컬 원본은 Editor `Saved/Verification/solver-probe-20261027-082339-906316/results.json`, Shipping `Saved/Verification/solver-probe-20261027-082339-926636/results.json`, 포터블 `Saved/Verification/portable-probe-r1/result.json`이다. 이번 완료는 **계측 하위 단계**다. 실제 고정주기 비행 제어의 상태 전달·힘 이관, 연속 궤적·전체 에너지 적분, 실물 USB·새 하드웨어·다른 물리 PC·GPU/그래픽 검증은 미완료다. [순차 작업](sequential-work-2026-10-27.md#r9-ctl-13-probe)과 [단계 설계](fixed-step-control-design.md)에서 후속 조건을 관리한다.
