@@ -1,5 +1,6 @@
 #include "DroneSoccerRules.h"
 #include <cmath>
+#include <cstring>
 #include <iostream>
 #include <limits>
 #include <stdexcept>
@@ -266,6 +267,62 @@ void TestSuccessionAcrossPhases()
     m.Update(p,10);p=Homes();m.Update(p,.01);Forward(m,p,0);m.Update(p,m.Remaining());
     Check(m.GetPhase()==Phase::Finished&&!m.ConfirmStrikerSuccession(0),"Succession accepted after the match finished");
 }
+
+const RuleEvent& LastEvent(const MatchRules& m){return m.Events().back();}
+bool Is(const RuleEvent& e,EventType type,int team,int id){return e.type==type&&e.team==team&&e.id==id;}
+// Leave the attack hoop sideways so returning is not a reverse passage.
+void Retreat(MatchRules& m,std::array<Vec3,10>& p){At(m,p,0,6.9,1);At(m,p,0,-.5,1);}
+void TestEventLog()
+{
+    Check(!std::strcmp(EventName(EventType::Goal),"goal")&&!std::strcmp(EventName(EventType::StrikerSuccession),"striker_succession")&&
+        !std::strcmp(EventName(EventType::SetEnd),"set_end")&&!std::strcmp(EventName(static_cast<EventType>(99)),"unknown"),"Event names are not stable");
+    MatchRules m;auto p=Homes();
+    Check(m.Events().empty()&&m.DroppedEvents()==0&&Near(m.Elapsed(),0),"New rules started with events or time");
+    Forward(m,p,0);
+    const RuleEvent goal=LastEvent(m);
+    Check(m.Events().size()==1&&Is(goal,EventType::Goal,0,0),"Practice goal was not recorded");
+    Check(goal.set==0&&goal.phase==Phase::Practice&&Near(goal.time,.02)&&Near(goal.clock,0)&&goal.score[0]==1&&goal.score[1]==0,"Practice goal context incorrect");
+    Retreat(m,p);Check(m.Events().size()==2&&Is(LastEvent(m),EventType::OffsideCleared,0,-1),"Team retreat did not record offside clearance");
+    m.Update(p,-1);m.Update(p,std::numeric_limits<double>::quiet_NaN());
+    Check(Near(m.Elapsed(),.04)&&m.Events().size()==2,"Invalid frames advanced rule time or logged decisions");
+    m.Reset();p=Homes();At(m,p,0,6.9);At(m,p,0,6.1);
+    Check(m.Events().size()==1&&Is(LastEvent(m),EventType::ReversePassage,0,0)&&LastEvent(m).score[0]==0,"Reverse passage was not recorded as a no-goal decision");
+    At(m,p,0,6.9);
+    Check(m.Events().size()==2&&Is(LastEvent(m),EventType::OffsideAttackPenalty,0,0)&&m.Penalties(0)==1,"Attack while offside was not recorded as a penalty");
+    m.Reset();p=Homes();At(m,p,2,-6.9);At(m,p,2,-6.7);
+    Check(m.Events().size()==1&&Is(LastEvent(m),EventType::ReverseEntryPenalty,0,2),"Own-goal reverse entry penalty was not recorded");
+    m.Reset();Check(m.Events().empty()&&Near(m.Elapsed(),0),"Reset kept old events or time");
+    m.SetActive(6,false);m.ConfirmStrikerSuccession(1);m.SetActive(6,true);m.ConfirmStrikerSuccession(2);
+    Check(m.Events().empty(),"A rejected succession was recorded");
+    p=Homes();m.Update(p,.5);m.ConfirmStrikerSuccession(1);
+    Check(m.Events().size()==1&&Is(LastEvent(m),EventType::StrikerSuccession,1,6)&&Near(LastEvent(m).time,.5),"Confirmed succession was not recorded with its time");
+}
+void TestMatchEventTiming()
+{
+    MatchRules m;auto p=Homes();m.StartMatch();At(m,p,0,6.1);At(m,p,0,6.9);
+    Check(m.Events().empty(),"Ready-phase passage produced a decision");
+    m.StartMatch();p=Homes();m.Update(p,10);Forward(m,p,0);
+    const RuleEvent goal=LastEvent(m);
+    Check(m.Events().size()==1&&Is(goal,EventType::Goal,0,0)&&goal.set==1&&goal.phase==Phase::Playing&&Near(goal.time,10.02)&&Near(goal.clock,179.98),"Match goal time or set clock incorrect");
+    m.Update(p,m.Remaining());
+    Check(m.Events().size()==2&&Is(LastEvent(m),EventType::SetEnd,0,-1)&&Near(LastEvent(m).time,190)&&Near(LastEvent(m).clock,0)&&
+        LastEvent(m).score[0]==1&&LastEvent(m).set==1,"Won set end was not recorded");
+    m.Update(p,m.Remaining());m.Update(p,10);m.Update(p,180);
+    Check(m.Events().size()==3&&Is(LastEvent(m),EventType::SetEnd,-1,-1)&&LastEvent(m).set==2&&Near(LastEvent(m).time,680),"Drawn set end was not recorded as a draw");
+    m.StartMatch();p=Homes();m.Update(p,10);At(m,p,0,6.1,0,3,179.1);At(m,p,0,6.9,0,3,1.0);
+    Check(m.Events().size()==2&&Is(m.Events()[0],EventType::Goal,0,0)&&Near(m.Events()[0].time,190)&&Near(m.Events()[0].clock,0),"Goal in a frame spanning the whistle was not stamped at the whistle");
+    Check(Is(m.Events()[1],EventType::SetEnd,0,-1),"Set end did not follow the last-second goal");
+}
+void TestEventLogLimit()
+{
+    MatchRules m;auto p=Homes();const int goals=600;
+    for(int i=0;i<goals;++i){Forward(m,p,0);Retreat(m,p);}
+    const std::size_t total=static_cast<std::size_t>(goals)*2,dropped=total-MatchRules::MaxEvents;
+    Check(m.Score(0)==goals,"Long practice lost goals");
+    Check(m.Events().size()==MatchRules::MaxEvents&&m.DroppedEvents()==static_cast<int>(dropped),"Event log did not stay bounded");
+    Check(Is(m.Events().front(),EventType::Goal,0,0)&&m.Events().front().score[0]==static_cast<int>(dropped/2+1)&&
+        Is(m.Events().back(),EventType::OffsideCleared,0,-1),"Bounded log did not keep the newest events in order");
+}
 }
 int main()
 {
@@ -274,8 +331,8 @@ int main()
         TestProfileAndPractice();TestFullPassAndBounce();TestRolesAndEdges();TestOffsideAndPenalties();
         TestClockAndSetWins();TestDrawsCarryAndWhistle();TestInvalidInputsAndReset();TestMovingGoalFrames();
         TestBothTeamsAllRoles();TestTransitIntegrity();TestBothTeamRetreatBoundaries();TestAIPracticeRoles();TestAIDuelRoles();
-        TestStrikerSuccession();TestSuccessionAcrossPhases();
-        std::cout<<"PASS: "<<checks<<" FIDA rule checks (whole-ball goals, roles, succession, offside, penalties, clock, sets and invalid inputs).\n";
+        TestStrikerSuccession();TestSuccessionAcrossPhases();TestEventLog();TestMatchEventTiming();TestEventLogLimit();
+        std::cout<<"PASS: "<<checks<<" FIDA rule checks (whole-ball goals, roles, succession, offside, penalties, clock, sets, event log and invalid inputs).\n";
         return 0;
     }
     catch(const std::exception& e){std::cerr<<"FAIL after "<<checks<<" checks: "<<e.what()<<"\n";return 1;}
