@@ -1,6 +1,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
+#include "PilotResponse.h"
 #include "ImperialHUD.generated.h"
 class AImperialMatchManager;
 class UImperialRadioSubsystem;
@@ -19,6 +20,9 @@ public:
     void ClickPointer();
     void ToggleCompactView() { bCompactView=!bCompactView; }
     bool IsRadioPanelOpen() const { return bRadioPanelOpen; }
+    bool IsPilotMenuOpen() const { return bRadioPanelOpen||bAIPracticePanel; }
+    bool IsAIPracticePanelOpen() const { return bAIPracticePanel; }
+    void ToggleAIPracticePanel();
 private:
     UPROPERTY() TWeakObjectPtr<AImperialMatchManager> Match;
     float Scale = 1;
@@ -26,7 +30,20 @@ private:
     FVector2D Pointer = FVector2D(-1000, -1000);
     TArray<FBox2D> Bounds;
     bool bRadioPanelOpen = false;
+    bool bAIPracticePanel=false;
+    bool bAIResultPage=false,bAIDraftDuel=false;
+    int32 AIDraftCount=3,AIDraftDifficulty=0;
+    uint32 AIDraftSeed=1;
+    void DrawAIPracticePanel(AImperialMatchManager& Manager);
+    void DrawAIResultPanel(AImperialMatchManager& Manager);
     bool bRadioAdvanced = false;
+    FString LanguageMessage;
+    bool bResponsePanel=false,bLearnArm=false,bDraftArmToggle=true;
+    ImperialInput::ButtonLearner ArmLearner;
+    FString ArmLearningDevice;
+    int32 DraftArmButton=INDEX_NONE;
+    FString DraftArmDevice,ResponseMessage;
+    ImperialInput::PilotResponse DraftResponse;
     bool bCompactView = false;
     bool bCheckedFirstRun = false;
     struct FButtonTarget { FName Name; FBox2D Bounds; int32 Priority; };
@@ -37,6 +54,8 @@ private:
     AImperialPresentationEffects* GetPresentation();
     UPROPERTY() TWeakObjectPtr<AImperialPresentationEffects> Presentation;
     void DrawRadioPanel(AImperialMatchManager& Manager);
+    void DrawResponsePanel(UImperialRadioSubsystem& Radio);
+    void BeginResponsePanel();
     FVector2D Screen(float X, float Y) const;
     void Rect(float X, float Y, float W, float H, FLinearColor Color);
     void Text(const FString& Value, float X, float Y, float Size, FLinearColor Color, bool Right = false);

@@ -1,5 +1,7 @@
 #include "ImperialRadioSubsystem.h"
 #include "ImperialUserData.h"
+#include "ImperialLocalization.h"
+#include "ImperialProfileStorage.h"
 #include "ImperialBuildInfo.h"
 #include "RadioProfileJson.h"
 #include "ManualThrottleResponse.h"
@@ -97,6 +99,7 @@ void UImperialRadioSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     bEnabled = false;
     RefreshDevices();
     LoadPilotControls();
+    LoadPilotResponse();
     UE_LOG(LogTemp, Display, TEXT("IMPERIAL_RADIO_READY devices=%d mode=KEYBOARD native=WinMM"), Devices.Num());
 }
 
@@ -364,11 +367,8 @@ bool UImperialRadioSubsystem::SetPrecisionThrottleEnabled(bool bEnable)
     Root->SetBoolField(TEXT("precision_throttle"), bEnable);
     FString Json;
     const FString Path = ImperialUserData::Path(TEXT("Config/PilotControls.json"));
-    const FString TempPath = Path + TEXT(".tmp");
-    IFileManager::Get().MakeDirectory(*FPaths::GetPath(Path), true);
     const bool Saved = FJsonSerializer::Serialize(Root, TJsonWriterFactory<>::Create(&Json)) &&
-        FFileHelper::SaveStringToFile(Json, *TempPath, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM) &&
-        IFileManager::Get().Move(*Path, *TempPath, true, true, false, true);
+        ImperialProfileStorage::Save(Path, Json);
     if (!Saved)
     {
         Status = TEXT("Could not save pilot controls. Previous throttle response remains unchanged.");
@@ -383,6 +383,59 @@ bool UImperialRadioSubsystem::SetPrecisionThrottleEnabled(bool bEnable)
         : TEXT("Direct throttle saved. USB disabled; reconnect explicitly at low throttle.");
     UE_LOG(LogTemp, Display, TEXT("IMPERIAL_PILOT_CONTROLS_SAVED precision=%d keyboard=1"), bEnable ? 1 : 0);
     return true;
+}
+
+void UImperialRadioSubsystem::LoadPilotResponse()
+{
+    Response={};ArmingButton=INDEX_NONE;ArmingDevice.Empty();bArmingToggle=true;
+    const FString Path=ImperialUserData::Path(TEXT("Config/PilotResponse.json"));
+    if(!IFileManager::Get().FileExists(*Path))return;
+    TSharedPtr<FJsonObject> Root;ImperialInput::PilotResponse Candidate;
+    double Version=0,Button=-1;FString Device;bool Toggle=true;
+    bool Valid=ReadJsonFile(Path,Root);
+    const auto Number=[&](const TCHAR* Key,double& Value)
+    {
+        if(!Root)return false;const auto* Field=Root->Values.Find(Key);
+        return Field&&Field->IsValid()&&(*Field)->Type==EJson::Number&&(*Field)->TryGetNumber(Value)&&FMath::IsFinite(Value);
+    };
+    Valid=Valid&&Number(TEXT("version"),Version)&&Version==1&&Number(TEXT("arm_button"),Button)&&
+        Button>=-1&&Button<=31&&Button==FMath::FloorToDouble(Button)&&
+        Root->HasTypedField<EJson::String>(TEXT("arm_device"))&&Root->HasTypedField<EJson::Boolean>(TEXT("arm_toggle"))&&
+        Root->TryGetStringField(TEXT("arm_device"),Device)&&Root->TryGetBoolField(TEXT("arm_toggle"),Toggle);
+    for(int I=0;I<3&&Valid;++I)
+        Valid=Number(*FString::Printf(TEXT("expo_%d"),I),Candidate.Expo[I])&&
+              Number(*FString::Printf(TEXT("rate_%d"),I),Candidate.RateDegrees[I]);
+    Valid=Valid&&Candidate.Valid()&&((Button==-1&&Device.IsEmpty())||(Button>=0&&!Device.IsEmpty()&&Device.Len()<2048));
+    if(!Valid){Status=TEXT("Response settings invalid. Default rates/Expo and unassigned ARM button retained.");return;}
+    Response=Candidate;ArmingButton=static_cast<int32>(Button);ArmingDevice=Device;bArmingToggle=Toggle;
+}
+
+bool UImperialRadioSubsystem::SavePilotResponse(const ImperialInput::PilotResponse& Candidate,int32 ArmButton,const FString& ArmDevice,bool bToggle)
+{
+    if(!Candidate.Valid()||ArmButton < -1||ArmButton>31||
+        (ArmButton==-1&&!ArmDevice.IsEmpty())||(ArmButton>=0&&(ArmDevice.IsEmpty()||ArmDevice.Len()>=2048)))
+    {Status=TEXT("Invalid rate, Expo or ARM binding. Previous settings retained.");return false;}
+    if(IsCalibrating()){Status=TEXT("Finish or cancel stick setup before editing response.");return false;}
+    if(UWorld* World=GetWorld())for(TActorIterator<ASoccerDronePawn> It(World);It;++It)
+        if(It->IsArmed()&&!It->IsAutonomousEnabled())
+        {Status=TEXT("DISARM every manual aircraft before saving response or ARM binding.");return false;}
+    if(ArmButton>=0&&(ArmButton!=ArmingButton||ArmDevice!=ArmingDevice))
+    {
+        const auto* Device=GetSelectedDevice();
+        if(!IsConnected()||!Device||Device->Identity!=ArmDevice||ArmButton>=FMath::Min(32,Device->ButtonCount))
+        {Status=TEXT("Select the connected controller and learn a button it reports.");return false;}
+    }
+    auto Root=MakeShared<FJsonObject>();Root->SetNumberField(TEXT("version"),1);
+    for(int I=0;I<3;++I)
+    {Root->SetNumberField(*FString::Printf(TEXT("expo_%d"),I),Candidate.Expo[I]);Root->SetNumberField(*FString::Printf(TEXT("rate_%d"),I),Candidate.RateDegrees[I]);}
+    Root->SetNumberField(TEXT("arm_button"),ArmButton);Root->SetStringField(TEXT("arm_device"),ArmDevice);Root->SetBoolField(TEXT("arm_toggle"),bToggle);
+    const FString Path=ImperialUserData::Path(TEXT("Config/PilotResponse.json"));FString Json;
+    const bool Saved=FJsonSerializer::Serialize(Root,TJsonWriterFactory<>::Create(&Json))&&
+        ImperialProfileStorage::Save(Path,Json);
+    if(!Saved)
+    {Status=TEXT("Could not save response. Previous settings retained.");return false;}
+    Response=Candidate;ArmingButton=ArmButton;ArmingDevice=ArmDevice;bArmingToggle=bToggle;bEnabled=false;
+    Status=TEXT("Rates / Expo / ARM saved. USB disabled. Release ARM, lower throttle, then enable again.");return true;
 }
 
 bool UImperialRadioSubsystem::SetStickMode(ImperialRadio::StickMode Mode)
@@ -438,8 +491,9 @@ float UImperialRadioSubsystem::GetThrottle() const { return static_cast<float>(C
 
 FString UImperialRadioSubsystem::GetStatus() const
 {
-    if (SelectedId != INDEX_NONE && !IsConnected()) return TEXT("Joystick disconnected or stale. USB disabled; keyboard input required.");
-    return Status;
+    const FString DisplayStatus = SelectedId != INDEX_NONE && !IsConnected()
+        ? FString(TEXT("Joystick disconnected or stale. USB disabled; keyboard input required.")) : Status;
+    return ImperialLocalization::Translate(DisplayStatus);
 }
 
 int32 UImperialRadioSubsystem::GetMappedAxis(int32 Channel) const
@@ -819,10 +873,7 @@ bool UImperialRadioSubsystem::WriteProfile()
     Root->SetObjectField(TEXT("profiles"), Profiles);
     FString Json;
     if (!FJsonSerializer::Serialize(Root.ToSharedRef(), TJsonWriterFactory<>::Create(&Json))) return false;
-    IFileManager::Get().MakeDirectory(*FPaths::GetPath(Path), true);
-    const FString TempPath = Path + TEXT(".tmp");
-    const bool bSaved = FFileHelper::SaveStringToFile(Json, *TempPath, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM) &&
-        IFileManager::Get().Move(*Path, *TempPath, true, true, false, true);
+    const bool bSaved = ImperialProfileStorage::Save(Path, Json);
     Status = bSaved ? TEXT("Device calibration saved for this Windows user. USB activation is never saved.") : TEXT("Could not save calibration. Check your Windows user-data folder permissions.");
     return bSaved;
 }

@@ -1,0 +1,2787 @@
+{
+  "date": "2026-10-28",
+  "version": "0.7.8-dev",
+  "branch": "codex/ai-training",
+  "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+  "suites": [
+    {
+      "label": "editor",
+      "case_count": 18,
+      "check_count": 56,
+      "path": "Saved/Verification/ai-results-20261028-074637-075f4f52/results.json",
+      "sha256": "645423c906770029a901c6af8733908233362558d23bdb914ec7e69ff4b2a8f6",
+      "result": {
+        "ok": true,
+        "build": {
+          "version": "0.7.8-dev",
+          "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+          "source_dirty": true,
+          "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+          "input_count": 141
+        },
+        "cases": [
+          {
+            "name": "fresh",
+            "path": "Saved/Verification/ai-results-20261028-074637-075f4f52/fresh/result.json",
+            "sha256": "5bc00e38110f96c7fd5d25a1fea3560cb309ccd18de955c9f1090d290046888e",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "fresh user has no invented result",
+                  "ok": true
+                },
+                {
+                  "check": "practice starts",
+                  "ok": true
+                },
+                {
+                  "check": "physical whole-ball goal accepted",
+                  "ok": true
+                },
+                {
+                  "check": "physical fall registers guard impacts",
+                  "ok": true
+                },
+                {
+                  "check": "finished session stores authoritative goal and timing",
+                  "ok": true
+                },
+                {
+                  "check": "manual stop and completed landing distinguished",
+                  "ok": true
+                },
+                {
+                  "check": "per-aircraft guard snapshot matches real contact counter",
+                  "ok": true
+                },
+                {
+                  "check": "saving again is idempotent",
+                  "ok": true
+                },
+                {
+                  "check": "result page blocks flight and session-start clicks",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:50Z",
+                "target": "ImperialWingsSimulatorEditor"
+              },
+              "case": "fresh"
+            }
+          },
+          {
+            "name": "reload",
+            "path": "Saved/Verification/ai-results-20261028-074637-075f4f52/reload/result.json",
+            "sha256": "f19dae83f300a515cad7679db9ec455266fc77e41c9d312bd2d4e5104d826ed3",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "persisted one-goal actual-flight report restored",
+                  "ok": true
+                },
+                {
+                  "check": "ordinary reset preserves finished report",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:50Z",
+                "target": "ImperialWingsSimulatorEditor"
+              },
+              "case": "reload"
+            }
+          },
+          {
+            "name": "unsupported_schema",
+            "path": "Saved/Verification/ai-results-20261028-074637-075f4f52/unsupported_schema/result.json",
+            "sha256": "5820a81712fb1b09edf8556abcf88aff64df74c79cd28494c8652fbc70dcf3f5",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:50Z",
+                "target": "ImperialWingsSimulatorEditor"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "string_number",
+            "path": "Saved/Verification/ai-results-20261028-074637-075f4f52/string_number/result.json",
+            "sha256": "5820a81712fb1b09edf8556abcf88aff64df74c79cd28494c8652fbc70dcf3f5",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:50Z",
+                "target": "ImperialWingsSimulatorEditor"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "invalid_count",
+            "path": "Saved/Verification/ai-results-20261028-074637-075f4f52/invalid_count/result.json",
+            "sha256": "5820a81712fb1b09edf8556abcf88aff64df74c79cd28494c8652fbc70dcf3f5",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:50Z",
+                "target": "ImperialWingsSimulatorEditor"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "negative_time",
+            "path": "Saved/Verification/ai-results-20261028-074637-075f4f52/negative_time/result.json",
+            "sha256": "5820a81712fb1b09edf8556abcf88aff64df74c79cd28494c8652fbc70dcf3f5",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:50Z",
+                "target": "ImperialWingsSimulatorEditor"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "fractional_goal",
+            "path": "Saved/Verification/ai-results-20261028-074637-075f4f52/fractional_goal/result.json",
+            "sha256": "5820a81712fb1b09edf8556abcf88aff64df74c79cd28494c8652fbc70dcf3f5",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:50Z",
+                "target": "ImperialWingsSimulatorEditor"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "duplicate_aircraft",
+            "path": "Saved/Verification/ai-results-20261028-074637-075f4f52/duplicate_aircraft/result.json",
+            "sha256": "5820a81712fb1b09edf8556abcf88aff64df74c79cd28494c8652fbc70dcf3f5",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:50Z",
+                "target": "ImperialWingsSimulatorEditor"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "invalid_guard",
+            "path": "Saved/Verification/ai-results-20261028-074637-075f4f52/invalid_guard/result.json",
+            "sha256": "5820a81712fb1b09edf8556abcf88aff64df74c79cd28494c8652fbc70dcf3f5",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:50Z",
+                "target": "ImperialWingsSimulatorEditor"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "invalid_reason",
+            "path": "Saved/Verification/ai-results-20261028-074637-075f4f52/invalid_reason/result.json",
+            "sha256": "5820a81712fb1b09edf8556abcf88aff64df74c79cd28494c8652fbc70dcf3f5",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:50Z",
+                "target": "ImperialWingsSimulatorEditor"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "invalid_hash",
+            "path": "Saved/Verification/ai-results-20261028-074637-075f4f52/invalid_hash/result.json",
+            "sha256": "5820a81712fb1b09edf8556abcf88aff64df74c79cd28494c8652fbc70dcf3f5",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:50Z",
+                "target": "ImperialWingsSimulatorEditor"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "string_bool",
+            "path": "Saved/Verification/ai-results-20261028-074637-075f4f52/string_bool/result.json",
+            "sha256": "5820a81712fb1b09edf8556abcf88aff64df74c79cd28494c8652fbc70dcf3f5",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:50Z",
+                "target": "ImperialWingsSimulatorEditor"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "numeric_version_name",
+            "path": "Saved/Verification/ai-results-20261028-074637-075f4f52/numeric_version_name/result.json",
+            "sha256": "5820a81712fb1b09edf8556abcf88aff64df74c79cd28494c8652fbc70dcf3f5",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:50Z",
+                "target": "ImperialWingsSimulatorEditor"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "missing_field",
+            "path": "Saved/Verification/ai-results-20261028-074637-075f4f52/missing_field/result.json",
+            "sha256": "5820a81712fb1b09edf8556abcf88aff64df74c79cd28494c8652fbc70dcf3f5",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:50Z",
+                "target": "ImperialWingsSimulatorEditor"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "latest_corrupt_fallback",
+            "path": "Saved/Verification/ai-results-20261028-074637-075f4f52/latest_corrupt_fallback/result.json",
+            "sha256": "f19dae83f300a515cad7679db9ec455266fc77e41c9d312bd2d4e5104d826ed3",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "persisted one-goal actual-flight report restored",
+                  "ok": true
+                },
+                {
+                  "check": "ordinary reset preserves finished report",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:50Z",
+                "target": "ImperialWingsSimulatorEditor"
+              },
+              "case": "reload"
+            }
+          },
+          {
+            "name": "save_failure_retry",
+            "path": "Saved/Verification/ai-results-20261028-074637-075f4f52/save_failure_retry/result.json",
+            "sha256": "c0bb73852dd0c5fd520fef5def6acc60f645c1b2d56949d2b35e479437d7b2b7",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "failure test starts AI",
+                  "ok": true
+                },
+                {
+                  "check": "failed save preserves interrupted result in memory",
+                  "ok": true
+                },
+                {
+                  "check": "unsaved result cannot silently be overwritten by new session",
+                  "ok": true
+                },
+                {
+                  "check": "fixture removes only its own blocking file",
+                  "ok": true
+                },
+                {
+                  "check": "retry saves the original session without changing ID",
+                  "ok": true
+                },
+                {
+                  "check": "discard cannot delete a saved result",
+                  "ok": true
+                },
+                {
+                  "check": "new practice starts after successful retry",
+                  "ok": true
+                },
+                {
+                  "check": "reset during landing does not claim completed landing",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:50Z",
+                "target": "ImperialWingsSimulatorEditor"
+              },
+              "case": "savefail"
+            }
+          },
+          {
+            "name": "explicit_discard",
+            "path": "Saved/Verification/ai-results-20261028-074637-075f4f52/explicit_discard/result.json",
+            "sha256": "b29e49b6afc6ae752c7a6c890ad1d99ec73faa21654104caf1fe2b8fc2d953d5",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "failure test starts AI",
+                  "ok": true
+                },
+                {
+                  "check": "failed save preserves interrupted result in memory",
+                  "ok": true
+                },
+                {
+                  "check": "unsaved result cannot silently be overwritten by new session",
+                  "ok": true
+                },
+                {
+                  "check": "explicit discard clears only unsaved in-memory result",
+                  "ok": true
+                },
+                {
+                  "check": "explicit discard permits a new session",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:50Z",
+                "target": "ImperialWingsSimulatorEditor"
+              },
+              "case": "discard"
+            }
+          },
+          {
+            "name": "application_exit",
+            "path": "Saved/Verification/ai-results-20261028-074637-075f4f52/application_exit/result.json",
+            "sha256": "65adde4e99e6ee4c14bb4a2c883261823a565a17f963d95c626decefdd4d4773",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "exit test starts AI",
+                  "ok": true
+                },
+                {
+                  "check": "active practice exits without pretending it landed",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:50Z",
+                "target": "ImperialWingsSimulatorEditor"
+              },
+              "case": "exit"
+            }
+          }
+        ],
+        "scope": "Explicit diagnostic goal flight, contacts, native menu and isolated local result files. No USB/human pilot."
+      }
+    },
+    {
+      "label": "shipping",
+      "case_count": 18,
+      "check_count": 56,
+      "path": "Saved/Verification/ai-results-20261028-074637-97a5ea73/results.json",
+      "sha256": "1706f58d6f81011d4a7511c120fc5595d347c2ccf7daa7d611f1590863fe7fdd",
+      "result": {
+        "ok": true,
+        "build": {
+          "version": "0.7.8-dev",
+          "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+          "source_dirty": true,
+          "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+          "input_count": 141
+        },
+        "cases": [
+          {
+            "name": "fresh",
+            "path": "Saved/Verification/ai-results-20261028-074637-97a5ea73/fresh/result.json",
+            "sha256": "16f47385dda63d3976be9939564153bfd13035c1e66b14b697e767abee160f14",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "fresh user has no invented result",
+                  "ok": true
+                },
+                {
+                  "check": "practice starts",
+                  "ok": true
+                },
+                {
+                  "check": "physical whole-ball goal accepted",
+                  "ok": true
+                },
+                {
+                  "check": "physical fall registers guard impacts",
+                  "ok": true
+                },
+                {
+                  "check": "finished session stores authoritative goal and timing",
+                  "ok": true
+                },
+                {
+                  "check": "manual stop and completed landing distinguished",
+                  "ok": true
+                },
+                {
+                  "check": "per-aircraft guard snapshot matches real contact counter",
+                  "ok": true
+                },
+                {
+                  "check": "saving again is idempotent",
+                  "ok": true
+                },
+                {
+                  "check": "result page blocks flight and session-start clicks",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "fresh"
+            }
+          },
+          {
+            "name": "reload",
+            "path": "Saved/Verification/ai-results-20261028-074637-97a5ea73/reload/result.json",
+            "sha256": "5e727f6abd139d5d3702eca2ba1af730cde15f512052d53300aae6a85fcea8cf",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "persisted one-goal actual-flight report restored",
+                  "ok": true
+                },
+                {
+                  "check": "ordinary reset preserves finished report",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "reload"
+            }
+          },
+          {
+            "name": "unsupported_schema",
+            "path": "Saved/Verification/ai-results-20261028-074637-97a5ea73/unsupported_schema/result.json",
+            "sha256": "4e8394341e9f181e3139118dd152ab29b050e083333a83c6e282270a44677ece",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "string_number",
+            "path": "Saved/Verification/ai-results-20261028-074637-97a5ea73/string_number/result.json",
+            "sha256": "4e8394341e9f181e3139118dd152ab29b050e083333a83c6e282270a44677ece",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "invalid_count",
+            "path": "Saved/Verification/ai-results-20261028-074637-97a5ea73/invalid_count/result.json",
+            "sha256": "4e8394341e9f181e3139118dd152ab29b050e083333a83c6e282270a44677ece",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "negative_time",
+            "path": "Saved/Verification/ai-results-20261028-074637-97a5ea73/negative_time/result.json",
+            "sha256": "4e8394341e9f181e3139118dd152ab29b050e083333a83c6e282270a44677ece",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "fractional_goal",
+            "path": "Saved/Verification/ai-results-20261028-074637-97a5ea73/fractional_goal/result.json",
+            "sha256": "4e8394341e9f181e3139118dd152ab29b050e083333a83c6e282270a44677ece",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "duplicate_aircraft",
+            "path": "Saved/Verification/ai-results-20261028-074637-97a5ea73/duplicate_aircraft/result.json",
+            "sha256": "4e8394341e9f181e3139118dd152ab29b050e083333a83c6e282270a44677ece",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "invalid_guard",
+            "path": "Saved/Verification/ai-results-20261028-074637-97a5ea73/invalid_guard/result.json",
+            "sha256": "4e8394341e9f181e3139118dd152ab29b050e083333a83c6e282270a44677ece",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "invalid_reason",
+            "path": "Saved/Verification/ai-results-20261028-074637-97a5ea73/invalid_reason/result.json",
+            "sha256": "4e8394341e9f181e3139118dd152ab29b050e083333a83c6e282270a44677ece",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "invalid_hash",
+            "path": "Saved/Verification/ai-results-20261028-074637-97a5ea73/invalid_hash/result.json",
+            "sha256": "4e8394341e9f181e3139118dd152ab29b050e083333a83c6e282270a44677ece",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "string_bool",
+            "path": "Saved/Verification/ai-results-20261028-074637-97a5ea73/string_bool/result.json",
+            "sha256": "4e8394341e9f181e3139118dd152ab29b050e083333a83c6e282270a44677ece",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "numeric_version_name",
+            "path": "Saved/Verification/ai-results-20261028-074637-97a5ea73/numeric_version_name/result.json",
+            "sha256": "4e8394341e9f181e3139118dd152ab29b050e083333a83c6e282270a44677ece",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "missing_field",
+            "path": "Saved/Verification/ai-results-20261028-074637-97a5ea73/missing_field/result.json",
+            "sha256": "4e8394341e9f181e3139118dd152ab29b050e083333a83c6e282270a44677ece",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "latest_corrupt_fallback",
+            "path": "Saved/Verification/ai-results-20261028-074637-97a5ea73/latest_corrupt_fallback/result.json",
+            "sha256": "5e727f6abd139d5d3702eca2ba1af730cde15f512052d53300aae6a85fcea8cf",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "persisted one-goal actual-flight report restored",
+                  "ok": true
+                },
+                {
+                  "check": "ordinary reset preserves finished report",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "reload"
+            }
+          },
+          {
+            "name": "save_failure_retry",
+            "path": "Saved/Verification/ai-results-20261028-074637-97a5ea73/save_failure_retry/result.json",
+            "sha256": "ee68496a727293265f7e02bf17ba91daedc6516851fccfc06b81d70813144ae4",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "failure test starts AI",
+                  "ok": true
+                },
+                {
+                  "check": "failed save preserves interrupted result in memory",
+                  "ok": true
+                },
+                {
+                  "check": "unsaved result cannot silently be overwritten by new session",
+                  "ok": true
+                },
+                {
+                  "check": "fixture removes only its own blocking file",
+                  "ok": true
+                },
+                {
+                  "check": "retry saves the original session without changing ID",
+                  "ok": true
+                },
+                {
+                  "check": "discard cannot delete a saved result",
+                  "ok": true
+                },
+                {
+                  "check": "new practice starts after successful retry",
+                  "ok": true
+                },
+                {
+                  "check": "reset during landing does not claim completed landing",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "savefail"
+            }
+          },
+          {
+            "name": "explicit_discard",
+            "path": "Saved/Verification/ai-results-20261028-074637-97a5ea73/explicit_discard/result.json",
+            "sha256": "9718426afe66740a7af57df1d849f8c36e833021cd92ba0fc55c24cb30e9c4a6",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "failure test starts AI",
+                  "ok": true
+                },
+                {
+                  "check": "failed save preserves interrupted result in memory",
+                  "ok": true
+                },
+                {
+                  "check": "unsaved result cannot silently be overwritten by new session",
+                  "ok": true
+                },
+                {
+                  "check": "explicit discard clears only unsaved in-memory result",
+                  "ok": true
+                },
+                {
+                  "check": "explicit discard permits a new session",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "discard"
+            }
+          },
+          {
+            "name": "application_exit",
+            "path": "Saved/Verification/ai-results-20261028-074637-97a5ea73/application_exit/result.json",
+            "sha256": "4f4d41fb844f4d1822e978f8ecbc531c5ec37f90d917f736e8ed78cee45f7d2e",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "exit test starts AI",
+                  "ok": true
+                },
+                {
+                  "check": "active practice exits without pretending it landed",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "exit"
+            }
+          }
+        ],
+        "scope": "Explicit diagnostic goal flight, contacts, native menu and isolated local result files. No USB/human pilot."
+      }
+    },
+    {
+      "label": "relocated",
+      "case_count": 18,
+      "check_count": 56,
+      "path": "Saved/Verification/ai-results-20261028-075023-d974c0c8/results.json",
+      "sha256": "38a86c3db608fc65512543c851824860fcc5ccd02bffc20397469f397f5881e6",
+      "result": {
+        "ok": true,
+        "build": {
+          "version": "0.7.8-dev",
+          "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+          "source_dirty": true,
+          "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+          "input_count": 141
+        },
+        "cases": [
+          {
+            "name": "fresh",
+            "path": "Saved/Verification/ai-results-20261028-075023-d974c0c8/fresh/result.json",
+            "sha256": "16f47385dda63d3976be9939564153bfd13035c1e66b14b697e767abee160f14",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "fresh user has no invented result",
+                  "ok": true
+                },
+                {
+                  "check": "practice starts",
+                  "ok": true
+                },
+                {
+                  "check": "physical whole-ball goal accepted",
+                  "ok": true
+                },
+                {
+                  "check": "physical fall registers guard impacts",
+                  "ok": true
+                },
+                {
+                  "check": "finished session stores authoritative goal and timing",
+                  "ok": true
+                },
+                {
+                  "check": "manual stop and completed landing distinguished",
+                  "ok": true
+                },
+                {
+                  "check": "per-aircraft guard snapshot matches real contact counter",
+                  "ok": true
+                },
+                {
+                  "check": "saving again is idempotent",
+                  "ok": true
+                },
+                {
+                  "check": "result page blocks flight and session-start clicks",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "fresh"
+            }
+          },
+          {
+            "name": "reload",
+            "path": "Saved/Verification/ai-results-20261028-075023-d974c0c8/reload/result.json",
+            "sha256": "5e727f6abd139d5d3702eca2ba1af730cde15f512052d53300aae6a85fcea8cf",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "persisted one-goal actual-flight report restored",
+                  "ok": true
+                },
+                {
+                  "check": "ordinary reset preserves finished report",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "reload"
+            }
+          },
+          {
+            "name": "unsupported_schema",
+            "path": "Saved/Verification/ai-results-20261028-075023-d974c0c8/unsupported_schema/result.json",
+            "sha256": "4e8394341e9f181e3139118dd152ab29b050e083333a83c6e282270a44677ece",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "string_number",
+            "path": "Saved/Verification/ai-results-20261028-075023-d974c0c8/string_number/result.json",
+            "sha256": "4e8394341e9f181e3139118dd152ab29b050e083333a83c6e282270a44677ece",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "invalid_count",
+            "path": "Saved/Verification/ai-results-20261028-075023-d974c0c8/invalid_count/result.json",
+            "sha256": "4e8394341e9f181e3139118dd152ab29b050e083333a83c6e282270a44677ece",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "negative_time",
+            "path": "Saved/Verification/ai-results-20261028-075023-d974c0c8/negative_time/result.json",
+            "sha256": "4e8394341e9f181e3139118dd152ab29b050e083333a83c6e282270a44677ece",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "fractional_goal",
+            "path": "Saved/Verification/ai-results-20261028-075023-d974c0c8/fractional_goal/result.json",
+            "sha256": "4e8394341e9f181e3139118dd152ab29b050e083333a83c6e282270a44677ece",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "duplicate_aircraft",
+            "path": "Saved/Verification/ai-results-20261028-075023-d974c0c8/duplicate_aircraft/result.json",
+            "sha256": "4e8394341e9f181e3139118dd152ab29b050e083333a83c6e282270a44677ece",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "invalid_guard",
+            "path": "Saved/Verification/ai-results-20261028-075023-d974c0c8/invalid_guard/result.json",
+            "sha256": "4e8394341e9f181e3139118dd152ab29b050e083333a83c6e282270a44677ece",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "invalid_reason",
+            "path": "Saved/Verification/ai-results-20261028-075023-d974c0c8/invalid_reason/result.json",
+            "sha256": "4e8394341e9f181e3139118dd152ab29b050e083333a83c6e282270a44677ece",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "invalid_hash",
+            "path": "Saved/Verification/ai-results-20261028-075023-d974c0c8/invalid_hash/result.json",
+            "sha256": "4e8394341e9f181e3139118dd152ab29b050e083333a83c6e282270a44677ece",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "string_bool",
+            "path": "Saved/Verification/ai-results-20261028-075023-d974c0c8/string_bool/result.json",
+            "sha256": "4e8394341e9f181e3139118dd152ab29b050e083333a83c6e282270a44677ece",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "numeric_version_name",
+            "path": "Saved/Verification/ai-results-20261028-075023-d974c0c8/numeric_version_name/result.json",
+            "sha256": "4e8394341e9f181e3139118dd152ab29b050e083333a83c6e282270a44677ece",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "missing_field",
+            "path": "Saved/Verification/ai-results-20261028-075023-d974c0c8/missing_field/result.json",
+            "sha256": "4e8394341e9f181e3139118dd152ab29b050e083333a83c6e282270a44677ece",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "invalid"
+            }
+          },
+          {
+            "name": "latest_corrupt_fallback",
+            "path": "Saved/Verification/ai-results-20261028-075023-d974c0c8/latest_corrupt_fallback/result.json",
+            "sha256": "5e727f6abd139d5d3702eca2ba1af730cde15f512052d53300aae6a85fcea8cf",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "loading matches expected valid-report availability",
+                  "ok": true
+                },
+                {
+                  "check": "persisted one-goal actual-flight report restored",
+                  "ok": true
+                },
+                {
+                  "check": "ordinary reset preserves finished report",
+                  "ok": true
+                },
+                {
+                  "check": "loading never arms or starts AI",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "reload"
+            }
+          },
+          {
+            "name": "save_failure_retry",
+            "path": "Saved/Verification/ai-results-20261028-075023-d974c0c8/save_failure_retry/result.json",
+            "sha256": "ee68496a727293265f7e02bf17ba91daedc6516851fccfc06b81d70813144ae4",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "failure test starts AI",
+                  "ok": true
+                },
+                {
+                  "check": "failed save preserves interrupted result in memory",
+                  "ok": true
+                },
+                {
+                  "check": "unsaved result cannot silently be overwritten by new session",
+                  "ok": true
+                },
+                {
+                  "check": "fixture removes only its own blocking file",
+                  "ok": true
+                },
+                {
+                  "check": "retry saves the original session without changing ID",
+                  "ok": true
+                },
+                {
+                  "check": "discard cannot delete a saved result",
+                  "ok": true
+                },
+                {
+                  "check": "new practice starts after successful retry",
+                  "ok": true
+                },
+                {
+                  "check": "reset during landing does not claim completed landing",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "savefail"
+            }
+          },
+          {
+            "name": "explicit_discard",
+            "path": "Saved/Verification/ai-results-20261028-075023-d974c0c8/explicit_discard/result.json",
+            "sha256": "9718426afe66740a7af57df1d849f8c36e833021cd92ba0fc55c24cb30e9c4a6",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "failure test starts AI",
+                  "ok": true
+                },
+                {
+                  "check": "failed save preserves interrupted result in memory",
+                  "ok": true
+                },
+                {
+                  "check": "unsaved result cannot silently be overwritten by new session",
+                  "ok": true
+                },
+                {
+                  "check": "explicit discard clears only unsaved in-memory result",
+                  "ok": true
+                },
+                {
+                  "check": "explicit discard permits a new session",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "discard"
+            }
+          },
+          {
+            "name": "application_exit",
+            "path": "Saved/Verification/ai-results-20261028-075023-d974c0c8/application_exit/result.json",
+            "sha256": "4f4d41fb844f4d1822e978f8ecbc531c5ec37f90d917f736e8ed78cee45f7d2e",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "exit test starts AI",
+                  "ok": true
+                },
+                {
+                  "check": "active practice exits without pretending it landed",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "exit"
+            }
+          }
+        ],
+        "scope": "Explicit diagnostic goal flight, contacts, native menu and isolated local result files. No USB/human pilot."
+      }
+    },
+    {
+      "label": "shipping_gpu",
+      "case_count": 1,
+      "check_count": 9,
+      "path": "Saved/Verification/ai-results-20261028-074733-beccbb62/results.json",
+      "sha256": "6b663ba54b985234c001166c71ac5e3a751719132d08047069c68d375fb1980b",
+      "result": {
+        "ok": true,
+        "build": {
+          "version": "0.7.8-dev",
+          "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+          "source_dirty": true,
+          "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+          "input_count": 141
+        },
+        "cases": [
+          {
+            "name": "fresh",
+            "path": "Saved/Verification/ai-results-20261028-074733-beccbb62/fresh/result.json",
+            "sha256": "16f47385dda63d3976be9939564153bfd13035c1e66b14b697e767abee160f14",
+            "result": {
+              "ok": true,
+              "checks": [
+                {
+                  "check": "fresh user has no invented result",
+                  "ok": true
+                },
+                {
+                  "check": "practice starts",
+                  "ok": true
+                },
+                {
+                  "check": "physical whole-ball goal accepted",
+                  "ok": true
+                },
+                {
+                  "check": "physical fall registers guard impacts",
+                  "ok": true
+                },
+                {
+                  "check": "finished session stores authoritative goal and timing",
+                  "ok": true
+                },
+                {
+                  "check": "manual stop and completed landing distinguished",
+                  "ok": true
+                },
+                {
+                  "check": "per-aircraft guard snapshot matches real contact counter",
+                  "ok": true
+                },
+                {
+                  "check": "saving again is idempotent",
+                  "ok": true
+                },
+                {
+                  "check": "result page blocks flight and session-start clicks",
+                  "ok": true
+                }
+              ],
+              "build": {
+                "version": "0.7.8-dev",
+                "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+                "source_dirty": true,
+                "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+                "build_utc": "2026-10-28T07:43:58Z",
+                "target": "ImperialWingsSimulator"
+              },
+              "case": "fresh"
+            }
+          }
+        ],
+        "scope": "Explicit diagnostic goal flight, contacts, native menu and isolated local result files. No USB/human pilot."
+      }
+    }
+  ],
+  "regressions": [
+    {
+      "label": "ai_practice",
+      "path": "Saved/Verification/ai-practice-20261028-074713-9852ff0b/result.json",
+      "sha256": "d1a15e60b2e6e6a5d2f1ac37e1c980938d19e5ff9afb8b2f658952c7733c9688",
+      "result": {
+        "ok": true,
+        "checks": [
+          {
+            "case": 0,
+            "check": "invalid count difficulty and zero seed rejected",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "official match rejects AI",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "audience view rejects AI",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "armed player blocks AI start",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "practice flight recording starts",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.174748800563727
+          },
+          {
+            "case": 0,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5747866895149217
+          },
+          {
+            "case": 0,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.6072418689727783
+          },
+          {
+            "case": 0,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 12
+          },
+          {
+            "case": 0,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 7.250000378116965
+          },
+          {
+            "case": 0,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.1169674126551263
+          },
+          {
+            "case": 1,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5802837172258021
+          },
+          {
+            "case": 1,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.8359834551811218
+          },
+          {
+            "case": 1,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 24
+          },
+          {
+            "case": 1,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 6.733333684504032
+          },
+          {
+            "case": 1,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.2465171255542344
+          },
+          {
+            "case": 2,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5788497564837704
+          },
+          {
+            "case": 2,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 1.0564745664596558
+          },
+          {
+            "case": 2,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 53
+          },
+          {
+            "case": 2,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 6.950000362470746
+          },
+          {
+            "case": 2,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.028733193713551
+          },
+          {
+            "case": 3,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5537947475905
+          },
+          {
+            "case": 3,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.6061244010925293
+          },
+          {
+            "case": 3,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 12
+          },
+          {
+            "case": 3,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 7.000000365078449
+          },
+          {
+            "case": 3,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.22115632829156
+          },
+          {
+            "case": 4,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.6907749616468611
+          },
+          {
+            "case": 4,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.8465651273727417
+          },
+          {
+            "case": 4,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 24
+          },
+          {
+            "case": 4,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 6.966667030006647
+          },
+          {
+            "case": 4,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.254574146045808
+          },
+          {
+            "case": 5,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5522892665574352
+          },
+          {
+            "case": 5,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 1.0299361944198608
+          },
+          {
+            "case": 5,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 53
+          },
+          {
+            "case": 5,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 7.466667056083679
+          },
+          {
+            "case": 5,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 6,
+            "check": "restart for timeout test",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 6,
+            "check": "three-minute limit initiates controlled landing",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 6,
+            "check": "explicit reset clears active AI and motors",
+            "ok": true,
+            "value": 0
+          }
+        ],
+        "build": {
+          "version": "0.7.8-dev",
+          "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+          "source_dirty": true,
+          "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+          "build_utc": "2026-10-28T07:43:58Z",
+          "target": "ImperialWingsSimulator"
+        },
+        "min_game_dt_s": 0.01666666753590107,
+        "max_game_dt_s": 0.01666666753590107,
+        "simulated_seconds": 374.166686180979,
+        "completed_flight_scenarios": 6,
+        "scope": "Native menu API and actual Chaos defensive flights / landings, no USB input or human difficulty rating."
+      }
+    },
+    {
+      "label": "editor_input",
+      "path": "Saved/Verification/input-safety-20261028-074856-077/result.json",
+      "sha256": "18c580f9b6273b678ea19d2d8a06628f6d379283168dd0f0fbec353185f47a34",
+      "result": {
+        "ok": true,
+        "checks": [
+          {
+            "check": "fixture starts with a manual keyboard aircraft",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "explicit low-throttle ARM accepted",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "real engine bindings accumulated keyboard throttle",
+            "ok": true,
+            "actual": 0.14000387489795685
+          },
+          {
+            "check": "engine saw held roll key",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "viewport focus loss immediately disarms manual aircraft",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "viewport focus loss immediately clears stored throttle",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "viewport focus loss immediately clears motor demand",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "native radio remains disabled",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "old repeated keys cannot restore throttle",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "old repeated roll key stays released in engine",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "queued pre-interruption key press is rejected",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "GameAndUI always requests focus-loss key flushing",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "repeat cannot re-arm after focus loss",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "focus regain does not re-arm",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "fresh Space press re-arms at zero throttle",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "observer view preserves manual ARM",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "overview preserves manual ARM",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "opening radio menu disarms selected aircraft",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "menu typing cannot arm or add throttle",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "closing menu rejects old repeated throttle/ARM",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "focus loss preserves explicit practice autonomy",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "autonomous forces still run after focus loss",
+            "ok": true,
+            "actual": 9.83298110961914
+          },
+          {
+            "check": "second throttle setup reached engine bindings",
+            "ok": true,
+            "actual": 0.10500176250934601
+          },
+          {
+            "check": "aircraft selection clears held-input throttle on new aircraft",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "equipment inspection opened disarmed",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "equipment view blocks held flight keys",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "equipment exit rejects stale throttle/ARM repeats",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "reset setup accumulated keyboard throttle",
+            "ok": true,
+            "actual": 0.10500260442495346
+          },
+          {
+            "check": "Backspace reset clears pending throttle repeats",
+            "ok": true,
+            "actual": 0
+          }
+        ],
+        "scope": "explicit Unreal simulated keyboard events and real viewport/controller APIs; not physical keyboard, OS Alt-Tab or USB/HID input",
+        "build": {
+          "version": "0.7.8-dev",
+          "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+          "source_dirty": true,
+          "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+          "build_utc": "2026-10-28T07:43:50Z",
+          "target": "ImperialWingsSimulatorEditor"
+        }
+      }
+    },
+    {
+      "label": "shipping_input",
+      "path": "Saved/Verification/input-safety-20261028-074726-491/result.json",
+      "sha256": "25486750fc2ded9763f706165e799086370f36af89c64a365eba81b144fb7b07",
+      "result": {
+        "ok": true,
+        "checks": [
+          {
+            "check": "fixture starts with a manual keyboard aircraft",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "explicit low-throttle ARM accepted",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "real engine bindings accumulated keyboard throttle",
+            "ok": true,
+            "actual": 0.1400025337934494
+          },
+          {
+            "check": "engine saw held roll key",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "viewport focus loss immediately disarms manual aircraft",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "viewport focus loss immediately clears stored throttle",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "viewport focus loss immediately clears motor demand",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "native radio remains disabled",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "old repeated keys cannot restore throttle",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "old repeated roll key stays released in engine",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "queued pre-interruption key press is rejected",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "GameAndUI always requests focus-loss key flushing",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "repeat cannot re-arm after focus loss",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "focus regain does not re-arm",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "fresh Space press re-arms at zero throttle",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "observer view preserves manual ARM",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "overview preserves manual ARM",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "opening radio menu disarms selected aircraft",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "menu typing cannot arm or add throttle",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "closing menu rejects old repeated throttle/ARM",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "focus loss preserves explicit practice autonomy",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "autonomous forces still run after focus loss",
+            "ok": true,
+            "actual": 9.832979202270508
+          },
+          {
+            "check": "second throttle setup reached engine bindings",
+            "ok": true,
+            "actual": 0.10500180721282959
+          },
+          {
+            "check": "aircraft selection clears held-input throttle on new aircraft",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "equipment inspection opened disarmed",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "equipment view blocks held flight keys",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "equipment exit rejects stale throttle/ARM repeats",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "reset setup accumulated keyboard throttle",
+            "ok": true,
+            "actual": 0.1050015389919281
+          },
+          {
+            "check": "Backspace reset clears pending throttle repeats",
+            "ok": true,
+            "actual": 0
+          }
+        ],
+        "scope": "explicit Unreal simulated keyboard events and real viewport/controller APIs; not physical keyboard, OS Alt-Tab or USB/HID input",
+        "build": {
+          "version": "0.7.8-dev",
+          "source_commit": "b5b15c8891079f3e9133259fc363d8eb1e462219",
+          "source_dirty": true,
+          "source_sha256": "4d51efe96e1a45f1f03c2edbad705615b46129f6453e59be82ad85c84e1c5722",
+          "build_utc": "2026-10-28T07:43:58Z",
+          "target": "ImperialWingsSimulator"
+        }
+      }
+    }
+  ],
+  "portable": {
+    "path": "Saved/Verification/portable-ai-results-r1/result.json",
+    "sha256": "6edfc1b13e28fc84134be232bf9d2a9580deb8ae92582a8e8d1496da96c0ff78",
+    "result": {
+      "ok": true,
+      "checks": [
+        {
+          "name": "all released file hashes match",
+          "passed": true
+        },
+        {
+          "name": "standalone feedback form exists, is checksummed and matches reviewed source",
+          "passed": true
+        },
+        {
+          "name": "no pilot settings or generated Saved directory",
+          "passed": true
+        },
+        {
+          "name": "native launcher resolves relocated files without developer tools",
+          "passed": true
+        },
+        {
+          "name": "frozen APF starts with no installed Python or Git on PATH",
+          "passed": true
+        },
+        {
+          "name": "frozen APF provenance matches released upstream",
+          "passed": true
+        },
+        {
+          "name": "actual bundled APF responds to ten-aircraft protocol 2",
+          "passed": true
+        },
+        {
+          "name": "bounded APF test exits cleanly",
+          "passed": true
+        },
+        {
+          "name": "fresh standalone Unreal storage result",
+          "passed": true
+        },
+        {
+          "name": "fresh keyboard startup and profile safety",
+          "passed": true
+        },
+        {
+          "name": "fresh writes only to explicit per-user data path",
+          "passed": true
+        },
+        {
+          "name": "first use never invents a controller profile",
+          "passed": true
+        },
+        {
+          "name": "package remains free of generated pilot data after execution",
+          "passed": true
+        }
+      ]
+    }
+  },
+  "archive": {
+    "name": "ImperialWings-Windows-v0.7.8-dev-results-r1.zip",
+    "bytes": 374858198,
+    "sha256": "bfbfb8bf51a5963e62ee360c8dae87df94f17683809211b91800ce542266026d",
+    "crc_ok": true,
+    "published": false
+  },
+  "personal_calibration_unchanged": true,
+  "prior_rejected_run": "ai-practice-20261028-073618-b12e7cfa: old executable rejected by source fingerprint after verification scope edits; superseded by final source results above",
+  "limitations": [
+    "No physical USB / other physical PC test",
+    "Goal/guard exercise uses explicitly initialized non-USB diagnostic flight",
+    "History search restricted to newest 100 filename candidates; no history browser or online ranking",
+    "Forced-process termination may lose an unfinished or unsaved in-memory result",
+    "AI team match and collision/deadlock recovery still pending"
+  ]
+}
