@@ -106,6 +106,9 @@
   "schema_version": "coach-summary.v1",
   "request_id": "random-request-id",
   "session_ref": "random-local-alias",
+  "analysis_scope": "single_attempt",
+  "attempt_ref": "random-attempt-alias",
+  "result_revision": 1,
   "evaluation_version": "baseline-v1",
   "locale": "ko-KR",
   "task": {"id": "hover-basic", "version": "1", "role": "unknown"},
@@ -119,6 +122,12 @@
 ```
 
 위 숫자는 스키마 설명용 합성 예다. `task/context` 미계측 값은 사용자 입력 여부를 별도 출처로 표시하고 unknown을 사실로 치환하지 않는다. 실명·이메일·팀 이름·계정 ID·절대 경로·장치 고유 번호·정확한 UTC·API 키는 금지 필드다. 원본 해시/빌드 지문은 로컬 추적에 보관하고 외부에는 평가에 필요한 버전만 전송한다. 서버가 요약을 신뢰할 수 있는 실물 인증이라고 취급하지 않는다.
+
+**범위·정정 식별 계약:** 위 예시는 시도 시작이 확인된 합성 단일 시도다. `evaluation_version`은 계산 규칙 버전이고 `result_revision`은 같은 분석 대상의 판정/근거 정정 차수이므로 서로 대신하지 않는다. `attempt_ref`는 개인 식별자가 아닌 요청용 별칭이다. 시도 사건이 없는 기존 F6는 임의 시도를 만들어 넣지 않고 `analysis_scope=observed_segment`, `attempt_ref=null`로 구분하며 관측 구간만 설명한다. 세션 전체 집계는 `session_summary`로 구분하고 집계 대상 시도·분모를 로컬 근거에 연결한다. 구체적인 enum/필수 필드 검증은 구현 전에 확정한다.
+
+요청 관리자에는 사용자/현재 결과 범위, 세션·시도 또는 관측 구간 식별, 결과 정정 차수, 평가 버전과 요약 지문을 연결한다. 모델이 반환한 식별값을 신뢰해 화면 대상이나 캐시 키를 바꾸지 않는다. 요약 내용·정정 차수가 바뀌면 같은 세션이라도 이전 캐시/늦은 응답을 현재 설명으로 재사용하지 않는다. 구간/요약 지문은 로컬 요청 관리에 보관하며 새 개인 원본 전송 항목으로 확대하지 않는다.
+
+연결 인수에 **같은 세션의 시도 A→B 전환 뒤 A 응답 도착**, **같은 시도의 정정 차수 변경 뒤 이전 응답 도착**, **규칙 버전은 같지만 근거 요약이 바뀐 경우**, **시도 사건 없는 F6**를 추가한다. 각각 현재 결과 보존·오래된 설명 구분·캐시 불일치·관측 설명만 허용을 기대값으로 둔다. 이는 문서 계약 보완이며 파서/응답 검증기 구현이나 시험 실행이 아니다.
 
 향후 사건 로그에는 `event_id`, 상대 시각, 구간 ID, 역할/팀, `goal_attempt/goal_confirmed/return_complete/collision/reset/task_end`, 판정 출처·정정 이력을 추가한다. 이름만 추가하고 실측/판정 연결 없이 채우는 구현은 금지한다.
 
