@@ -13,6 +13,9 @@ Vec3 Interpolate(Vec3 a,Vec3 b,double t)
     return {a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t,a.z+(b.z-a.z)*t};
 }
 bool Finite(Vec3 p) { return std::isfinite(p.x)&&std::isfinite(p.y)&&std::isfinite(p.z); }
+// Role slots match ASoccerDronePawn: 0 Striker, 1 Guide, 2 Libero, 3 Sweeper, 4 Keeper.
+constexpr std::array<int,2> OriginalStrikers{0,5};
+int GuideId(int team) { return team*5+1; }
 double RadialSquared(Vec3 p)
 {
     const double z=p.z-RuleProfileFIDA40::GoalHeight;
@@ -38,7 +41,7 @@ void MatchRules::ClearTransits(){for(auto& drone:transits)for(auto& ring:drone)r
 void MatchRules::Reset()
 {
     previous={};previousGoals=NominalGoalFrames();active.fill(true);scores={};penalties={};wins={};offside={};
-    phase=Phase::Practice;currentSet=0;remaining=0;havePrevious=false;ClearTransits();
+    strikers=OriginalStrikers;phase=Phase::Practice;currentSet=0;remaining=0;havePrevious=false;ClearTransits();
 }
 void MatchRules::StartPractice(){Reset();}
 void MatchRules::StartMatch(){Reset();phase=Phase::Ready;currentSet=1;remaining=RuleProfileFIDA40::ReadySeconds;}
@@ -52,6 +55,22 @@ int MatchRules::Score(int team)const{return ValidTeam(team)?scores[team]:0;}
 bool MatchRules::IsOffside(int team)const{return ValidTeam(team)&&offside[team];}
 int MatchRules::Penalties(int team)const{return ValidTeam(team)?penalties[team]:0;}
 int MatchRules::SetWins(int team)const{return ValidTeam(team)?wins[team]:0;}
+int MatchRules::Striker(int team)const{return ValidTeam(team)?strikers[team]:-1;}
+bool MatchRules::IsStriker(int id)const{return id>=0&&id<10&&strikers[id/5]==id;}
+bool MatchRules::ConfirmStrikerSuccession(int team)
+{
+    // Only the referee's confirmation is modelled. Declaring the Striker unable,
+    // stopping it and the Guide's legal contact happen before this call; a
+    // collision alone must never reach it. Only the Guide carries the second tag,
+    // so a team can succeed once per set, and only while play is live.
+    if(!ValidTeam(team)||!(phase==Phase::Practice||phase==Phase::Playing))return false;
+    const int guide=GuideId(team);
+    if(strikers[team]!=OriginalStrikers[team]||!active[guide])return false;
+    strikers[team]=guide;
+    // A Guide already partway through the attack hoop must start a new transit.
+    transits[guide][team]=Transit{};
+    return true;
+}
 void MatchRules::AdvanceClock(double dt)
 {
     // A match contains at most three sets; twelve transitions cover even a huge dt.
@@ -71,7 +90,9 @@ void MatchRules::AdvanceClock(double dt)
         }
         else if(phase==Phase::Break)
         {
-            ++currentSet;scores={};offside={};active.fill(true);
+            // Simulator choice: each set restarts with the original tagged Striker,
+            // like the full roster restored below; not a confirmed FIDA clause.
+            ++currentSet;scores={};offside={};active.fill(true);strikers=OriginalStrikers;
             phase=Phase::Ready;remaining=RuleProfileFIDA40::ReadySeconds;
         }
     }
@@ -101,7 +122,7 @@ void MatchRules::ProcessMotion(int id,int attackingTeam,Vec3 from,Vec3 to,bool b
     const bool withdrew=transit.direction==1?b<=-extent:b>=extent;
     if(complete)
     {
-        if(bodyMoved&&transit.clear&&!ownRing&&(id==0||id==5))
+        if(bodyMoved&&transit.clear&&!ownRing&&IsStriker(id))
         {
             const int team=id/5;
             if(transit.direction==1)

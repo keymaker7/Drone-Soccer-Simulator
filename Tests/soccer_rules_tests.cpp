@@ -218,6 +218,54 @@ void TestAIPracticeRoles()
         m.Reset();p=Homes();Forward(m,p,1);Check(m.Score(1)==1,"Reset did not restore red striker");
     }
 }
+
+void Pass(MatchRules& m,std::array<Vec3,10>& p,int id)
+{
+    const double sign=id<5?1.0:-1.0;
+    At(m,p,id,sign*6.1);At(m,p,id,sign*6.9);
+}
+void TestStrikerSuccession()
+{
+    MatchRules m;auto p=Homes();
+    Check(m.Striker(0)==0&&m.Striker(1)==5&&m.IsStriker(0)&&m.IsStriker(5)&&!m.IsStriker(1)&&!m.IsStriker(6),"Original tagged Strikers incorrect");
+    Check(m.Striker(-1)==-1&&m.Striker(2)==-1&&!m.IsStriker(-1)&&!m.IsStriker(10),"Invalid team or ID reported a Striker");
+    Check(!m.ConfirmStrikerSuccession(-1)&&!m.ConfirmStrikerSuccession(2),"Invalid team accepted a succession");
+    for(int team=0;team<2;++team)
+    {
+        m.Reset();p=Homes();const int striker=team*5,guide=striker+1;
+        Check(m.ConfirmStrikerSuccession(team)&&m.Striker(team)==guide&&m.IsStriker(guide)&&!m.IsStriker(striker),"Referee-confirmed Guide succession failed");
+        Check(m.Striker(1-team)==(1-team)*5,"Succession changed the opposing team's Striker");
+        Pass(m,p,striker);Check(m.Score(team)==0&&!m.IsOffside(team),"Replaced Striker still scored or created offside");
+        Pass(m,p,guide);Check(m.Score(team)==1&&m.IsOffside(team),"Successor Guide did not score with Striker rights");
+        Check(!m.ConfirmStrikerSuccession(team)&&m.Striker(team)==guide,"A second succession was accepted without another tagged successor");
+        Pass(m,p,(1-team)*5);Check(m.Score(1-team)==1,"Opposing original Striker lost scoring rights");
+    }
+    m.Reset();p=Homes();m.SetActive(1,false);
+    Check(!m.ConfirmStrikerSuccession(0)&&m.Striker(0)==0,"An inactive Guide succeeded the Striker");
+    m.Reset();p=Homes();At(m,p,1,6.1);At(m,p,1,6.5);m.ConfirmStrikerSuccession(0);At(m,p,1,6.9);
+    Check(m.Score(0)==0&&!m.IsOffside(0),"A transit begun as Guide was completed as a Striker goal");
+    // Return outside the opening so the way back is not a reverse passage that sets offside.
+    At(m,p,1,6.1,1);At(m,p,1,6.1);At(m,p,1,6.9);
+    Check(m.Score(0)==1&&m.Penalties(0)==0,"Successor could not score after starting a fresh transit");
+    m.Reset();p=Homes();At(m,p,0,6.1);At(m,p,0,6.5);m.ConfirmStrikerSuccession(0);At(m,p,0,6.9);
+    Check(m.Score(0)==0&&!m.IsOffside(0),"Replaced Striker completed a goal after succession");
+    m.Reset();p=Homes();m.ConfirmStrikerSuccession(0);m.SetActive(1,false);Pass(m,p,1);
+    Check(m.Score(0)==0,"Inactive successor scored");
+    m.ConfirmStrikerSuccession(1);m.Reset();Check(m.Striker(0)==0&&m.Striker(1)==5,"Reset did not restore original Strikers");
+    m.ConfirmStrikerSuccession(0);m.StartPractice();Check(m.Striker(0)==0,"Practice restart kept a succession");
+}
+void TestSuccessionAcrossPhases()
+{
+    MatchRules m;auto p=Homes();m.StartMatch();
+    Check(!m.ConfirmStrikerSuccession(0)&&m.Striker(0)==0,"Succession accepted during the ready signal");
+    m.Update(p,10);Check(m.GetPhase()==Phase::Playing&&m.ConfirmStrikerSuccession(0),"Succession rejected during live play");
+    Pass(m,p,1);m.Update(p,m.Remaining());
+    Check(m.GetPhase()==Phase::Break&&m.SetWins(0)==1&&m.Striker(0)==1,"Successor goal or role lost before the break");
+    Check(!m.ConfirmStrikerSuccession(1)&&m.Striker(1)==5,"Succession accepted during the maintenance break");
+    m.Update(p,m.Remaining());Check(m.CurrentSet()==2&&m.GetPhase()==Phase::Ready&&m.Striker(0)==0,"New set did not restore the original Striker");
+    m.Update(p,10);p=Homes();m.Update(p,.01);Forward(m,p,0);m.Update(p,m.Remaining());
+    Check(m.GetPhase()==Phase::Finished&&!m.ConfirmStrikerSuccession(0),"Succession accepted after the match finished");
+}
 }
 int main()
 {
@@ -226,7 +274,8 @@ int main()
         TestProfileAndPractice();TestFullPassAndBounce();TestRolesAndEdges();TestOffsideAndPenalties();
         TestClockAndSetWins();TestDrawsCarryAndWhistle();TestInvalidInputsAndReset();TestMovingGoalFrames();
         TestBothTeamsAllRoles();TestTransitIntegrity();TestBothTeamRetreatBoundaries();TestAIPracticeRoles();TestAIDuelRoles();
-        std::cout<<"PASS: "<<checks<<" FIDA rule checks (whole-ball goals, roles, offside, penalties, clock, sets and invalid inputs).\n";
+        TestStrikerSuccession();TestSuccessionAcrossPhases();
+        std::cout<<"PASS: "<<checks<<" FIDA rule checks (whole-ball goals, roles, succession, offside, penalties, clock, sets and invalid inputs).\n";
         return 0;
     }
     catch(const std::exception& e){std::cerr<<"FAIL after "<<checks<<" checks: "<<e.what()<<"\n";return 1;}
