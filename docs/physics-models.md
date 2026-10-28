@@ -1,5 +1,20 @@
 # 물리 모델과 보정 범위
 
+## 최신 설명 보완 — 2026-10-28
+
+[04ff2f4 기준 정적 점검·후속 검수](practice-candidates-2026-10-27.md#review-2026-10-28)를 반영한다. 아래 2026-10-26 표는 초기 모델 기록으로 보존하며, 다음 항목은 이 보완 설명을 우선한다. 이번에는 코드·계수·실행본을 바꾸거나 실제 시험을 수행하지 않았다.
+
+| 항목 | 최신 설명과 검증 한계 |
+|---|---|
+| 골대 | Practice에서 제한된 앞뒤 충돌 반응·감쇠, 공식 경기에서는 고정 지지를 사용한다. “골대는 흔들리지 않는 정적 강체”는 모든 모드의 현재 설명이 아니다. 반응이 둔하다는 피드백은 측정 후 개선할 과제다. |
+| 수동 제어 | 기본 수동 비행은 ANGLE 자세 복원이며 Yaw·스로틀은 직접 조작한다. 과거 “수동 Acro” 설명과 구분한다. ANGLE이나 Precision은 자동 고도 유지가 아니다. |
+| 수치 시간 | 현재 PhysicsStep은 OnPhysScenePreTick의 동기 장면 물리 예산으로 모델·센서·PID·배터리를 갱신한다. Chaos 최대 1/120초·8서브스텝 설정이 독립 고정 120Hz PID를 의미하지 않는다. [시간 계약](time-contract.md)과 [후속 설계](fixed-step-control-design.md)를 구분한다. |
+| 전력 | v0.7.4는 공급 가능한 전력에서 항전 부하를 고려해 실제 모터 추력·반작용 토크를 제한한다. 전압만 고려하는 설명과 구분하며 실측 배터리/ESC 보정 완료가 아니다. |
+
+근거: [현재 소스](../Source/ImperialWingsSimulator/SoccerDronePawn.cpp), [골대](../Source/ImperialWingsSimulator/ImperialSuspendedGoal.cpp), [v0.7.4 기록](releases/v0.7.4.md). 프레임별 비교·실물 조종·실측 계수의 추가 검증은 계획에 남는다.
+
+## 초기 모델 기록 — 2026-10-26
+
 2026-10-26 KST. 현재 계수는 실험용 가정값이다. 특정 STRIKER V3의 실측 디지털 트윈이나 FIDA 인증을 뜻하지 않는다. 기본값은 `Content/Data/physics-defaults.json`에서 수정하고 다시 패키징한다. 엔진 독립 계산은 `PhysicsModels.{h,cpp}`, 실제 힘 적용은 `SoccerDronePawn.cpp`에 있다.
 
 | 요청 항목 | 게임에 적용한 방법 | 범위와 한계 |
