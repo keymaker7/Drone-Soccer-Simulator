@@ -13,6 +13,9 @@ struct Settings
 {
     int Count=3, Difficulty=0;
     std::uint32_t Seed=1;
+    bool Duel=false;
+    int FirstId() const { return Duel?5:6; }
+    int DefenderCount() const { return Count-(Duel?1:0); }
     bool Valid() const { return (Count==3||Count==4)&&Difficulty>=0&&Difficulty<=2&&Seed!=0; }
 };
 inline double Distance(Point A,Point B){return std::sqrt((A.X-B.X)*(A.X-B.X)+(A.Y-B.Y)*(A.Y-B.Y)+(A.Z-B.Z)*(A.Z-B.Z));}
@@ -39,9 +42,9 @@ public:
         {
             NextDecision=Elapsed+Reaction(Config.Difficulty);++Decisions;
             Pattern=static_cast<int>(Next()%3); // staggered screen, lateral patrol, tracking screen
-            for(int I=0;I<Config.Count;++I)
+            for(int I=0;I<Config.DefenderCount();++I)
             {
-                const double Lane=Config.Count==3?(I==0?0:(I==1?1.5:-1.5)):(I<2?.6+I*1.2:-.6-(I-2)*1.2);
+                const double Lane=Config.DefenderCount()==2?(I==0?-1.2:1.2):Config.DefenderCount()==3?(I==0?0:(I==1?1.5:-1.5)):(I<2?.6+I*1.2:-.6-(I-2)*1.2);
                 const double PredictedY=Player.Y+(Config.Difficulty==2?std::clamp(Velocity.Y,-3.,3.)*.3:0);
                 const double Tracking=Pattern==2?std::clamp(PredictedY,-2.,2.)*.06*(Config.Difficulty+1):0;
                 const double Patrol=Pattern==1?std::sin(Elapsed*.7+I)*.18:0;
@@ -51,7 +54,7 @@ public:
                     std::clamp(Height+(Pattern==2?std::clamp(Player.Z-2.5,-1.,1.)*.25:0),1.8,3.3)};
             }
         }
-        for(int I=0;I<Config.Count;++I)
+        for(int I=0;I<Config.DefenderCount();++I)
         {
             const double D=Distance(Targets[I],Desired[I]);
             const double F=D>0?std::min(1.,Speed(Config.Difficulty)*Dt/D):0;

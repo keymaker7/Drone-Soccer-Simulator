@@ -77,7 +77,7 @@ void AImperialMatchManager::BeginPlay()
     // Shipping ignores the engine's developer-only -FPS override. Configure only
     // these explicit non-USB verification scenarios, then report actual Tick dt.
     double FixtureFPS=0;
-    if((bSmoke||bAngleSmoke||bContactSmoke||bViewSmoke||FParse::Param(FCommandLine::Get(),TEXT("ImperialAIRecoverySmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialAIResultsSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialAIPracticeSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialPowerSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialThrottleSmoke")))&&FParse::Param(FCommandLine::Get(),TEXT("UseFixedTimeStep"))&&FParse::Value(FCommandLine::Get(),TEXT("FPS="),FixtureFPS)&&FixtureFPS>=20&&FixtureFPS<=240)
+    if((bSmoke||bAngleSmoke||bContactSmoke||bViewSmoke||FParse::Param(FCommandLine::Get(),TEXT("ImperialAIRecoverySmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialAIDuelSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialAIResultsSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialAIPracticeSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialPowerSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialThrottleSmoke")))&&FParse::Param(FCommandLine::Get(),TEXT("UseFixedTimeStep"))&&FParse::Value(FCommandLine::Get(),TEXT("FPS="),FixtureFPS)&&FixtureFPS>=20&&FixtureFPS<=240)
     {FApp::SetFixedDeltaTime(1./FixtureFPS);FApp::SetUseFixedTimeStep(true);}
     bDemo=FParse::Param(FCommandLine::Get(),TEXT("ImperialDemo"));
     FParse::Value(FCommandLine::Get(),TEXT("ImperialCapture="),CaptureFile);
@@ -140,6 +140,8 @@ void AImperialMatchManager::SelectNext(){SelectDrone((Selected+1)%FMath::Max(1,D
 FString AImperialMatchManager::GetModeName()const
 {
     if(!IsAutonomyAllowed())return TEXT("LOS MANUAL MATCH");
+    if(bAIScoringClosed&&!IsAIPracticeActive())return TEXT("AI DUEL FINISHED / RESET TO TRAIN");
+    if(AISettings.Duel&&IsAIPracticeActive())return IsAILanding()?TEXT("AI DUEL LANDING"):TEXT("AI DUEL / TRAINING VARIANT");
     switch(Mode){case EImperialMode::AIPractice:return TEXT("AI DEFENCE PRACTICE");case EImperialMode::AILanding:return TEXT("AI LANDING");case EImperialMode::Mission:return TEXT("SDACS AUTONOMOUS");case EImperialMode::Hold:return TEXT("POSITION HOLD");case EImperialMode::Returning:return TEXT("RETURNING");default:return TEXT("MANUAL TRAINING");}
 }
 void AImperialMatchManager::Log(const FString& Message){Notice=Message;Events.Add(Message);if(Events.Num()>40)Events.RemoveAt(0);}
@@ -178,7 +180,7 @@ void AImperialMatchManager::ResetMatch()
 {
     FinishAIResult(TEXT("reset"));
     AdvanceGuidanceCommand();AILandingTargets.Reset();AIAge=AILandingAge=0;bAILandingFault=false;
-    for(auto& D:Drones)D->ResetDrone();Mode=EImperialMode::Manual;BlueScore=OrangeScore=0;Elapsed=0;Rules.Reset();
+    bAIScoringClosed=false;for(auto& D:Drones)D->ResetDrone();Mode=EImperialMode::Manual;BlueScore=OrangeScore=0;Elapsed=0;Rules.Reset();
     for(int32 I=0;I<Drones.Num();++I){PreviousPositions[I]=Drones[I]->GetActorLocation();GoalReady[I]=true;}
     // The next generation resets only this session's planner state. An unordered
     // separate /reset request could otherwise clear a newer mission.
@@ -288,6 +290,7 @@ void AImperialMatchManager::OnGuidance(FHttpRequestPtr Request,FHttpResponsePtr 
 }
 void AImperialMatchManager::UpdateScoring()
 {
+    if(bAIScoringClosed)return;
     std::array<drone_soccer::Vec3,10> Poses;
     for(int32 I=0;I<Drones.Num();++I){FVector P=Drones[I]->GetActorLocation()/100.;Poses[I]={P.X,P.Y,P.Z};}
     const int Before=Rules.Score(0)+Rules.Score(1);const auto Phase=Rules.GetPhase();
@@ -390,8 +393,8 @@ void AImperialMatchManager::RecordFlightSample(const FString& Event)
     Root->SetStringField(TEXT("source_sha256"),ImperialBuildInfo::SourceHash());
     Root->SetObjectField(TEXT("timing"),SimulationTime.Json());
     auto AI=MakeShared<FJsonObject>();AI->SetBoolField(TEXT("active"),IsAIPracticeActive());AI->SetBoolField(TEXT("landing"),IsAILanding());
-    AI->SetNumberField(TEXT("defenders"),AISettings.Count);AI->SetNumberField(TEXT("difficulty"),AISettings.Difficulty);AI->SetNumberField(TEXT("seed"),AISettings.Seed);
-    AI->SetNumberField(TEXT("recovery_attempts"),GetAIRecoveryAttempts());AI->SetNumberField(TEXT("recovering"),GetAIRecoveringCount());AI->SetNumberField(TEXT("decisions"),AIPlanner.DecisionCount());AI->SetNumberField(TEXT("age_s"),AIAge);Root->SetObjectField(TEXT("ai_practice"),AI);
+    AI->SetNumberField(TEXT("opponents"),AISettings.Count);AI->SetNumberField(TEXT("defenders"),AISettings.DefenderCount());AI->SetNumberField(TEXT("difficulty"),AISettings.Difficulty);AI->SetNumberField(TEXT("seed"),AISettings.Seed);
+    AI->SetBoolField(TEXT("duel"),AISettings.Duel);AI->SetNumberField(TEXT("attack_phase"),GetAIAttackPhase());AI->SetNumberField(TEXT("attack_cycles"),GetAIAttackCycles());AI->SetNumberField(TEXT("recovery_attempts"),GetAIRecoveryAttempts());AI->SetNumberField(TEXT("recovering"),GetAIRecoveringCount());AI->SetNumberField(TEXT("decisions"),AIPlanner.DecisionCount());AI->SetNumberField(TEXT("age_s"),AIAge);Root->SetObjectField(TEXT("ai_practice"),AI);
     auto* Radio=GetWorld()->GetGameInstance()->GetSubsystem<UImperialRadioSubsystem>();
     Root->SetBoolField(TEXT("radio_connected"),Radio&&Radio->IsConnected());Root->SetBoolField(TEXT("radio_enabled"),Radio&&Radio->IsEnabled());
     if(Radio){Root->SetArrayField(TEXT("stick"),{MakeShared<FJsonValueNumber>(Radio->GetNormalizedRoll()),MakeShared<FJsonValueNumber>(Radio->GetNormalizedPitch()),MakeShared<FJsonValueNumber>(Radio->GetNormalizedYaw()),MakeShared<FJsonValueNumber>(Radio->GetThrottle())});}

@@ -28,7 +28,7 @@ bool ParseResult(const FString& Json,FImperialAIResult& R)
     {const auto F=O->TryGetField(Key);if(!F.IsValid()||F->Type!=EJson::String)return false;}
     const auto Test=O->TryGetField(TEXT("test_session"));if(!Test.IsValid()||Test->Type!=EJson::Boolean)return false;
     double Version=0,Count=0,Level=0,Seed=0,Goals=0;FGuid Id;FDateTime Started,Ended;
-    if(!Int(O,TEXT("schema"),1,1,Version)||!Int(O,TEXT("defenders"),3,4,Count)||!Int(O,TEXT("difficulty"),0,2,Level)||
+    if(!Int(O,TEXT("schema"),1,2,Version)||!Int(O,Version==1?TEXT("defenders"):TEXT("opponents"),3,4,Count)||!Int(O,TEXT("difficulty"),0,2,Level)||
        !Int(O,TEXT("seed"),1,4294967295.,Seed)||!Int(O,TEXT("goals"),0,100000,Goals)||
        !Number(O,TEXT("practice_seconds"),0,604800,R.PracticeSeconds)||!Number(O,TEXT("landing_seconds"),0,604800,R.LandingSeconds)||
        !O->TryGetStringField(TEXT("session_id"),R.SessionId)||!FGuid::ParseExact(R.SessionId,EGuidFormats::Digits,Id)||
@@ -42,6 +42,7 @@ bool ParseResult(const FString& Json,FImperialAIResult& R)
     if(R.StopReason!=TEXT("manual_stop")&&R.StopReason!=TEXT("time_limit")&&R.StopReason!=TEXT("reset")&&R.StopReason!=TEXT("application_exit")&&R.StopReason!=TEXT("mode_changed")&&R.StopReason!=TEXT("defender_grounded")&&R.StopReason!=TEXT("defender_unavailable")&&R.StopReason!=TEXT("recovery_failed"))return false;
     if(R.CompletionReason!=TEXT("landed")&&R.CompletionReason!=TEXT("reset")&&R.CompletionReason!=TEXT("application_exit")&&R.CompletionReason!=TEXT("mode_changed"))return false;
     R.Settings={static_cast<int>(Count),static_cast<int>(Level),static_cast<uint32>(Seed)};R.Goals=static_cast<int32>(Goals);
+    if(Version==2){FString Mode;double Red=0;if(!O->TryGetStringField(TEXT("session_mode"),Mode)||(Mode!=TEXT("defence")&&Mode!=TEXT("duel"))||!Int(O,TEXT("opponent_goals"),0,100000,Red))return false;R.Settings.Duel=Mode==TEXT("duel");R.OpponentGoals=static_cast<int32>(Red);}
     if(O->HasField(TEXT("recovery_attempts"))){double Attempts=0;if(!Int(O,TEXT("recovery_attempts"),0,100000,Attempts))return false;R.RecoveryAttempts=static_cast<int32>(Attempts);}
     const TArray<TSharedPtr<FJsonValue>>* Rows=nullptr;if(!O->TryGetArrayField(TEXT("aircraft"),Rows)||Rows->Num()!=Count+1)return false;
     TSet<int32> Seen;
@@ -49,18 +50,18 @@ bool ParseResult(const FString& Json,FImperialAIResult& R)
     {
         if(!Row.IsValid()||Row->Type!=EJson::Object)return false;const auto A=Row->AsObject();double AircraftId=0,Impacts=0,Remaining=0;
         if(!A.IsValid()||!Int(A,TEXT("id"),0,9,AircraftId)||!Int(A,TEXT("guard_impacts"),0,1000000,Impacts)||!Number(A,TEXT("guard_remaining_percent"),0,100,Remaining))return false;
-        const int32 I=static_cast<int32>(AircraftId);if((I!=0&&(I<6||I>=6+Count))||Seen.Contains(I))return false;
+        const int32 I=static_cast<int32>(AircraftId);if((I!=0&&(I<R.Settings.FirstId()||I>=R.Settings.FirstId()+Count))||Seen.Contains(I))return false;
         Seen.Add(I);R.Aircraft.Add({I,static_cast<int32>(Impacts),Remaining});
     }
     R.bSnapshot=R.bSaved=true;return true;
 }
 FString SerializeResult(const FImperialAIResult& R)
 {
-    auto O=MakeShared<FJsonObject>();O->SetNumberField(TEXT("schema"),1);O->SetStringField(TEXT("session_id"),R.SessionId);
+    auto O=MakeShared<FJsonObject>();O->SetNumberField(TEXT("schema"),2);O->SetStringField(TEXT("session_mode"),R.Settings.Duel?TEXT("duel"):TEXT("defence"));O->SetNumberField(TEXT("opponent_goals"),R.OpponentGoals);O->SetStringField(TEXT("session_id"),R.SessionId);
     O->SetStringField(TEXT("started_utc"),R.StartedUtc);O->SetStringField(TEXT("ended_utc"),R.EndedUtc);
     O->SetStringField(TEXT("stop_reason"),R.StopReason);O->SetStringField(TEXT("completion_reason"),R.CompletionReason);
     O->SetStringField(TEXT("source_sha256"),R.SourceHash);O->SetStringField(TEXT("build_version"),R.BuildVersion);O->SetBoolField(TEXT("test_session"),R.bTestSession);
-    O->SetNumberField(TEXT("defenders"),R.Settings.Count);O->SetNumberField(TEXT("difficulty"),R.Settings.Difficulty);O->SetNumberField(TEXT("seed"),R.Settings.Seed);
+    O->SetNumberField(TEXT("opponents"),R.Settings.Count);O->SetNumberField(TEXT("difficulty"),R.Settings.Difficulty);O->SetNumberField(TEXT("seed"),R.Settings.Seed);
     O->SetNumberField(TEXT("goals"),R.Goals);O->SetNumberField(TEXT("practice_seconds"),R.PracticeSeconds);O->SetNumberField(TEXT("landing_seconds"),R.LandingSeconds);
     O->SetNumberField(TEXT("recovery_attempts"),R.RecoveryAttempts);
     TArray<TSharedPtr<FJsonValue>> Rows;for(const auto& A:R.Aircraft){auto Row=MakeShared<FJsonObject>();Row->SetNumberField(TEXT("id"),A.Id);Row->SetNumberField(TEXT("guard_impacts"),A.GuardImpacts);Row->SetNumberField(TEXT("guard_remaining_percent"),A.GuardRemaining);Rows.Add(MakeShared<FJsonValueObject>(Row));}
@@ -70,9 +71,10 @@ FString SerializeResult(const FImperialAIResult& R)
 void AImperialMatchManager::SnapshotAIResult(const FString& Reason)
 {
     if(!CurrentAIResult.Exists()||CurrentAIResult.bSnapshot)return;
-    CurrentAIResult.bSnapshot=true;CurrentAIResult.StopReason=Reason;CurrentAIResult.PracticeSeconds=AIAge;CurrentAIResult.Goals=Rules.Score(0);
+    CurrentAIResult.bSnapshot=true;CurrentAIResult.StopReason=Reason;CurrentAIResult.PracticeSeconds=AIAge;CurrentAIResult.Goals=Rules.Score(0);CurrentAIResult.OpponentGoals=Rules.Score(1);
+    if(CurrentAIResult.Settings.Duel)bAIScoringClosed=true;
     CurrentAIResult.RecoveryAttempts=GetAIRecoveryAttempts();
-    for(int32 Id=0;Id<Drones.Num();++Id)if(Id==0||(Id>=6&&Id<6+AISettings.Count))
+    for(int32 Id=0;Id<Drones.Num();++Id)if(Id==0||(Id>=AISettings.FirstId()&&Id<AISettings.FirstId()+AISettings.Count))
     {const auto* D=GetDrone(Id);CurrentAIResult.Aircraft.Add({Id,D->GetGuardImpactCount(),D->GetGuardIntegrityPercent()});}
 }
 void AImperialMatchManager::FinishAIResult(const FString& Reason)

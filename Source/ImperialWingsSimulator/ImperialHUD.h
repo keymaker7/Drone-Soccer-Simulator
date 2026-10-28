@@ -31,7 +31,7 @@ private:
     TArray<FBox2D> Bounds;
     bool bRadioPanelOpen = false;
     bool bAIPracticePanel=false;
-    bool bAIResultPage=false;
+    bool bAIResultPage=false,bAIDraftDuel=false;
     int32 AIDraftCount=3,AIDraftDifficulty=0;
     uint32 AIDraftSeed=1;
     void DrawAIPracticePanel(AImperialMatchManager& Manager);

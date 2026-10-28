@@ -9,6 +9,7 @@
 #include "AITraining.h"
 #include "AIPracticeResult.h"
 #include "AIRecovery.h"
+#include "AIAttacker.h"
 #include "ImperialMatchManager.generated.h"
 class ASoccerDronePawn;
 class FJsonValue;
@@ -46,6 +47,9 @@ public:
     int32 GetAIRecoveryAttempts() const;
     int32 GetAIRecoveringCount() const;
     FString GetAIStatus() const;
+    int32 GetAIAttackCycles() const { return AIAttacker.GetCycles(); }
+    int32 GetAIAttackPhase() const { return static_cast<int32>(AIAttacker.GetPhase()); }
+    bool IsAIDuelFinished() const { return bAIScoringClosed; }
     const FImperialAIResult& GetAIResult() const { return LastAIResult; }
     bool SaveAIResult();
     void DiscardUnsavedAIResult();
@@ -66,7 +70,7 @@ public:
     FString GetModeName() const;
     FString GetNotice() const { return Notice; }
     int32 GetScore(int32 Team) const { return Rules.Score(Team); }
-    double GetElapsed() const { return Rules.GetPhase()==drone_soccer::Phase::Practice?Elapsed:Rules.Remaining(); }
+    double GetElapsed() const { return AISettings.Duel&&(IsAIPracticeActive()||bAIScoringClosed)?FMath::Max(0.,180.-AIAge):(Rules.GetPhase()==drone_soccer::Phase::Practice?Elapsed:Rules.Remaining()); }
     float GetFPS() const { return SmoothFPS; }
     const FImperialSimulationTime& GetSimulationTime() const { return SimulationTime; }
     float GetClosestSeparation() const { return ClosestSeparation; }
@@ -77,6 +81,8 @@ public:
 private:
     ImperialAI::Settings AISettings;
     ImperialAI::Planner AIPlanner;
+    ImperialAI::Attacker AIAttacker;
+    bool bAIScoringClosed=false;
     std::array<ImperialAI::Recovery,4> AIRecovery;
     TArray<FVector> AILandingTargets;
     double AIAge=0,AILandingAge=0;

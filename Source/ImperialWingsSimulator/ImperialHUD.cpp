@@ -559,13 +559,15 @@ void AImperialHUD::NotifyHitBoxClick(FName BoxName)
         if(N==TEXT("AI_Stop")){M->StopAIPractice();return;}
         if(!M->IsAIPracticeActive())
         {
-            if(N==TEXT("AI_Count3"))AIDraftCount=3;
+            if(N==TEXT("AI_Defence"))bAIDraftDuel=false;
+            else if(N==TEXT("AI_Duel"))bAIDraftDuel=true;
+            else if(N==TEXT("AI_Count3"))AIDraftCount=3;
             else if(N==TEXT("AI_Count4"))AIDraftCount=4;
             else if(N==TEXT("AI_Easy"))AIDraftDifficulty=0;
             else if(N==TEXT("AI_Medium"))AIDraftDifficulty=1;
             else if(N==TEXT("AI_Hard"))AIDraftDifficulty=2;
             else if(N==TEXT("AI_Seed")){AIDraftSeed=FMath::RandHelper(1000000)+1;}
-            else if(N==TEXT("AI_Start")){if(M->StartAIPractice({AIDraftCount,AIDraftDifficulty,AIDraftSeed}))ToggleAIPracticePanel();}
+            else if(N==TEXT("AI_Start")){if(M->StartAIPractice({AIDraftCount,AIDraftDifficulty,AIDraftSeed,bAIDraftDuel}))ToggleAIPracticePanel();}
         }
         return;
     }

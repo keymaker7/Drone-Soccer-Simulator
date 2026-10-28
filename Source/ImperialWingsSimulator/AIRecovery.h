@@ -9,7 +9,7 @@ class Recovery
 {
 public:
     void Reset(){*this=Recovery();}
-    RecoveryAction Step(double Dt,Point Position,Point Target,double UpZ,bool Armed,bool Autonomous,int Slot)
+    RecoveryAction Step(double Dt,Point Position,Point Target,double UpZ,bool Armed,bool Autonomous,int Slot,bool Attacker=false)
     {
         if(!std::isfinite(Dt)||Dt<=0||Dt>.25)return Action;
         if(!Finite(Position)||!Finite(Target)||!std::isfinite(UpZ))return Action=RecoveryAction::Failed;
@@ -38,7 +38,7 @@ public:
         if(Consecutive>=2)return Action=RecoveryAction::Failed;
         ++Consecutive;++Attempts;EscapeTime=0;WindowTime=0;
         const double Side=Position.Y>.2?-1.:(Position.Y<-.2?1.:(Slot%2==0?1.:-1.));
-        EscapeTarget={std::clamp(Position.X-.9,1.4,6.6),std::clamp(Position.Y+Side*.45,-2.8,2.8),std::clamp(Position.Z+.45,.65,3.7)};
+        EscapeTarget={std::clamp(Position.X+(Attacker&&Position.X<0?.9:-.9),Attacker?-7.3:1.4,Attacker?7.3:6.6),std::clamp(Position.Y+Side*.45,-2.8,2.8),std::clamp(Position.Z+.45,.65,3.7)};
         return Action=RecoveryAction::Escape;
     }
     Point GetTarget() const { return EscapeTarget; }

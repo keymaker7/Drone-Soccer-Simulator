@@ -28,8 +28,8 @@ def main():
   run('reload','reload',data);assert digest(files[0])==original and len(list(files[0].parent.glob('*.json')))==1
   bad_cases={
    'unsupported_schema':lambda d:d.update(schema=99),
-   'string_number':lambda d:d.update(defenders='3'),
-   'invalid_count':lambda d:d.update(defenders=8),
+   'string_number':lambda d:d.update(opponents='3'),
+   'invalid_count':lambda d:d.update(opponents=8),
    'negative_time':lambda d:d.update(practice_seconds=-1),
    'fractional_goal':lambda d:d.update(goals=.5),
    'duplicate_aircraft':lambda d:d['aircraft'][1].update(id=0),
@@ -39,6 +39,8 @@ def main():
    'string_bool':lambda d:d.update(test_session='true'),
    'numeric_version_name':lambda d:d.update(build_version=78),
    'missing_field':lambda d:d.pop('test_session'),
+   'invalid_duel_mode':lambda d:d.update(session_mode='match'),
+   'invalid_opponent_score':lambda d:d.update(opponent_goals=-1),
    'invalid_recovery_count':lambda d:d.update(recovery_attempts=-1),
   }
   for name,alter in bad_cases.items():
@@ -47,7 +49,7 @@ def main():
    run(name,'invalid',user);assert digest(target)==before,'malformed history altered'
   corrupt=files[0].parent/'9999999999999999999-corrupt.json';corrupt.write_text('{broken',encoding='utf-8');old=digest(corrupt)
   run('latest_corrupt_fallback','reload',data);assert digest(corrupt)==old and digest(files[0])==original
-  legacy=out/'legacy-user/TrainingResults/AI/0000000000000000001-legacy.json';legacy.parent.mkdir(parents=True);fixture=copy.deepcopy(saved);fixture.pop('recovery_attempts');legacy.write_text(json.dumps(fixture),encoding='utf-8');before=digest(legacy)
+  legacy=out/'legacy-user/TrainingResults/AI/0000000000000000001-legacy.json';legacy.parent.mkdir(parents=True);fixture=copy.deepcopy(saved);fixture.pop('recovery_attempts');fixture['schema']=1;fixture['defenders']=fixture.pop('opponents');fixture.pop('session_mode');fixture.pop('opponent_goals');legacy.write_text(json.dumps(fixture),encoding='utf-8');before=digest(legacy)
   run('legacy_without_recovery_count','reload',legacy.parent.parent.parent);assert digest(legacy)==before
   blocked=out/'save-blocked-user';blocked.mkdir();(blocked/'TrainingResults').write_text('intentional file blocks directory creation',encoding='utf-8')
   run('save_failure_retry','savefail',blocked)
