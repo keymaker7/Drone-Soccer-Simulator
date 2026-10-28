@@ -37,11 +37,31 @@ bool ClearSegment(Vec3 from,Vec3 to,double a,double b,double extent)
 }
 MatchRules::MatchRules(){Reset();}
 std::array<GoalFrame,2> NominalGoalFrames(){std::array<GoalFrame,2> G{};G[0].center={-6.5,0,3};G[1].center={6.5,0,3};return G;}
+const char* EventName(EventType type)
+{
+    switch(type)
+    {
+    case EventType::Goal:return "goal";
+    case EventType::ReversePassage:return "reverse_passage";
+    case EventType::OffsideAttackPenalty:return "offside_attack_penalty";
+    case EventType::ReverseEntryPenalty:return "reverse_entry_penalty";
+    case EventType::OffsideCleared:return "offside_cleared";
+    case EventType::StrikerSuccession:return "striker_succession";
+    case EventType::SetEnd:return "set_end";
+    }
+    return "unknown";
+}
+void MatchRules::Record(EventType type,int team,int id,double time,double clock)
+{
+    if(events.size()>=MaxEvents){events.erase(events.begin());++droppedEvents;}
+    events.push_back({type,team,id,currentSet,phase,time,clock,scores});
+}
 void MatchRules::ClearTransits(){for(auto& drone:transits)for(auto& ring:drone)ring=Transit{};}
 void MatchRules::Reset()
 {
     previous={};previousGoals=NominalGoalFrames();active.fill(true);scores={};penalties={};wins={};offside={};
-    strikers=OriginalStrikers;phase=Phase::Practice;currentSet=0;remaining=0;havePrevious=false;ClearTransits();
+    strikers=OriginalStrikers;phase=Phase::Practice;currentSet=0;remaining=0;elapsed=0;havePrevious=false;ClearTransits();
+    events.clear();droppedEvents=0;
 }
 void MatchRules::StartPractice(){Reset();}
 void MatchRules::StartMatch(){Reset();phase=Phase::Ready;currentSet=1;remaining=RuleProfileFIDA40::ReadySeconds;}
@@ -69,6 +89,7 @@ bool MatchRules::ConfirmStrikerSuccession(int team)
     strikers[team]=guide;
     // A Guide already partway through the attack hoop must start a new transit.
     transits[guide][team]=Transit{};
+    Record(EventType::StrikerSuccession,team,guide,elapsed,remaining);
     return true;
 }
 void MatchRules::AdvanceClock(double dt)
@@ -76,15 +97,17 @@ void MatchRules::AdvanceClock(double dt)
     // A match contains at most three sets; twelve transitions cover even a huge dt.
     for(int transitions=0;transitions<12&&dt>0;++transitions)
     {
-        if(phase==Phase::Practice||phase==Phase::Finished)return;
+        if(phase==Phase::Practice||phase==Phase::Finished)break;
         const double consumed=std::min(dt,remaining);
-        remaining=std::max(0.0,remaining-consumed);dt-=consumed;
-        if(remaining>Epsilon)return;
+        remaining=std::max(0.0,remaining-consumed);dt-=consumed;elapsed+=consumed;
+        if(remaining>Epsilon)break;
         ClearTransits();
         if(phase==Phase::Ready){phase=Phase::Playing;remaining=RuleProfileFIDA40::SetSeconds;}
         else if(phase==Phase::Playing)
         {
-            if(scores[0]>scores[1])++wins[0];else if(scores[1]>scores[0])++wins[1];
+            const int winner=scores[0]>scores[1]?0:(scores[1]>scores[0]?1:-1);
+            Record(EventType::SetEnd,winner,-1,elapsed,0);
+            if(winner>=0)++wins[winner];
             if(wins[0]>=2||wins[1]>=2||currentSet>=3){phase=Phase::Finished;remaining=0;}
             else{phase=Phase::Break;remaining=RuleProfileFIDA40::BreakSeconds;}
         }
@@ -96,8 +119,9 @@ void MatchRules::AdvanceClock(double dt)
             phase=Phase::Ready;remaining=RuleProfileFIDA40::ReadySeconds;
         }
     }
+    elapsed+=dt;
 }
-void MatchRules::ProcessMotion(int id,int attackingTeam,Vec3 from,Vec3 to,bool bodyMoved)
+void MatchRules::ProcessMotion(int id,int attackingTeam,Vec3 from,Vec3 to,bool bodyMoved,double time,double clock)
 {
     const double sign=attackingTeam==0?1.0:-1.0;
     const double goal=sign*RuleProfileFIDA40::GoalX;
@@ -113,7 +137,8 @@ void MatchRules::ProcessMotion(int id,int attackingTeam,Vec3 from,Vec3 to,bool b
             transit.direction=-1;transit.clear=true;
             // FIDA prohibits even partial reverse entry through one's own hoop.
             const double t=(extent-a)/(b-a);
-            if(bodyMoved&&ownRing&&Fits(Interpolate(from,to,std::clamp(t,0.0,1.0))))++penalties[id/5];
+            if(bodyMoved&&ownRing&&Fits(Interpolate(from,to,std::clamp(t,0.0,1.0))))
+            {++penalties[id/5];Record(EventType::ReverseEntryPenalty,id/5,id,time,clock);}
         }
     }
     if(transit.direction==0)return;
@@ -125,11 +150,9 @@ void MatchRules::ProcessMotion(int id,int attackingTeam,Vec3 from,Vec3 to,bool b
         if(bodyMoved&&transit.clear&&!ownRing&&IsStriker(id))
         {
             const int team=id/5;
-            if(transit.direction==1)
-            {
-                if(!offside[team])++scores[team];
-                else ++penalties[team];
-            }
+            if(transit.direction!=1)Record(EventType::ReversePassage,team,id,time,clock);
+            else if(!offside[team]){++scores[team];Record(EventType::Goal,team,id,time,clock);}
+            else{++penalties[team];Record(EventType::OffsideAttackPenalty,team,id,time,clock);}
             offside[team]=true;
         }
         transit=Transit{};
@@ -157,6 +180,8 @@ void MatchRules::Update(const std::array<Vec3,10>& positions,double dt,const std
     const bool mayScore=phase==Phase::Practice||phase==Phase::Playing;
     // A frame spanning the end whistle may only score in its playing portion.
     const double fraction=phase==Phase::Playing?std::min(1.0,remaining/dt):1.0;
+    // Decisions are stamped at the end of the judged part of this frame.
+    const double eventTime=elapsed+fraction*dt,eventClock=phase==Phase::Playing?std::max(0.0,remaining-fraction*dt):remaining;
     if(havePrevious&&mayScore)
     {
         for(int id=0;id<10;++id)if(active[id])for(int team=0;team<2;++team)
@@ -171,7 +196,7 @@ void MatchRules::Update(const std::array<Vec3,10>& positions,double dt,const std
             }
             const Vec3 Last=Interpolate(previous[id],positions[id],fraction);
             const bool BodyMoved=std::abs(Dot(Sub(Last,previous[id]),End.normal))>Epsilon;
-            ProcessMotion(id,team,Canonical(previous[id],previousGoals[Index],Index),Canonical(Last,End,Index),BodyMoved);
+            ProcessMotion(id,team,Canonical(previous[id],previousGoals[Index],Index),Canonical(Last,End,Index),BodyMoved,eventTime,eventClock);
         }
         for(int team=0;team<2;++team)if(offside[team])
         {
@@ -184,7 +209,7 @@ void MatchRules::Update(const std::array<Vec3,10>& positions,double dt,const std
                 // clearance before lifting offside, symmetrically for both teams.
                 if(team==0?x+RuleProfileFIDA40::BallRadius>=-Epsilon:x-RuleProfileFIDA40::BallRadius<=Epsilon)retreated=false;
             }
-            if(retreated)offside[team]=false;
+            if(retreated){offside[team]=false;Record(EventType::OffsideCleared,team,-1,eventTime,eventClock);}
         }
     }
     previous=positions;previousGoals=goals;havePrevious=true;AdvanceClock(dt);
