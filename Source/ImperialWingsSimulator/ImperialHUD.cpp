@@ -1,4 +1,5 @@
 #include "ImperialHUD.h"
+#include "ImperialLocalization.h"
 #include "ImperialMatchManager.h"
 #include "ImperialPlayerController.h"
 #include "SoccerDronePawn.h"
@@ -37,16 +38,20 @@ void AImperialHUD::Rect(float X,float Y,float W,float H,FLinearColor C)
 }
 void AImperialHUD::Text(const FString& V,float X,float Y,float Size,FLinearColor C,bool Right)
 {
+    // Engine's runtime composite font supplies DroidSansFallback for Hangul.
+    // Measure and draw exactly the same localized string with the same font.
+    const FString Display=ImperialLocalization::Translate(V);
     UFont* F=GEngine?GEngine->GetMediumFont():nullptr;if(!F||!Canvas)return;
     float W=0,H=0;Canvas->StrLen(F,TEXT("Ag"),W,H);const float S=Size/FMath::Max(1.f,H);
-    W=0;if(Right)Canvas->TextSize(F,V,W,H,S,S);
-    const auto P=Screen(X-W,Y);DrawText(V,C,P.X,P.Y,F,S*Scale);
+    W=0;if(Right)Canvas->TextSize(F,Display,W,H,S,S);
+    const auto P=Screen(X-W,Y);DrawText(Display,C,P.X,P.Y,F,S*Scale);
 }
 FString AImperialHUD::Fit(const FString& V,float Size,float Width)const
 {
-    UFont* F=GEngine?GEngine->GetMediumFont():nullptr;if(!F||!Canvas)return V;
+    const FString Display=ImperialLocalization::Translate(V);
+    UFont* F=GEngine?GEngine->GetMediumFont():nullptr;if(!F||!Canvas)return Display;
     float W=0,H=0;Canvas->StrLen(F,TEXT("Ag"),W,H);const float S=Size/FMath::Max(1.f,H);
-    Canvas->TextSize(F,V,W,H,S,S);if(W<=Width)return V;FString R=V;
+    Canvas->TextSize(F,Display,W,H,S,S);if(W<=Width)return Display;FString R=Display;
     do{R.LeftChopInline(1);Canvas->TextSize(F,R+TEXT("..."),W,H,S,S);}while(W>Width&&R.Len()>0);
     return R+TEXT("...");
 }
@@ -66,7 +71,10 @@ void AImperialHUD::Button(FName Name,const FString& Label,float X,float Y,float 
     const auto Accent=Warning?Orange:Cyan;
     Rect(X,Y,W,H,Active||Hover?FLinearColor(.045f,.23f,.28f,.97f):FLinearColor(.055f,.10f,.15f,.97f));
     Rect(X,Y,W,1,Active||Hover?Accent:Edge);if(Active||Hover)Rect(X,Y,2,H,Accent);
-    Text(Label,X+11,Y+(H-13)*.5f,13,Disabled?Muted:(Active||Hover||Warning?Accent:White));
+    const FString Display=ImperialLocalization::Translate(Label);
+    float LabelSize=13;
+    while(LabelSize>10&&Fit(Display,LabelSize,W-22)!=Display)LabelSize-=.5f;
+    Text(Fit(Display,LabelSize,W-22),X+11,Y+(H-LabelSize)*.5f,LabelSize,Disabled?Muted:(Active||Hover||Warning?Accent:White));
     if(!Disabled)ButtonTargets.Add({Name,FBox2D(Screen(X,Y),Screen(X+W,Y+H)),ButtonPriority});
 }
 void AImperialHUD::ClickPointer()
@@ -274,6 +282,8 @@ void AImperialHUD::DrawRadioPanel(AImperialMatchManager& Manager)
     Panel(320,126,960,748);Rect(320,126,4,748,Cyan);ButtonPriority=110;
     Text(TEXT("RADIO / USB CONTROLLER"),348,151,25,White);
     Button(TEXT("Radio_Close"),TEXT("CLOSE"),1172,148,80,32);
+    Button(TEXT("Radio_Language"),ImperialLocalization::IsKorean()?TEXT("English"):TEXT("한국어"),805,148,168,32);
+    if(!LanguageMessage.IsEmpty())Text(Fit(LanguageMessage,9,904),348,859,9,Amber);
     UImperialRadioSubsystem* Radio=GetRadio();
     if(!Radio){Text(TEXT("USB controller service is unavailable."),348,212,16,Amber);ButtonPriority=10;return;}
     if(bResponsePanel){DrawResponsePanel(*Radio);ButtonPriority=10;return;}
@@ -304,10 +314,11 @@ void AImperialHUD::DrawRadioPanel(AImperialMatchManager& Manager)
     Text(Device?FString::Printf(TEXT("%d AXES  /  %d BUTTONS  /  DRIVER ID %04X:%04X"),Device->AxisCount,Device->ButtonCount,Device->ManufacturerId,Device->ProductId):TEXT("The device name shown here comes directly from Windows."),348,249,10,Muted);
     Button(TEXT("Radio_Refresh"),TEXT("REFRESH"),1032,205,106,34);
     Button(TEXT("Radio_Device"),TEXT("NEXT DEVICE"),1148,205,104,34);
+    Text(TEXT("Rudder turns the nose; throttle controls motor thrust. Recheck every new PC or device."),348,264,10,Muted);
     Rect(348,276,904,1,Edge);
     const bool ShowDevicePicker=!Device&&!Guided&&!bRadioAdvanced;
     Text(ShowDevicePicker?TEXT("CHOOSE YOUR USB CONTROLLER"):TEXT("LIVE STICK AXES"),348,292,12,White);
-    Text(TEXT("CHANNEL ASSIGNMENT"),830,292,12,White);
+    Text(Calibrated||Guided?TEXT("CHANNEL ASSIGNMENT"):TEXT("STICK SETUP FINDS THE FOUR AXES"),830,292,12,White);
     const TArray<float>& Axes=Radio->GetRawAxes();
     const TCHAR* AxisNames[]={TEXT("X"),TEXT("Y"),TEXT("Z"),TEXT("R"),TEXT("U"),TEXT("V")};
     if(ShowDevicePicker)
@@ -355,7 +366,10 @@ void AImperialHUD::DrawRadioPanel(AImperialMatchManager& Manager)
     TSet<int32> UsedAxes;
     for(int32 I=0;I<4;++I)
     {
-        const float Y=321+I*44.f;const int32 Axis=Radio->GetMappedAxis(I);UsedAxes.Add(Axis);
+        const float Y=321+I*44.f;
+        // Advanced defaults are editable, but are not measured calibration evidence.
+        const int32 Axis=Guided||Calibrated||bRadioAdvanced?Radio->GetMappedAxis(I):INDEX_NONE;
+        UsedAxes.Add(Axis);
         Text(Channels[I],830,Y+10,11,White);
         if(Guided||!bRadioAdvanced)
         {
@@ -544,6 +558,12 @@ void AImperialHUD::NotifyHitBoxClick(FName BoxName)
     if(const auto* ReadOnlyController=Cast<AImperialPlayerController>(PlayerOwner);ReadOnlyController&&ReadOnlyController->IsReadOnlyView()&&
        (N==TEXT("Auto")||N==TEXT("Hold")||N==TEXT("Return")||N==TEXT("Manual")||N==TEXT("Reset")||N==TEXT("StartMatch")||N==TEXT("Arm")||N==TEXT("ArmSelected")))return;
     UE_LOG(LogTemp,Display,TEXT("IMPERIAL_UI_CLICK %s"),*N);
+    if(N==TEXT("Radio_Language"))
+    {
+        LanguageMessage=ImperialLocalization::SetKorean(!ImperialLocalization::IsKorean())?FString():
+            TEXT("Language could not be saved. Check your Windows user-data folder permissions.");
+        return;
+    }
     if(N==TEXT("Exit")){M->PrepareToExit();UKismetSystemLibrary::QuitGame(this,PlayerOwner,EQuitPreference::Quit,false);return;}
     if(bAIPracticePanel)
     {

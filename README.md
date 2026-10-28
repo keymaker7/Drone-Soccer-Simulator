@@ -1,5 +1,11 @@
 # Imperial Wings Drone Soccer Simulator
 
+## v0.7.12-rc1 — 한국어 조종기 안내·안전 저장 사전 배포
+
+**[새 Windows 실행 ZIP](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/download/v0.7.12-rc1/ImperialWings-Windows-v0.7.12-rc1.zip)** · [변경·검증 범위](docs/releases/v0.7.12-rc1.md) · [우선순위·사용 안내](docs/controller-korean-2026-10-28.md).
+
+한국어 조종기 안내·영어 전환과 이전 보정을 보존하는 안전 저장을 추가했습니다. 최신 AI 연습·대전과 기존 Mode1/2·레이트/Expo·아밍 설정을 포함하며, 진행 중 Topgun은 포함하지 않았습니다. ZIP 전체를 새 폴더에 풀고 `ImperialWingsLauncher.exe`를 실행합니다. 실물 USB 비행·케이블 손실/복구·다른 PC 검사는 미검증입니다. 아래 v0.7.4 다운로드와 과거 개발 기록은 보존합니다.
+
 **[전체 개발 계획서](docs/master-development-plan.md)** — 피드백12개, 현재 완료/미완료 상태, 조종기·AI·탑건·LOS·언어/UI·경기·물리·LAN/온라인·배포의 순서와 완료 기준을 통합했습니다. [28개 분야·326개 상세 기능](docs/simulator-feature-plan.md) · [작업 체크리스트](IMPERIAL_WINGS_CODEX_TASKS.md).
 
 <a id="current-development"></a>

@@ -579,3 +579,19 @@ float로 저장한 실제 모터 추력에서 전력을 추정하면 double 공�
 최종 원본은 Editor `Saved/Verification/solver-bridge-20261027-092934-999092-0c8e98ce/results.json`, Shipping `Saved/Verification/solver-bridge-20261027-092910-580395/results.json`, 새 경로 `Saved/Verification/solver-bridge-20261027-093111-509764-12893a4f/results.json`이다. 일반 비행 회귀는 `Saved/Verification/flight-trace-20261027-093345-744322/results.json`, 포터블은 `Saved/Verification/portable-bridge-r1/result.json`에 있다.
 
 완료 범위는 **별도 단순 강체의 입력·힘 연결 기반**이다. 일반 드론의 센서·PID·모터/배터리 이관, 중심이 치우친 기체·초기화/파괴/재바인딩·비동기 수명·정확한120Hz 비행은 후속이다. 입력 만료는 시뮬레이션 시각 기준이며 실물 USB 지연이나 실제 벽시계 정지 감시를 뜻하지 않는다. GPU·다른 물리PC 시험으로 확대하지 않는다. 공식 v0.7.4-r2 다운로드는 유지한다. [다음 작업](sequential-work-2026-10-27.md#r9-solver-bridge).
+
+
+<a id="controller-ko-0712"></a>
+## 2026-10-28 v0.7.12-rc1 한국어 조종기 안내·안전 저장
+
+사용자 우선순위에 따라 최신 완료 소스12150ce에서 별도 작업 폴더를 만들고 한국어 안내와 쉬운 조종기 설정을 먼저 진행했다. 실제 Boxer 보정과 원본 문서 변경, R11 Topgun 작업은 덮어쓰지 않았다.
+
+- UE5.8.3 Editor와 Windows Shipping build/cook/stage/package/archive 성공.
+- 수치 보정205개와 레이트/Expo/아밍4,881개 통과. 실물 입력 시험이 아니다.
+- Editor1600×1000 및 Windows1280×720의 언어/동적 안내/저장 실패/재실행47개씩 통과하고 실제 GPU의 한글 글꼴·배치를 확인했다.
+- 기존 Mode1/2 20개·입력 안전29개를 Editor와 Windows에서 각각 통과했다. Windows 응답 설정13종·66개, AI 대전6구성 및 중단/재실행94개, 실제10대 ANGLE20/60/240FPS를 확인했다.
+- 새 ZIP을 한글·공백 경로에 전체 해제하고 개발 도구 PATH를 뺀 상태의 실행기/APF/새 사용자 저장/파일 해시/개인 설정 제외13개를 통과했다.
+- 첫 화면에서 숫자로 시작하는 장치 발견 안내의 한국어 누락을 발견해 빈 접두사 형식 매칭을 고쳤다. 언어 파일도 보정과 동일한 안전 저장 함수로 바꾸고 Windows 잠금 실패 시 현재 언어·이전 파일 보존과 임시파일 정리를 검사했다.
+- 실물 Boxer 연속 비행/아밍키·케이블 분리·다른 물리 PC 검사는 미검증이다. 진행 중 Topgun은 포함하지 않았다.
+
+[작업 우선순위·사용법](controller-korean-2026-10-28.md) · [릴리스 안내](releases/v0.7.12-rc1.md) · [정리된 소프트웨어 검사](verification/v0.7.12-rc1-summary.json) · [실제 Windows 한국어 화면](images/controller-ko-v0712.png). 최종 공개 파일의 SHA-256과 커밋은 릴리스 첨부 검증자료로 대조한다.

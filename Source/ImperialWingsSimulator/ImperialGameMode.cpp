@@ -8,6 +8,7 @@
 #include "ImperialInputSafetyVerifier.h"
 #include "ImperialTimeVerifier.h"
 #include "ImperialRadioModeVerifier.h"
+#include "ImperialRadioUXVerifier.h"
 #include "ImperialPowerVerifier.h"
 #include "ImperialThrottleVerifier.h"
 #include "ImperialSolverProbe.h"
@@ -44,6 +45,7 @@ void AImperialGameMode::StartPlay()
     if(FParse::Param(FCommandLine::Get(),TEXT("ImperialResponseSmoke")))GetWorld()->SpawnActor<AImperialResponseVerifier>();
     if(FParse::Param(FCommandLine::Get(),TEXT("ImperialInputSmoke")))GetWorld()->SpawnActor<AImperialInputSafetyVerifier>();
     if(FParse::Param(FCommandLine::Get(),TEXT("ImperialTimeSmoke")))GetWorld()->SpawnActor<AImperialTimeVerifier>();
+    if(FParse::Param(FCommandLine::Get(),TEXT("ImperialRadioUXSmoke")))GetWorld()->SpawnActor<AImperialRadioUXVerifier>();
     if(FParse::Param(FCommandLine::Get(),TEXT("ImperialRadioModeSmoke")))GetWorld()->SpawnActor<AImperialRadioModeVerifier>();
     if(FParse::Param(FCommandLine::Get(),TEXT("ImperialPowerSmoke")))GetWorld()->SpawnActor<AImperialPowerVerifier>();
     if(FParse::Param(FCommandLine::Get(),TEXT("ImperialThrottleSmoke")))GetWorld()->SpawnActor<AImperialThrottleVerifier>();

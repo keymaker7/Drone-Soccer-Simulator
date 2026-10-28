@@ -1,5 +1,7 @@
 #include "ImperialRadioSubsystem.h"
 #include "ImperialUserData.h"
+#include "ImperialLocalization.h"
+#include "ImperialProfileStorage.h"
 #include "ImperialBuildInfo.h"
 #include "RadioProfileJson.h"
 #include "ManualThrottleResponse.h"
@@ -365,11 +367,8 @@ bool UImperialRadioSubsystem::SetPrecisionThrottleEnabled(bool bEnable)
     Root->SetBoolField(TEXT("precision_throttle"), bEnable);
     FString Json;
     const FString Path = ImperialUserData::Path(TEXT("Config/PilotControls.json"));
-    const FString TempPath = Path + TEXT(".tmp");
-    IFileManager::Get().MakeDirectory(*FPaths::GetPath(Path), true);
     const bool Saved = FJsonSerializer::Serialize(Root, TJsonWriterFactory<>::Create(&Json)) &&
-        FFileHelper::SaveStringToFile(Json, *TempPath, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM) &&
-        IFileManager::Get().Move(*Path, *TempPath, true, true, false, true);
+        ImperialProfileStorage::Save(Path, Json);
     if (!Saved)
     {
         Status = TEXT("Could not save pilot controls. Previous throttle response remains unchanged.");
@@ -430,17 +429,9 @@ bool UImperialRadioSubsystem::SavePilotResponse(const ImperialInput::PilotRespon
     for(int I=0;I<3;++I)
     {Root->SetNumberField(*FString::Printf(TEXT("expo_%d"),I),Candidate.Expo[I]);Root->SetNumberField(*FString::Printf(TEXT("rate_%d"),I),Candidate.RateDegrees[I]);}
     Root->SetNumberField(TEXT("arm_button"),ArmButton);Root->SetStringField(TEXT("arm_device"),ArmDevice);Root->SetBoolField(TEXT("arm_toggle"),bToggle);
-    const FString Path=ImperialUserData::Path(TEXT("Config/PilotResponse.json")),Temp=Path+TEXT(".tmp");FString Json;
-    IFileManager::Get().MakeDirectory(*FPaths::GetPath(Path),true);
-    bool Saved=FJsonSerializer::Serialize(Root,TJsonWriterFactory<>::Create(&Json))&&
-       FFileHelper::SaveStringToFile(Json,*Temp,FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);
-#if PLATFORM_WINDOWS
-    // UE FileManager::Move deletes the destination first. Replace on the same
-    // volume without pre-deleting so a sharing/permission failure keeps it.
-    Saved=Saved&&::MoveFileExW(*FPaths::ConvertRelativePathToFull(Temp),*FPaths::ConvertRelativePathToFull(Path),MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH)!=0;
-#else
-    Saved=false; // Windows-only controller backend; never risk a destructive fallback.
-#endif
+    const FString Path=ImperialUserData::Path(TEXT("Config/PilotResponse.json"));FString Json;
+    const bool Saved=FJsonSerializer::Serialize(Root,TJsonWriterFactory<>::Create(&Json))&&
+        ImperialProfileStorage::Save(Path,Json);
     if(!Saved)
     {Status=TEXT("Could not save response. Previous settings retained.");return false;}
     Response=Candidate;ArmingButton=ArmButton;ArmingDevice=ArmDevice;bArmingToggle=bToggle;bEnabled=false;
@@ -500,8 +491,9 @@ float UImperialRadioSubsystem::GetThrottle() const { return static_cast<float>(C
 
 FString UImperialRadioSubsystem::GetStatus() const
 {
-    if (SelectedId != INDEX_NONE && !IsConnected()) return TEXT("Joystick disconnected or stale. USB disabled; keyboard input required.");
-    return Status;
+    const FString DisplayStatus = SelectedId != INDEX_NONE && !IsConnected()
+        ? FString(TEXT("Joystick disconnected or stale. USB disabled; keyboard input required.")) : Status;
+    return ImperialLocalization::Translate(DisplayStatus);
 }
 
 int32 UImperialRadioSubsystem::GetMappedAxis(int32 Channel) const
@@ -881,10 +873,7 @@ bool UImperialRadioSubsystem::WriteProfile()
     Root->SetObjectField(TEXT("profiles"), Profiles);
     FString Json;
     if (!FJsonSerializer::Serialize(Root.ToSharedRef(), TJsonWriterFactory<>::Create(&Json))) return false;
-    IFileManager::Get().MakeDirectory(*FPaths::GetPath(Path), true);
-    const FString TempPath = Path + TEXT(".tmp");
-    const bool bSaved = FFileHelper::SaveStringToFile(Json, *TempPath, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM) &&
-        IFileManager::Get().Move(*Path, *TempPath, true, true, false, true);
+    const bool bSaved = ImperialProfileStorage::Save(Path, Json);
     Status = bSaved ? TEXT("Device calibration saved for this Windows user. USB activation is never saved.") : TEXT("Could not save calibration. Check your Windows user-data folder permissions.");
     return bSaved;
 }

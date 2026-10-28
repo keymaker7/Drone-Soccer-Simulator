@@ -37,6 +37,7 @@ private:
     void DrawAIPracticePanel(AImperialMatchManager& Manager);
     void DrawAIResultPanel(AImperialMatchManager& Manager);
     bool bRadioAdvanced = false;
+    FString LanguageMessage;
     bool bResponsePanel=false,bLearnArm=false,bDraftArmToggle=true;
     ImperialInput::ButtonLearner ArmLearner;
     FString ArmLearningDevice;
