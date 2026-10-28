@@ -57,7 +57,8 @@ void AImperialHUD::DrawAIResultPanel(AImperialMatchManager& M)
     {
         if(Reason==TEXT("manual_stop"))return TEXT("STOP REQUESTED");if(Reason==TEXT("time_limit"))return TEXT("TIME LIMIT");
         if(Reason==TEXT("landed"))return TEXT("LANDED");if(Reason==TEXT("application_exit"))return TEXT("APP CLOSED");
-        if(Reason==TEXT("reset"))return TEXT("RESET");return TEXT("MODE CHANGED");
+        if(Reason==TEXT("defender_grounded"))return TEXT("DEFENDER OVERTURNED");if(Reason==TEXT("defender_unavailable"))return TEXT("DEFENDER DISABLED");
+        if(Reason==TEXT("recovery_failed"))return TEXT("RECOVERY FAILED");if(Reason==TEXT("reset"))return TEXT("RESET");return TEXT("MODE CHANGED");
     };
     Text(FString::Printf(TEXT("STOP: %s   /   FINISH: %s"),ReasonLabel(R.StopReason),ReasonLabel(R.CompletionReason)),348,234,13,R.CompletionReason==TEXT("landed")?White:Amber);
     Panel(348,275,280,95);Panel(640,275,280,95);Panel(932,275,320,95);
@@ -71,6 +72,7 @@ void AImperialHUD::DrawAIResultPanel(AImperialMatchManager& M)
         Text(A.Id==0?TEXT("BLUE STRIKER"):FString::Printf(TEXT("RED DEFENDER %d"),A.Id-5),348,Y,15,White);
         Text(FString::FromInt(A.GuardImpacts),680,Y,15,White);Text(FString::Printf(TEXT("%.1f%%"),A.GuardRemaining),990,Y,15,White);
     }
+    Text(FString::Printf(TEXT("RECOVERY ATTEMPTS   %d"),R.RecoveryAttempts),348,615,13,Cyan);
     Text(TEXT("Goals and guard values stop at the stop request. Landing is timed separately."),348,645,12,Muted);
     Text(TEXT("Contacts are per-aircraft registered impacts, not unique collision pairs or scoring attempts."),348,670,12,Muted);
     Text(R.bTestSession?TEXT("AUTOMATED TEST SESSION / no physical pilot evidence"):TEXT("Local practice record / no online ranking verification"),348,700,13,Amber);

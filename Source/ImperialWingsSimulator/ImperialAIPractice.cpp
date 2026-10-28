@@ -17,10 +17,11 @@ bool AImperialMatchManager::StartAIPractice(ImperialAI::Settings Settings)
     {Log(TEXT("Land and disarm every aircraft before starting AI practice."));return false;}
     // Explicit session start/reset: normal practice pads, no in-flight repositioning.
     ResetMatch();SelectDrone(0);AISettings=Settings;AIPlanner.Reset(Settings);
+    for(auto& Recovery:AIRecovery)Recovery.Reset();
     AIAge=AILandingAge=0;bAILandingFault=false;Mode=EImperialMode::AIPractice;
     CurrentAIResult={};CurrentAIResult.SessionId=FGuid::NewGuid().ToString(EGuidFormats::Digits);CurrentAIResult.Settings=Settings;
     CurrentAIResult.StartedUtc=FDateTime::UtcNow().ToIso8601();CurrentAIResult.SourceHash=ImperialBuildInfo::SourceHash();CurrentAIResult.BuildVersion=ImperialBuildInfo::Version();
-    CurrentAIResult.bTestSession=FParse::Param(FCommandLine::Get(),TEXT("ImperialAIPracticeSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialAIResultsSmoke"));
+    CurrentAIResult.bTestSession=FParse::Param(FCommandLine::Get(),TEXT("ImperialAIPracticeSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialAIResultsSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialAIRecoverySmoke"));
     for(int32 I=0;I<Drones.Num();++I)Rules.SetActive(I,I==0||(I>=6&&I<6+Settings.Count));
     for(int32 I=0;I<Settings.Count;++I)
     {
@@ -49,7 +50,24 @@ void AImperialMatchManager::TickAIPractice(float Dt)
         // controlled by the existing force/torque flight loop, not this planner clock.
         float Remaining=FMath::Clamp(Dt,0.f,.25f);
         while(Remaining>0){const float Step=FMath::Min(Remaining,.05f);AIPlanner.Step(Step,{P.X,P.Y,P.Z},{V.X,V.Y,V.Z});Remaining-=Step;}
-        for(int32 I=0;I<AISettings.Count;++I){const auto T=AIPlanner.GetTargets()[I];GetDrone(6+I)->SetAutonomousTarget(FVector(T.X,T.Y,T.Z)*100.);}
+        for(int32 I=0;I<AISettings.Count;++I)
+        {
+            auto* D=GetDrone(6+I);const FVector Position=D->GetActorLocation()/100.;auto T=AIPlanner.GetTargets()[I];
+            const int Before=AIRecovery[I].GetAttempts();
+            const auto Action=AIRecovery[I].Step(FMath::Clamp(Dt,0.f,.25f),{Position.X,Position.Y,Position.Z},T,D->GetBodyMesh()->GetUpVector().Z,D->IsArmed(),D->IsAutonomousEnabled(),I);
+            if(Action==ImperialAI::RecoveryAction::Grounded||Action==ImperialAI::RecoveryAction::Unavailable||Action==ImperialAI::RecoveryAction::Failed)
+            {
+                const TCHAR* Reason=Action==ImperialAI::RecoveryAction::Grounded?TEXT("defender_grounded"):(Action==ImperialAI::RecoveryAction::Unavailable?TEXT("defender_unavailable"):TEXT("recovery_failed"));
+                SnapshotAIResult(Reason);
+                // Stop the inverted motor only at floor contact. No automatic re-arm,
+                // teleport, or in-air force boost is used to recover a disabled body.
+                if(Action==ImperialAI::RecoveryAction::Grounded)D->SetAutonomousEnabled(false);
+                StopAIPractice();Log(FString::Printf(TEXT("AI defender %d cannot continue. Landing the team; see LAST RESULT for the reason."),I+1));break;
+            }
+            if(Action==ImperialAI::RecoveryAction::Escape)T=AIRecovery[I].GetTarget();
+            if(AIRecovery[I].GetAttempts()>Before)Log(FString::Printf(TEXT("AI defender %d is blocked: trying a short escape route."),I+1));
+            D->SetAutonomousTarget(FVector(T.X,T.Y,T.Z)*100.);
+        }
         // A finite practice session avoids unattended battery depletion.
         if(AIAge>=180){SnapshotAIResult(TEXT("time_limit"));StopAIPractice();}
     }
@@ -58,10 +76,13 @@ void AImperialMatchManager::TickAIPractice(float Dt)
         AILandingAge+=Dt;bool Landed=true;
         for(int32 I=0;I<AISettings.Count;++I)
         {
-            auto* D=GetDrone(6+I);if(!D->IsAutonomousEnabled())continue;
-            AILandingTargets[I].Z=FMath::Max(12.,AILandingTargets[I].Z-40.*FMath::Clamp(Dt,0.f,.25f));
-            D->SetAutonomousTarget(AILandingTargets[I]);
-            if(D->GetActorLocation().Z<32&&D->GetFlightSpeed()<.35)D->SetAutonomousEnabled(false);
+            auto* D=GetDrone(6+I);
+            if(D->IsAutonomousEnabled())
+            {
+                AILandingTargets[I].Z=FMath::Max(12.,AILandingTargets[I].Z-40.*FMath::Clamp(Dt,0.f,.25f));
+                D->SetAutonomousTarget(AILandingTargets[I]);
+            }
+            if(D->GetActorLocation().Z<32&&D->GetFlightSpeed()<.35){D->SetAutonomousEnabled(false);D->SetArmed(false);}
             else Landed=false;
         }
         if(Landed){Mode=EImperialMode::Manual;for(int32 I=0;I<Drones.Num();++I)Rules.SetActive(I,true);FinishAIResult(TEXT("landed"));}
@@ -72,5 +93,9 @@ FString AImperialMatchManager::GetAIStatus() const
 {
     const TCHAR* Level=AISettings.Difficulty==0?TEXT("BEGINNER"):(AISettings.Difficulty==1?TEXT("INTERMEDIATE"):TEXT("ADVANCED"));
     const TCHAR* Pattern=AIPlanner.GetPattern()==0?TEXT("STAGGERED"):(AIPlanner.GetPattern()==1?TEXT("PATROL"):TEXT("TRACKING"));
-    return FString::Printf(TEXT("%s / %d DEFENDERS / SEED %u / %s / %.0f s"),Level,AISettings.Count,AISettings.Seed,IsAILanding()?TEXT("LANDING"):Pattern,AIAge);
+    return FString::Printf(TEXT("%s / %d DEFENDERS / SEED %u / %s / RECOVERING %d / %.0f s"),Level,AISettings.Count,AISettings.Seed,IsAILanding()?TEXT("LANDING"):Pattern,GetAIRecoveringCount(),AIAge);
 }
+int32 AImperialMatchManager::GetAIRecoveryAttempts() const
+{int32 Count=0;for(const auto& R:AIRecovery)Count+=R.GetAttempts();return Count;}
+int32 AImperialMatchManager::GetAIRecoveringCount() const
+{int32 Count=0;if(Mode==EImperialMode::AIPractice)for(const auto& R:AIRecovery)if(R.IsEscaping())++Count;return Count;}

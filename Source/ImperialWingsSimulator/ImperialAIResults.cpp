@@ -39,9 +39,10 @@ bool ParseResult(const FString& Json,FImperialAIResult& R)
        !O->TryGetStringField(TEXT("build_version"),R.BuildVersion)||R.BuildVersion.IsEmpty()||R.BuildVersion.Len()>64||
        !O->TryGetBoolField(TEXT("test_session"),R.bTestSession))return false;
     for(TCHAR C:R.SourceHash)if(!FChar::IsHexDigit(C))return false;
-    if(R.StopReason!=TEXT("manual_stop")&&R.StopReason!=TEXT("time_limit")&&R.StopReason!=TEXT("reset")&&R.StopReason!=TEXT("application_exit")&&R.StopReason!=TEXT("mode_changed"))return false;
+    if(R.StopReason!=TEXT("manual_stop")&&R.StopReason!=TEXT("time_limit")&&R.StopReason!=TEXT("reset")&&R.StopReason!=TEXT("application_exit")&&R.StopReason!=TEXT("mode_changed")&&R.StopReason!=TEXT("defender_grounded")&&R.StopReason!=TEXT("defender_unavailable")&&R.StopReason!=TEXT("recovery_failed"))return false;
     if(R.CompletionReason!=TEXT("landed")&&R.CompletionReason!=TEXT("reset")&&R.CompletionReason!=TEXT("application_exit")&&R.CompletionReason!=TEXT("mode_changed"))return false;
     R.Settings={static_cast<int>(Count),static_cast<int>(Level),static_cast<uint32>(Seed)};R.Goals=static_cast<int32>(Goals);
+    if(O->HasField(TEXT("recovery_attempts"))){double Attempts=0;if(!Int(O,TEXT("recovery_attempts"),0,100000,Attempts))return false;R.RecoveryAttempts=static_cast<int32>(Attempts);}
     const TArray<TSharedPtr<FJsonValue>>* Rows=nullptr;if(!O->TryGetArrayField(TEXT("aircraft"),Rows)||Rows->Num()!=Count+1)return false;
     TSet<int32> Seen;
     for(const auto& Row:*Rows)
@@ -61,6 +62,7 @@ FString SerializeResult(const FImperialAIResult& R)
     O->SetStringField(TEXT("source_sha256"),R.SourceHash);O->SetStringField(TEXT("build_version"),R.BuildVersion);O->SetBoolField(TEXT("test_session"),R.bTestSession);
     O->SetNumberField(TEXT("defenders"),R.Settings.Count);O->SetNumberField(TEXT("difficulty"),R.Settings.Difficulty);O->SetNumberField(TEXT("seed"),R.Settings.Seed);
     O->SetNumberField(TEXT("goals"),R.Goals);O->SetNumberField(TEXT("practice_seconds"),R.PracticeSeconds);O->SetNumberField(TEXT("landing_seconds"),R.LandingSeconds);
+    O->SetNumberField(TEXT("recovery_attempts"),R.RecoveryAttempts);
     TArray<TSharedPtr<FJsonValue>> Rows;for(const auto& A:R.Aircraft){auto Row=MakeShared<FJsonObject>();Row->SetNumberField(TEXT("id"),A.Id);Row->SetNumberField(TEXT("guard_impacts"),A.GuardImpacts);Row->SetNumberField(TEXT("guard_remaining_percent"),A.GuardRemaining);Rows.Add(MakeShared<FJsonValueObject>(Row));}
     O->SetArrayField(TEXT("aircraft"),Rows);FString Json;FJsonSerializer::Serialize(O,TJsonWriterFactory<>::Create(&Json));return Json;
 }
@@ -69,6 +71,7 @@ void AImperialMatchManager::SnapshotAIResult(const FString& Reason)
 {
     if(!CurrentAIResult.Exists()||CurrentAIResult.bSnapshot)return;
     CurrentAIResult.bSnapshot=true;CurrentAIResult.StopReason=Reason;CurrentAIResult.PracticeSeconds=AIAge;CurrentAIResult.Goals=Rules.Score(0);
+    CurrentAIResult.RecoveryAttempts=GetAIRecoveryAttempts();
     for(int32 Id=0;Id<Drones.Num();++Id)if(Id==0||(Id>=6&&Id<6+AISettings.Count))
     {const auto* D=GetDrone(Id);CurrentAIResult.Aircraft.Add({Id,D->GetGuardImpactCount(),D->GetGuardIntegrityPercent()});}
 }

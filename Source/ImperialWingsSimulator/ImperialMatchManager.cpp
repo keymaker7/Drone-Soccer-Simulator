@@ -77,7 +77,7 @@ void AImperialMatchManager::BeginPlay()
     // Shipping ignores the engine's developer-only -FPS override. Configure only
     // these explicit non-USB verification scenarios, then report actual Tick dt.
     double FixtureFPS=0;
-    if((bSmoke||bAngleSmoke||bContactSmoke||bViewSmoke||FParse::Param(FCommandLine::Get(),TEXT("ImperialAIResultsSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialAIPracticeSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialPowerSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialThrottleSmoke")))&&FParse::Param(FCommandLine::Get(),TEXT("UseFixedTimeStep"))&&FParse::Value(FCommandLine::Get(),TEXT("FPS="),FixtureFPS)&&FixtureFPS>=20&&FixtureFPS<=240)
+    if((bSmoke||bAngleSmoke||bContactSmoke||bViewSmoke||FParse::Param(FCommandLine::Get(),TEXT("ImperialAIRecoverySmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialAIResultsSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialAIPracticeSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialPowerSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialThrottleSmoke")))&&FParse::Param(FCommandLine::Get(),TEXT("UseFixedTimeStep"))&&FParse::Value(FCommandLine::Get(),TEXT("FPS="),FixtureFPS)&&FixtureFPS>=20&&FixtureFPS<=240)
     {FApp::SetFixedDeltaTime(1./FixtureFPS);FApp::SetUseFixedTimeStep(true);}
     bDemo=FParse::Param(FCommandLine::Get(),TEXT("ImperialDemo"));
     FParse::Value(FCommandLine::Get(),TEXT("ImperialCapture="),CaptureFile);
@@ -391,7 +391,7 @@ void AImperialMatchManager::RecordFlightSample(const FString& Event)
     Root->SetObjectField(TEXT("timing"),SimulationTime.Json());
     auto AI=MakeShared<FJsonObject>();AI->SetBoolField(TEXT("active"),IsAIPracticeActive());AI->SetBoolField(TEXT("landing"),IsAILanding());
     AI->SetNumberField(TEXT("defenders"),AISettings.Count);AI->SetNumberField(TEXT("difficulty"),AISettings.Difficulty);AI->SetNumberField(TEXT("seed"),AISettings.Seed);
-    AI->SetNumberField(TEXT("decisions"),AIPlanner.DecisionCount());AI->SetNumberField(TEXT("age_s"),AIAge);Root->SetObjectField(TEXT("ai_practice"),AI);
+    AI->SetNumberField(TEXT("recovery_attempts"),GetAIRecoveryAttempts());AI->SetNumberField(TEXT("recovering"),GetAIRecoveringCount());AI->SetNumberField(TEXT("decisions"),AIPlanner.DecisionCount());AI->SetNumberField(TEXT("age_s"),AIAge);Root->SetObjectField(TEXT("ai_practice"),AI);
     auto* Radio=GetWorld()->GetGameInstance()->GetSubsystem<UImperialRadioSubsystem>();
     Root->SetBoolField(TEXT("radio_connected"),Radio&&Radio->IsConnected());Root->SetBoolField(TEXT("radio_enabled"),Radio&&Radio->IsEnabled());
     if(Radio){Root->SetArrayField(TEXT("stick"),{MakeShared<FJsonValueNumber>(Radio->GetNormalizedRoll()),MakeShared<FJsonValueNumber>(Radio->GetNormalizedPitch()),MakeShared<FJsonValueNumber>(Radio->GetNormalizedYaw()),MakeShared<FJsonValueNumber>(Radio->GetThrottle())});}

@@ -8,6 +8,7 @@
 #include "SimulationTime.h"
 #include "AITraining.h"
 #include "AIPracticeResult.h"
+#include "AIRecovery.h"
 #include "ImperialMatchManager.generated.h"
 class ASoccerDronePawn;
 class FJsonValue;
@@ -42,6 +43,8 @@ public:
     bool IsAILanding() const { return Mode==EImperialMode::AILanding; }
     ImperialAI::Settings GetAISettings() const { return AISettings; }
     int32 GetAIDecisions() const { return AIPlanner.DecisionCount(); }
+    int32 GetAIRecoveryAttempts() const;
+    int32 GetAIRecoveringCount() const;
     FString GetAIStatus() const;
     const FImperialAIResult& GetAIResult() const { return LastAIResult; }
     bool SaveAIResult();
@@ -74,6 +77,7 @@ public:
 private:
     ImperialAI::Settings AISettings;
     ImperialAI::Planner AIPlanner;
+    std::array<ImperialAI::Recovery,4> AIRecovery;
     TArray<FVector> AILandingTargets;
     double AIAge=0,AILandingAge=0;
     bool bAILandingFault=false;

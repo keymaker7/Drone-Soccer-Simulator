@@ -39,6 +39,7 @@ def main():
    'string_bool':lambda d:d.update(test_session='true'),
    'numeric_version_name':lambda d:d.update(build_version=78),
    'missing_field':lambda d:d.pop('test_session'),
+   'invalid_recovery_count':lambda d:d.update(recovery_attempts=-1),
   }
   for name,alter in bad_cases.items():
    user=out/('user-'+name);target=user/'TrainingResults/AI/9999999999999999999-bad.json';target.parent.mkdir(parents=True)
@@ -46,6 +47,8 @@ def main():
    run(name,'invalid',user);assert digest(target)==before,'malformed history altered'
   corrupt=files[0].parent/'9999999999999999999-corrupt.json';corrupt.write_text('{broken',encoding='utf-8');old=digest(corrupt)
   run('latest_corrupt_fallback','reload',data);assert digest(corrupt)==old and digest(files[0])==original
+  legacy=out/'legacy-user/TrainingResults/AI/0000000000000000001-legacy.json';legacy.parent.mkdir(parents=True);fixture=copy.deepcopy(saved);fixture.pop('recovery_attempts');legacy.write_text(json.dumps(fixture),encoding='utf-8');before=digest(legacy)
+  run('legacy_without_recovery_count','reload',legacy.parent.parent.parent);assert digest(legacy)==before
   blocked=out/'save-blocked-user';blocked.mkdir();(blocked/'TrainingResults').write_text('intentional file blocks directory creation',encoding='utf-8')
   run('save_failure_retry','savefail',blocked)
   history=[read(f) for f in (blocked/'TrainingResults/AI').glob('*.json')];assert len(history)==2 and len({r['session_id'] for r in history})==2 and all(r['completion_reason']=='reset' for r in history)

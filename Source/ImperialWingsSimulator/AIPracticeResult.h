@@ -12,7 +12,7 @@ struct FImperialAIResult
     FString SessionId,StartedUtc,EndedUtc,StopReason,CompletionReason,SourceHash,BuildVersion,FilePath;
     ImperialAI::Settings Settings;
     double PracticeSeconds=0,LandingSeconds=0;
-    int32 Goals=0;
+    int32 Goals=0,RecoveryAttempts=0;
     bool bSnapshot=false,bSaved=false,bTestSession=false;
     TArray<FImperialAIAircraftResult> Aircraft;
     bool Exists() const { return !SessionId.IsEmpty(); }
