@@ -36,6 +36,13 @@ public:
     bool IsOffside(int team) const;
     int Penalties(int team) const;
     int SetWins(int team) const;
+    // Current scoring Striker per team; -1 for an invalid team. IDs follow the
+    // pawn roles: team*5 is the original Striker and team*5+1 is the Guide.
+    int Striker(int team) const;
+    bool IsStriker(int id) const;
+    // Records the referee's confirmation that the Guide has taken over the
+    // Striker role. Returns false when the call is not permitted.
+    bool ConfirmStrikerSuccession(int team);
     int CurrentSet() const { return currentSet; }
     double Remaining() const { return remaining; }
     Phase GetPhase() const { return phase; }
@@ -46,7 +53,7 @@ private:
     std::array<GoalFrame,2> previousGoals{};
     std::array<bool,10> active{};
     std::array<std::array<Transit,2>,10> transits{};
-    std::array<int,2> scores{}, penalties{}, wins{};
+    std::array<int,2> scores{}, penalties{}, wins{}, strikers{};
     std::array<bool,2> offside{};
     Phase phase=Phase::Practice;
     int currentSet=0;
