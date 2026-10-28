@@ -77,7 +77,7 @@ void AImperialMatchManager::BeginPlay()
     // Shipping ignores the engine's developer-only -FPS override. Configure only
     // these explicit non-USB verification scenarios, then report actual Tick dt.
     double FixtureFPS=0;
-    if((bSmoke||bAngleSmoke||bContactSmoke||bViewSmoke||FParse::Param(FCommandLine::Get(),TEXT("ImperialAIPracticeSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialPowerSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialThrottleSmoke")))&&FParse::Param(FCommandLine::Get(),TEXT("UseFixedTimeStep"))&&FParse::Value(FCommandLine::Get(),TEXT("FPS="),FixtureFPS)&&FixtureFPS>=20&&FixtureFPS<=240)
+    if((bSmoke||bAngleSmoke||bContactSmoke||bViewSmoke||FParse::Param(FCommandLine::Get(),TEXT("ImperialAIResultsSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialAIPracticeSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialPowerSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialThrottleSmoke")))&&FParse::Param(FCommandLine::Get(),TEXT("UseFixedTimeStep"))&&FParse::Value(FCommandLine::Get(),TEXT("FPS="),FixtureFPS)&&FixtureFPS>=20&&FixtureFPS<=240)
     {FApp::SetFixedDeltaTime(1./FixtureFPS);FApp::SetUseFixedTimeStep(true);}
     bDemo=FParse::Param(FCommandLine::Get(),TEXT("ImperialDemo"));
     FParse::Value(FCommandLine::Get(),TEXT("ImperialCapture="),CaptureFile);
@@ -94,7 +94,7 @@ void AImperialMatchManager::BeginPlay()
         auto* D=GetWorld()->SpawnActor<ASoccerDronePawn>(ASoccerDronePawn::StaticClass(),Home,FRotator(0,I<5?0:180,0),Params);
         D->SetTeamColor(GetTeamColor(I));D->SetPlayerRole(I%5); Drones.Add(D);Homes.Add(Home);PreviousPositions.Add(Home);GoalReady.Add(true);
     }
-    Log(TEXT("10 aircraft ready. Keyboard input selected; USB axes are uncalibrated."));
+    LoadAIResult();Log(TEXT("10 aircraft ready. Keyboard input selected; USB axes are uncalibrated."));
     UE_LOG(LogTemp,Display,TEXT("IMPERIAL_RUNTIME_READY drones=%d physics=Chaos backend=SDACS_APF"),Drones.Num());
     if(auto* Scene=GetWorld()->GetPhysicsScene())Scene->OnPhysScenePreTick.AddUObject(this,&AImperialMatchManager::OnPhysicsTime);
 }
@@ -107,6 +107,7 @@ void AImperialMatchManager::OnPhysicsTime(FPhysScene_Chaos* Scene,float Dt)
 }
 void AImperialMatchManager::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+    FinishAIResult(TEXT("application_exit"));
     if(auto* Scene=GetWorld()->GetPhysicsScene())Scene->OnPhysScenePreTick.RemoveAll(this);
     if(IsRecordingFlight()){RecordFlightSample(TEXT("stop"));FlightLogPath.Empty();}
     AdvanceGuidanceCommand();
@@ -175,12 +176,13 @@ void AImperialMatchManager::ManualSelected()
 void AImperialMatchManager::ToggleArmSelected(){if(const auto* Pilot=Cast<AImperialPlayerController>(UGameplayStatics::GetPlayerController(this,0));Pilot&&Pilot->IsInputResetThisFrame())return;if(auto* D=GetSelectedDrone()){if(D->IsAutonomousEnabled())D->SetAutonomousEnabled(false);else D->SetArmed(!D->IsArmed());}}
 void AImperialMatchManager::ResetMatch()
 {
+    FinishAIResult(TEXT("reset"));
     AdvanceGuidanceCommand();AILandingTargets.Reset();AIAge=AILandingAge=0;bAILandingFault=false;
     for(auto& D:Drones)D->ResetDrone();Mode=EImperialMode::Manual;BlueScore=OrangeScore=0;Elapsed=0;Rules.Reset();
     for(int32 I=0;I<Drones.Num();++I){PreviousPositions[I]=Drones[I]->GetActorLocation();GoalReady[I]=true;}
     // The next generation resets only this session's planner state. An unordered
     // separate /reset request could otherwise clear a newer mission.
-    Events.Empty();Log(TEXT("Training reset. All aircraft disarmed; scores cleared."));
+    Events.Empty();Log(LastAIResult.Exists()&&!LastAIResult.bSaved?TEXT("Training reset. AI result NOT SAVED: open LAST RESULT to retry or discard."):TEXT("Training reset. All aircraft disarmed; scores cleared."));
     if(auto* Pilot=Cast<AImperialPlayerController>(UGameplayStatics::GetPlayerController(this,0)))Pilot->FlushPilotContextKeys();
     if(auto* Arena=Cast<APrototypeArenaBuilder>(UGameplayStatics::GetActorOfClass(GetWorld(),APrototypeArenaBuilder::StaticClass()))){Arena->ResetGoals();for(int32 I=0;I<2;++I)if(auto* Goal=Arena->GetGoal(I))Goal->SetCompetitionStable(false);}
 }

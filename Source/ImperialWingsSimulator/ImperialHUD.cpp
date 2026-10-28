@@ -146,7 +146,8 @@ void AImperialHUD::DrawHUD()
     }
     Panel(24,24,1552,102);Panel(24,142,1172,58);Panel(1220,142,356,452);
     Panel(1220,610,356,316);Panel(24,218,260,190);Panel(24,424,260,123);
-    Button(TEXT("AI_Open"),M->IsAIPracticeActive()?TEXT("AI PRACTICE / SETTINGS & STOP"):TEXT("AI PRACTICE / 3-4 DEFENDERS"),730,736,466,44,M->IsAIPracticeActive());
+    const bool UnsavedAI=M->GetAIResult().Exists()&&!M->GetAIResult().bSaved;
+    Button(TEXT("AI_Open"),M->IsAIPracticeActive()?TEXT("AI PRACTICE / SETTINGS & STOP"):(UnsavedAI?TEXT("AI PRACTICE / UNSAVED RESULT"):TEXT("AI PRACTICE / 3-4 DEFENDERS")),730,736,466,44,M->IsAIPracticeActive(),UnsavedAI);
     Panel(24,736,680,44);Panel(24,798,680,128);Panel(24,944,1552,32);
     Rect(24,24,5,102,Cyan);
     Text(TEXT("IMPERIAL WINGS"),45,42,31,White);
@@ -543,10 +544,18 @@ void AImperialHUD::NotifyHitBoxClick(FName BoxName)
     if(const auto* ReadOnlyController=Cast<AImperialPlayerController>(PlayerOwner);ReadOnlyController&&ReadOnlyController->IsReadOnlyView()&&
        (N==TEXT("Auto")||N==TEXT("Hold")||N==TEXT("Return")||N==TEXT("Manual")||N==TEXT("Reset")||N==TEXT("StartMatch")||N==TEXT("Arm")||N==TEXT("ArmSelected")))return;
     UE_LOG(LogTemp,Display,TEXT("IMPERIAL_UI_CLICK %s"),*N);
-    if(N==TEXT("Exit")){M->ResetMatch();UKismetSystemLibrary::QuitGame(this,PlayerOwner,EQuitPreference::Quit,false);return;}
+    if(N==TEXT("Exit")){M->PrepareToExit();UKismetSystemLibrary::QuitGame(this,PlayerOwner,EQuitPreference::Quit,false);return;}
     if(bAIPracticePanel)
     {
         if(N==TEXT("AI_Close")){ToggleAIPracticePanel();return;}
+        if(N==TEXT("AI_Last")){bAIResultPage=M->GetAIResult().Exists();return;}
+        if(bAIResultPage)
+        {
+            if(N==TEXT("AI_ResultBack"))bAIResultPage=false;
+            else if(N==TEXT("AI_ResultSave"))M->SaveAIResult();
+            else if(N==TEXT("AI_ResultDiscard")){M->DiscardUnsavedAIResult();bAIResultPage=false;}
+            return;
+        }
         if(N==TEXT("AI_Stop")){M->StopAIPractice();return;}
         if(!M->IsAIPracticeActive())
         {

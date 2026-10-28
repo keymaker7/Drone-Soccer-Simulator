@@ -27,5 +27,10 @@ def main():
  assert all(r['ai_practice']['seed']==1 and r['ai_practice']['defenders']==3 and r['source_sha256']==identity['source_sha256'] for r in active),'AI record metadata mismatch'
  assert any(r['ai_practice']['landing'] for r in active),'landing state not recorded'
  assert all(len(d['autonomous_target_m'])==3 for r in active for d in r['aircraft']),'target trajectories absent'
+ reports=[json.loads(p.read_text(encoding='utf-8-sig')) for p in (out/'user/TrainingResults/AI').glob('*.json')]
+ assert len(reports)==(1 if a.capture else 7),'missing or duplicated session reports'
+ complete=[r for r in reports if r['completion_reason']=='landed']
+ assert len(complete)==(1 if a.capture else 6) and all(r['stop_reason']=='manual_stop' and r['goals']==0 and r['test_session'] for r in complete),'completed session contract mismatch'
+ if not a.capture:assert any(r['stop_reason']=='time_limit' and r['completion_reason']=='reset' and r['practice_seconds']>=180 for r in reports),'timeout/reset classification missing'
  print('PASS',len(r['checks']),'checks,',r['completed_flight_scenarios'],'real defensive flights and landings;',out/'result.json',flush=True)
 if __name__=='__main__':main()

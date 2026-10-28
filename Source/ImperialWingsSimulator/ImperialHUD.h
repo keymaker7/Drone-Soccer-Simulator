@@ -31,9 +31,11 @@ private:
     TArray<FBox2D> Bounds;
     bool bRadioPanelOpen = false;
     bool bAIPracticePanel=false;
+    bool bAIResultPage=false;
     int32 AIDraftCount=3,AIDraftDifficulty=0;
     uint32 AIDraftSeed=1;
     void DrawAIPracticePanel(AImperialMatchManager& Manager);
+    void DrawAIResultPanel(AImperialMatchManager& Manager);
     bool bRadioAdvanced = false;
     bool bResponsePanel=false,bLearnArm=false,bDraftArmToggle=true;
     ImperialInput::ButtonLearner ArmLearner;

@@ -7,6 +7,7 @@
 #include "GuidanceRequestWindow.h"
 #include "SimulationTime.h"
 #include "AITraining.h"
+#include "AIPracticeResult.h"
 #include "ImperialMatchManager.generated.h"
 class ASoccerDronePawn;
 class FJsonValue;
@@ -33,6 +34,7 @@ public:
     void ReturnFleet();
     void ManualSelected();
     void ResetMatch();
+    void PrepareToExit();
     void StartMatch();
     bool StartAIPractice(ImperialAI::Settings Settings);
     void StopAIPractice();
@@ -41,6 +43,9 @@ public:
     ImperialAI::Settings GetAISettings() const { return AISettings; }
     int32 GetAIDecisions() const { return AIPlanner.DecisionCount(); }
     FString GetAIStatus() const;
+    const FImperialAIResult& GetAIResult() const { return LastAIResult; }
+    bool SaveAIResult();
+    void DiscardUnsavedAIResult();
     bool IsArmingAllowed() const { return Rules.IsArmingAllowed(); }
     bool IsAutonomyAllowed() const { return Rules.GetPhase()==drone_soccer::Phase::Practice; }
     FString GetMatchStatus() const;
@@ -73,6 +78,10 @@ private:
     double AIAge=0,AILandingAge=0;
     bool bAILandingFault=false;
     void TickAIPractice(float Dt);
+    FImperialAIResult CurrentAIResult,LastAIResult;
+    void SnapshotAIResult(const FString& Reason);
+    void FinishAIResult(const FString& Reason);
+    void LoadAIResult();
     FImperialSimulationTime SimulationTime;
     void OnPhysicsTime(FPhysScene_Chaos* Scene,float Dt);
     UPROPERTY() TArray<TObjectPtr<ASoccerDronePawn>> Drones;
