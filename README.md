@@ -2,18 +2,21 @@
 
 Windows에서 드론축구 조종을 연습하는 프로그램입니다. 기본 화면은 **경기장 밖에서 드론을 보며 조종하는 시점(LOS)**입니다.
 
-**공개 버전: v0.7.4-r2 · 개발 시험판** — [변경 내용과 검증 범위](docs/releases/v0.7.4.md)
+**새 테스트 버전: v0.7.12-rc1 · 사전 릴리스** — [업데이트 안내](#v0712-update)
+
+기존 **v0.7.4-r2 개발 시험판**도 그대로 받을 수 있습니다. 두 버전 모두 정식 안정판이 아닌 테스트용 배포본입니다. [기존 버전의 변경 내용과 검증 범위](docs/releases/v0.7.4.md)
 
 <a id="windows-run"></a>
 <a id="download-steps"></a>
 ## 1. 설치
 
-**[Windows 실행용 ZIP 다운로드](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/download/v0.7.4/ImperialWings-Windows-v0.7.4-r2.zip)**
+- **[새 테스트 버전 다운로드 — v0.7.12-rc1](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/download/v0.7.12-rc1/ImperialWings-Windows-v0.7.12-rc1.zip)**: 한국어 조종기 안내와 안전 저장을 확인할 때 선택합니다.
+- **[기존 배포 다운로드 — v0.7.4-r2](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/download/v0.7.4/ImperialWings-Windows-v0.7.4-r2.zip)**: 이전 공개 실행본입니다. 새 버전이 이 파일을 덮어쓰지는 않습니다.
 
 필요 환경: **Windows 10/11 64비트**, DirectX 12·Shader Model 6 지원 그래픽 카드. Unreal Engine·Python·Git은 따로 설치하지 않아도 됩니다.
 
-1. `ImperialWings-Windows-v0.7.4-r2.zip`을 받습니다.
-2. 다운로드가 끝나면 파일을 **마우스 오른쪽 → 모두 압축 풀기**로 전체 해제합니다.
+1. 위에서 사용할 버전의 **Windows 실행용 ZIP**을 받습니다. 새 버전의 파일명은 `ImperialWings-Windows-v0.7.12-rc1.zip`, 기존 버전은 `ImperialWings-Windows-v0.7.4-r2.zip`입니다.
+2. 다운로드가 끝나면 **이전 실행 폴더와 다른 새 폴더**에 **마우스 오른쪽 → 모두 압축 풀기**로 전체 해제합니다. 이전 폴더에 일부 파일만 덮어쓰지 않습니다.
 
 > `Source code`나 `Code → Download ZIP`은 개발용 소스입니다. 실행하려면 위의 **Windows 실행용 ZIP**을 받으세요. EXE만 따로 꺼내거나 ZIP 안에서 바로 실행하지 마세요.
 
@@ -22,7 +25,7 @@ Windows에서 드론축구 조종을 연습하는 프로그램입니다. 기본 
 
 1. 파일 탐색기에서 압축을 푼 폴더를 엽니다.
 2. **`ImperialWingsLauncher.exe`**를 더블클릭합니다.
-3. 조종기 설정 창에서 **USE KEYBOARD → CLOSE**를 누르면 키보드로 시작할 수 있습니다. USB 조종기는 [4. 조종기 연결](#first-controller-setup)을 먼저 진행하세요.
+3. 조종기 설정 창에서 **키보드 입력 선택 → 창 닫기**로 시작합니다. 영어 화면의 버튼은 **USE KEYBOARD → CLOSE**입니다. USB 조종기는 [4. 조종기 연결](#first-controller-setup)을 먼저 진행하세요.
 
 Visual C++ 구성 요소가 없다는 메시지가 나오면 같은 폴더의 `Prerequisites\vc_redist.x64.exe`를 설치하고 다시 실행합니다.
 
@@ -51,6 +54,8 @@ Visual C++ 구성 요소가 없다는 메시지가 나오면 같은 폴더의 `P
 
 처음에는 실제 스틱을 움직여 **방향·움직임 범위·중립을 보정**해야 합니다.
 
+**v0.7.12-rc1은 처음에 한국어로 안내합니다.** C로 여는 조종기 설정 화면의 제목 오른쪽에서 **English / 한국어**를 바꿀 수 있습니다. 아래 영문 버튼명은 화면 언어에 따라 한국어로 표시될 수 있습니다.
+
 1. 조종기의 **데이터 전송용 USB 포트**에 데이터 케이블을 연결합니다. 필요하면 전원을 켜고 **USB Joystick / 게임 컨트롤러 모드**를 선택합니다.
 2. 게임에서 **실제 장치 카드**를 선택하고 **MODE 1 / MODE 2**를 고릅니다.
    - **Mode 1:** 오른쪽 스틱 위아래로 출력 조절
@@ -73,9 +78,23 @@ Visual C++ 구성 요소가 없다는 메시지가 나오면 같은 폴더의 `P
 
 해결되지 않으면 **버전·오류 문구·발생 단계**를 적고 [테스트 결과 보내기](#feedback-form)를 확인하세요. 개인 보정 파일이나 `Saved` 폴더 전체를 공개하지 마세요.
 
+<a id="v0712-update"></a>
+## 새 테스트 버전 안내 — v0.7.12-rc1
+
+**2026-10-28 공개한 사전 릴리스입니다.** [릴리스와 전체 변경 내용](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/tag/v0.7.12-rc1)을 확인하세요.
+
+- **한국어 조종기 안내:** 장치 선택·Mode 1/2·스틱 보정·저장·활성화와 오류 후 다음 행동을 안내합니다. 언어 선택은 Windows 사용자별로 저장합니다.
+- **저장 실패 시 기존 설정 보호:** 보정·정밀 스로틀·레이트/아밍 설정을 저장하지 못했을 때 기존 파일을 먼저 삭제하지 않도록 개선했습니다.
+- **포함된 조종·훈련 기능:** Mode 1/2, 레이트·Expo·아밍 버튼 설정과 AI 연습/3분 대전을 포함합니다. **AI PRACTICE → DUEL / 3 MINUTES**는 한 명이 파란 공격수를 조종하는 로컬 훈련이며, 정식 5대5 멀티플레이가 아닙니다.
+- **그대로 유지되는 조종 기준:** 기본 LOS 시점, ANGLE의 최대 목표 기울기 35°, 수동 스로틀, USB 활성화와 ARM의 분리를 유지합니다. 프로필을 불러오거나 케이블을 다시 연결해도 자동 이륙하지 않습니다.
+
+**아직 확인하지 못한 부분:** 실제 Boxer의 연속 비행·아밍 버튼·케이블 분리/재연결, 다른 물리 PC에서의 설치·보정·비행은 미검증입니다. 모든 화면의 한국어 번역은 끝나지 않았고, **Topgun 코스·LAN/온라인 5대5는 이번 배포에 포함하지 않습니다.**
+
+새 PC에서는 실제 장치를 다시 확인하고 보정하세요. 같은 Windows 사용자·같은 조종기의 지원되는 보정은 불러올 수 있지만, 장치가 유일하게 일치하지 않으면 다시 선택·확인해야 합니다. [새 버전 실행·조종기 안내](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/blob/v0.7.12-rc1/docs/PORTABLE_QUICK_START.ko.md) · [검증 기록](#v0712-verification)
+
 ## 자세한 사용 안내
 
-필요한 항목만 눌러 펼쳐 보세요. 일반 사용자는 개발 자료까지 읽을 필요가 없습니다.
+필요한 항목만 눌러 펼쳐 보세요. 일반 사용자는 개발 자료까지 읽을 필요가 없습니다. **아래 기존 상세 설명은 v0.7.4-r2를 기준으로 보존했습니다. v0.7.12-rc1의 변경 사항은 위 신버전 안내와 해당 릴리스 자료를 우선 확인하세요.**
 
 <a id="controller"></a>
 <details>
@@ -454,7 +473,8 @@ $lastRecord.aircraft | Select-Object id, armed, input_source, flight_mode, speed
 ## 현재 상태와 개발 자료
 
 - **현재:** 키보드·보정된 USB 비행, Mode 1/2, 연습, 기본 5대5 경기 흐름, 비행 수치 기록을 제공합니다. 자동비행·위치 유지·귀환은 Practice 전용이고 정규 경기는 수동 조종입니다.
-- **개발 예정:** 한국어 안내와 더 쉬운 설정, 입문 코스, 완성된 리플레이, 멀티플레이, 전체 심판 기능 등입니다. 계획 목록은 구현 완료를 뜻하지 않습니다.
+- **새 테스트 버전에 반영:** 조종기 중심의 한국어/영어 안내와 안전 저장입니다. 범위는 [v0.7.12-rc1 안내](#v0712-update)를 따릅니다.
+- **계속 개발할 항목:** 나머지 화면의 한국어 안내, 더 쉬운 설정, 입문 코스, 완성된 리플레이, 멀티플레이, 전체 심판 기능 등입니다. 계획 목록은 구현 완료를 뜻하지 않습니다.
 - **한계:** 모든 USB 조종기·PC의 호환성이나 실기체와 같은 조종감을 보장하지 않습니다. 실물 조종기·다른 PC·연속 USB 비행과 케이블 복구 검증은 남아 있습니다.
 
 <details>
@@ -522,12 +542,14 @@ v0.7은 FC/ESC·수신기·모터 권선·배터리·커넥터·배선과 비틀
 </details>
 
 <details>
-<summary>앞으로의 개발 계획 — 아직 구현되지 않은 항목 포함</summary>
+<summary>2026-10-27 개발 계획 — 당시 기록과 남은 항목</summary>
 
 <a id="development-plan"></a>
 ## 현재 상태와 개발 우선순위 — 2026-10-27 갱신
 
-**현재 공개 실행본은 v0.7.4-r2 개발 시험판입니다.** 아래 개선 계획은 공개 실행본에 모두 구현됐다는 뜻이 아닙니다. 다운로드·검증 범위는 [릴리스](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/tag/v0.7.4)와 [버전별 기록](docs/releases/v0.7.4.md)을 기준으로 확인합니다. 개발 중인 소스·로컬 시험본과 공개 배포본은 구분합니다.
+> **아래는 당시 계획과 재개 예정 안내를 보존한 기록입니다.** 이후 공개된 v0.7.12-rc1의 조종기 한국어 안내·설정·저장 범위는 [신버전 안내](#v0712-update)를 따릅니다. 아래의 “현재”와 “예정”을 오늘의 전체 상태로 해석하지 않습니다.
+
+**당시 공개 실행본은 v0.7.4-r2 개발 시험판입니다.** 아래 개선 계획은 공개 실행본에 모두 구현됐다는 뜻이 아닙니다. 다운로드·검증 범위는 [릴리스](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/tag/v0.7.4)와 [버전별 기록](docs/releases/v0.7.4.md)을 기준으로 확인합니다. 개발 중인 소스·로컬 시험본과 공개 배포본은 구분합니다.
 
 ### 개발 재개 예정
 
@@ -609,8 +631,32 @@ $SdacsRoot = [IO.Path]::GetFullPath((Join-Path $PWD '..\swarm-drone-atc'))
 
 현재 공개 버전과 과거 버전의 기록을 구분합니다. 아래 수치는 각 당시의 검사 결과이며, 이번 사용설명서 정리가 새로운 비행·성능 검증을 뜻하지는 않습니다.
 
+<a id="v0712-verification"></a>
 <details>
-<summary>버전별 변경 · 배포 검증 · 과거 시험 기록</summary>
+<summary>v0.7.12-rc1 — 2026-10-28 공개·검증 기록</summary>
+
+아래는 [공개 릴리스](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/tag/v0.7.12-rc1)와 [소프트웨어 검사 요약](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/blob/v0.7.12-rc1/docs/verification/v0.7.12-rc1-summary.json)에 기록된 결과입니다. 이 README 수정 중 프로그램이나 실물 조종기를 새로 시험한 결과는 아닙니다.
+
+- **조종기 보정:** 독립 소프트웨어 검사 205개 통과.
+- **레이트·Expo·아밍 버튼:** 독립 소프트웨어 검사 4,881개 통과.
+- **한국어/영어·저장 실패·재실행:** Editor와 Windows 실행본 각각 47개 통과. 최종 실행본과 새 경로의 최종 ZIP에서도 언어/안전 저장 47개씩을 확인한 기록이 있습니다.
+- **배포 ZIP:** 한글·공백 경로에 전체 해제한 최종 ZIP의 포터블 검사 13개 통과. 같은 PC의 새 경로 시험을 다른 물리 PC 검증으로 계산하지 않습니다.
+- **추가 회귀 검사:** Mode 1/2·입력 안전, 응답, AI 대전, 10대 ANGLE을 확인했습니다. 전체 세부 수치와 조건은 릴리스 자료를 따릅니다.
+- **미검증:** 실제 마우스의 전체 사용 흐름, 실제 Boxer 연속 비행·아밍 버튼·케이블 복구, 다른 물리 PC. 모든 화면 번역·Topgun·LAN/온라인 5대5·전체 326개 기능 완료를 뜻하지 않습니다.
+
+**배포 식별 정보**
+
+- 공개 태그: `v0.7.12-rc1` · 검증 소스 커밋: `df358d8388243d2b447a441e6f840a1b8c8914a6`
+- Windows ZIP: `ImperialWings-Windows-v0.7.12-rc1.zip` · **374,891,896바이트**
+- [SHA-256 목록](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/download/v0.7.12-rc1/SHA256SUMS.txt) · [최종 검증 요약](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/download/v0.7.12-rc1/v0.7.12-rc1-summary.json) · [업로드·재다운로드 확인 자료](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/download/v0.7.12-rc1/v0.7.12-rc1-publication.json)
+- [해당 태그의 릴리스 문서](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/blob/v0.7.12-rc1/docs/releases/v0.7.12-rc1.md)에는 공개 전 “준비 중” 표기가 남아 있습니다. 최종 공개 여부·파일 해시·추가 검사 결과는 **릴리스 본문과 첨부 자료**를 우선합니다.
+
+이번 main 변경은 **README에 신버전 안내를 추가하는 문서 변경**입니다. 신버전 코드나 실행 파일을 main으로 병합·교체한 작업은 아니며, 소스가 필요하면 위 공개 태그를 기준으로 확인합니다.
+
+</details>
+
+<details>
+<summary>v0.7.4 및 이전 버전 — 배포 검증·과거 시험 기록</summary>
 
 <a id="release-verification"></a>
 ## 배포본의 변경·검증 범위
@@ -621,7 +667,7 @@ v0.7.4의 점수 검사는 **101개 규칙 조건**과 시뮬레이터 안에서
 
 GitHub에 공개한 실행 ZIP·소스 ZIP을 다시 다운로드해 검증한 원본과 SHA-256이 같음을 확인했습니다. [업로드·다운로드 확인 기록](docs/verification/v0.7.4-publication.json).
 
-최신 검사 범위는 **[v0.7.4 변경·검증 기록](docs/releases/v0.7.4.md)**과 [기계 판독 결과](docs/verification/v0.7.4-summary.json)에 있습니다. Mode 1·Mode 2의 이전 근거는 [v0.7.3](docs/releases/v0.7.3.md), 시간 계산·자율 착륙 변경은 [v0.7.2](docs/releases/v0.7.2.md)를 보존합니다. 미완료 항목은 [순차 작업 목록](docs/sequential-work-2026-10-27.md)을 따릅니다. 실제 다운로드 가능 여부는 Releases의 Assets를 기준으로 확인합니다.
+v0.7.4의 검사 범위는 **[v0.7.4 변경·검증 기록](docs/releases/v0.7.4.md)**과 [기계 판독 결과](docs/verification/v0.7.4-summary.json)에 있습니다. Mode 1·Mode 2의 이전 근거는 [v0.7.3](docs/releases/v0.7.3.md), 시간 계산·자율 착륙 변경은 [v0.7.2](docs/releases/v0.7.2.md)를 보존합니다. 미완료 항목은 [순차 작업 목록](docs/sequential-work-2026-10-27.md)을 따릅니다. 실제 다운로드 가능 여부는 Releases의 Assets를 기준으로 확인합니다.
 
 [다른 PC에서 실행·조종기 설정](docs/PORTABLE_QUICK_START.ko.md)을 확인하세요. Windows 10/11 x64와 DirectX12 / Shader Model6 GPU가 필요합니다. 필수 Visual C++ 설치 파일과 자율 훈련용 독립 실행 환경을 포함합니다. 개발 PC에서 설치 도구 경로를 제거하고 한글·공백 경로로 옮긴 새 사용자 데이터 환경을 검사했으며, 실제 다른 PC 전체에서의 비행을 인증한 것은 아닙니다.
 
@@ -632,7 +678,7 @@ GitHub에 공개한 실행 ZIP·소스 ZIP을 다시 다운로드해 검증한 �
 <a id="verification"></a>
 ## 이전 버전의 실행·검증 기록
 
-**아래는 과거 버전의 기록입니다. 현재 공개 실행본의 범위는 [v0.7.4 변경·검증 기록](docs/releases/v0.7.4.md)을 먼저 확인하세요.**
+**아래는 과거 버전의 기록입니다. 기존 배포본은 [v0.7.4 변경·검증 기록](docs/releases/v0.7.4.md), 새 테스트 버전은 [v0.7.12-rc1 검증 기록](#v0712-verification)을 확인하세요.**
 
 아래 R4~R6 수치는 당시 기록입니다. 최신 [v0.7.2 시간·착륙·배포 시험](docs/releases/v0.7.2.md), [v0.7.1 입력 시험](docs/releases/v0.7.1.md), [v0.7 모델·접촉·시점·자율 시험](docs/releases/v0.7.0.md), [v0.6.1 기록](docs/releases/v0.6.1.md)과 [누적 검증 기록](docs/verification.md)을 확인합니다. 수집 절차 문서 추가와 실제 USB 비행·성능 측정 결과를 구분합니다.
 
