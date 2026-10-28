@@ -1,0 +1,3840 @@
+{
+  "date": "2026-10-28",
+  "version": "0.7.7-dev",
+  "branch": "codex/ai-training",
+  "source_sha256": "46342d0257471303cb7839237eeac60ead52f49bd292e9f61ff951f9d8f35d82",
+  "unit_checks": {
+    "ai_planner": 2765288,
+    "rules": 118
+  },
+  "suites": [
+    {
+      "label": "editor_60",
+      "path": "Saved/Verification/ai-practice-20261028-070717-e0415d54/result.json",
+      "sha256": "a32847f60e1335e2cdc46b558617bd59392373a3b8b19aeb28f24399a2f40cd2",
+      "result": {
+        "ok": true,
+        "checks": [
+          {
+            "case": 0,
+            "check": "invalid count difficulty and zero seed rejected",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "official match rejects AI",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "audience view rejects AI",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "armed player blocks AI start",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "practice flight recording starts",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.174748800563727
+          },
+          {
+            "case": 0,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5747866895149218
+          },
+          {
+            "case": 0,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.6072418689727783
+          },
+          {
+            "case": 0,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 12
+          },
+          {
+            "case": 0,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 7.250000378116965
+          },
+          {
+            "case": 0,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.1169674126551263
+          },
+          {
+            "case": 1,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5802837172258021
+          },
+          {
+            "case": 1,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.8359834551811218
+          },
+          {
+            "case": 1,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 24
+          },
+          {
+            "case": 1,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 6.733333684504032
+          },
+          {
+            "case": 1,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.2465171255542344
+          },
+          {
+            "case": 2,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5788497564837704
+          },
+          {
+            "case": 2,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 1.0564745664596558
+          },
+          {
+            "case": 2,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 53
+          },
+          {
+            "case": 2,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 6.950000362470746
+          },
+          {
+            "case": 2,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.028733193713551
+          },
+          {
+            "case": 3,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5537947475905
+          },
+          {
+            "case": 3,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.6061244010925293
+          },
+          {
+            "case": 3,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 12
+          },
+          {
+            "case": 3,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 7.000000365078449
+          },
+          {
+            "case": 3,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.22115632829156
+          },
+          {
+            "case": 4,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.6907749616468607
+          },
+          {
+            "case": 4,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.8465651273727417
+          },
+          {
+            "case": 4,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 24
+          },
+          {
+            "case": 4,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 6.966667030006647
+          },
+          {
+            "case": 4,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.254574146045808
+          },
+          {
+            "case": 5,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5522892665574352
+          },
+          {
+            "case": 5,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 1.0299361944198608
+          },
+          {
+            "case": 5,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 53
+          },
+          {
+            "case": 5,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 7.466667056083679
+          },
+          {
+            "case": 5,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 6,
+            "check": "restart for timeout test",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 6,
+            "check": "three-minute limit initiates controlled landing",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 6,
+            "check": "explicit reset clears active AI and motors",
+            "ok": true,
+            "value": 0
+          }
+        ],
+        "build": {
+          "version": "0.7.7-dev",
+          "source_commit": "2b2bfd445633571f098060864abbb8293afd262f",
+          "source_dirty": true,
+          "source_sha256": "46342d0257471303cb7839237eeac60ead52f49bd292e9f61ff951f9d8f35d82",
+          "build_utc": "2026-10-28T07:07:11Z",
+          "target": "ImperialWingsSimulatorEditor"
+        },
+        "min_game_dt_s": 0.01666666753590107,
+        "max_game_dt_s": 0.01666666753590107,
+        "simulated_seconds": 374.166686180979,
+        "completed_flight_scenarios": 6,
+        "scope": "Native menu API and actual Chaos defensive flights / landings, no USB input or human difficulty rating."
+      }
+    },
+    {
+      "label": "shipping_20",
+      "path": "Saved/Verification/ai-practice-20261028-071138-a1ccef39/result.json",
+      "sha256": "e001c8ff30d8232e1a2dd074dd579a18049ad82e39d886aaff2299752bf22400",
+      "result": {
+        "ok": true,
+        "checks": [
+          {
+            "case": 0,
+            "check": "invalid count difficulty and zero seed rejected",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "official match rejects AI",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "audience view rejects AI",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "armed player blocks AI start",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "practice flight recording starts",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.1722318091555786
+          },
+          {
+            "case": 0,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.565979075518941
+          },
+          {
+            "case": 0,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.5389308929443359
+          },
+          {
+            "case": 0,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 12
+          },
+          {
+            "case": 0,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 7.250000108033419
+          },
+          {
+            "case": 0,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.115494153017894
+          },
+          {
+            "case": 1,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5706966524576769
+          },
+          {
+            "case": 1,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.808149516582489
+          },
+          {
+            "case": 1,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 24
+          },
+          {
+            "case": 1,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 6.750000100582838
+          },
+          {
+            "case": 1,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.245669240463327
+          },
+          {
+            "case": 2,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5740823739349427
+          },
+          {
+            "case": 2,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 1.0453457832336426
+          },
+          {
+            "case": 2,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 53
+          },
+          {
+            "case": 2,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 6.95000010356307
+          },
+          {
+            "case": 2,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.0271109900176576
+          },
+          {
+            "case": 3,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5482237060248697
+          },
+          {
+            "case": 3,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.5389308929443359
+          },
+          {
+            "case": 3,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 12
+          },
+          {
+            "case": 3,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 7.050000105053186
+          },
+          {
+            "case": 3,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.2203233912294245
+          },
+          {
+            "case": 4,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.6875865923897294
+          },
+          {
+            "case": 4,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.8288044929504395
+          },
+          {
+            "case": 4,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 24
+          },
+          {
+            "case": 4,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 7.000000104308128
+          },
+          {
+            "case": 4,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.251336637490401
+          },
+          {
+            "case": 5,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5490419520414526
+          },
+          {
+            "case": 5,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 1.0031241178512573
+          },
+          {
+            "case": 5,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 53
+          },
+          {
+            "case": 5,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 7.450000111013651
+          },
+          {
+            "case": 5,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 6,
+            "check": "restart for timeout test",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 6,
+            "check": "three-minute limit initiates controlled landing",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 6,
+            "check": "explicit reset clears active AI and motors",
+            "ok": true,
+            "value": 0
+          }
+        ],
+        "build": {
+          "version": "0.7.7-dev",
+          "source_commit": "2b2bfd445633571f098060864abbb8293afd262f",
+          "source_dirty": true,
+          "source_sha256": "46342d0257471303cb7839237eeac60ead52f49bd292e9f61ff951f9d8f35d82",
+          "build_utc": "2026-10-28T07:09:14Z",
+          "target": "ImperialWingsSimulator"
+        },
+        "min_game_dt_s": 0.05000000074505806,
+        "max_game_dt_s": 0.05000000074505806,
+        "simulated_seconds": 374.2500055767596,
+        "completed_flight_scenarios": 6,
+        "scope": "Native menu API and actual Chaos defensive flights / landings, no USB input or human difficulty rating."
+      }
+    },
+    {
+      "label": "shipping_60",
+      "path": "Saved/Verification/ai-practice-20261028-071147-be17e2d2/result.json",
+      "sha256": "1e35dcea119339ea73d71a813b19b489e05d366acd0084b73fbcac39baa97b49",
+      "result": {
+        "ok": true,
+        "checks": [
+          {
+            "case": 0,
+            "check": "invalid count difficulty and zero seed rejected",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "official match rejects AI",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "audience view rejects AI",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "armed player blocks AI start",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "practice flight recording starts",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.174748800563727
+          },
+          {
+            "case": 0,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5747866895149217
+          },
+          {
+            "case": 0,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.6072418689727783
+          },
+          {
+            "case": 0,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 12
+          },
+          {
+            "case": 0,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 7.250000378116965
+          },
+          {
+            "case": 0,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.1169674126551263
+          },
+          {
+            "case": 1,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5802837172258021
+          },
+          {
+            "case": 1,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.8359834551811218
+          },
+          {
+            "case": 1,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 24
+          },
+          {
+            "case": 1,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 6.733333684504032
+          },
+          {
+            "case": 1,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.2465171255542344
+          },
+          {
+            "case": 2,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5788497564837704
+          },
+          {
+            "case": 2,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 1.0564745664596558
+          },
+          {
+            "case": 2,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 53
+          },
+          {
+            "case": 2,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 6.950000362470746
+          },
+          {
+            "case": 2,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.028733193713551
+          },
+          {
+            "case": 3,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5537947475905
+          },
+          {
+            "case": 3,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.6061244010925293
+          },
+          {
+            "case": 3,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 12
+          },
+          {
+            "case": 3,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 7.000000365078449
+          },
+          {
+            "case": 3,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.22115632829156
+          },
+          {
+            "case": 4,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.6907749616468611
+          },
+          {
+            "case": 4,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.8465651273727417
+          },
+          {
+            "case": 4,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 24
+          },
+          {
+            "case": 4,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 6.966667030006647
+          },
+          {
+            "case": 4,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.254574146045808
+          },
+          {
+            "case": 5,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5522892665574352
+          },
+          {
+            "case": 5,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 1.0299361944198608
+          },
+          {
+            "case": 5,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 53
+          },
+          {
+            "case": 5,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 7.466667056083679
+          },
+          {
+            "case": 5,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 6,
+            "check": "restart for timeout test",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 6,
+            "check": "three-minute limit initiates controlled landing",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 6,
+            "check": "explicit reset clears active AI and motors",
+            "ok": true,
+            "value": 0
+          }
+        ],
+        "build": {
+          "version": "0.7.7-dev",
+          "source_commit": "2b2bfd445633571f098060864abbb8293afd262f",
+          "source_dirty": true,
+          "source_sha256": "46342d0257471303cb7839237eeac60ead52f49bd292e9f61ff951f9d8f35d82",
+          "build_utc": "2026-10-28T07:09:14Z",
+          "target": "ImperialWingsSimulator"
+        },
+        "min_game_dt_s": 0.01666666753590107,
+        "max_game_dt_s": 0.01666666753590107,
+        "simulated_seconds": 374.166686180979,
+        "completed_flight_scenarios": 6,
+        "scope": "Native menu API and actual Chaos defensive flights / landings, no USB input or human difficulty rating."
+      }
+    },
+    {
+      "label": "shipping_240",
+      "path": "Saved/Verification/ai-practice-20261028-071159-25d62813/result.json",
+      "sha256": "47bce17b2027071c755b7ce73458f469f7ffc999fbe7e99e4c0b4569a6a93fd8",
+      "result": {
+        "ok": true,
+        "checks": [
+          {
+            "case": 0,
+            "check": "invalid count difficulty and zero seed rejected",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "official match rejects AI",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "audience view rejects AI",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "armed player blocks AI start",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "practice flight recording starts",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.177930364933891
+          },
+          {
+            "case": 0,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.578269309167395
+          },
+          {
+            "case": 0,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.7356558442115784
+          },
+          {
+            "case": 0,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 12
+          },
+          {
+            "case": 0,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 7.24583371123299
+          },
+          {
+            "case": 0,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.1176909965031294
+          },
+          {
+            "case": 1,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5840954090187146
+          },
+          {
+            "case": 1,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.8903964161872864
+          },
+          {
+            "case": 1,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 24
+          },
+          {
+            "case": 1,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 6.725000350736082
+          },
+          {
+            "case": 1,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.247301864854979
+          },
+          {
+            "case": 2,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5813999432888691
+          },
+          {
+            "case": 2,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 1.100402593612671
+          },
+          {
+            "case": 2,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 53
+          },
+          {
+            "case": 2,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 6.966667030006647
+          },
+          {
+            "case": 2,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.0303701849519236
+          },
+          {
+            "case": 3,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5596497990892004
+          },
+          {
+            "case": 3,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.7255801558494568
+          },
+          {
+            "case": 3,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 12
+          },
+          {
+            "case": 3,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 6.9875003644265234
+          },
+          {
+            "case": 3,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.2217433855022968
+          },
+          {
+            "case": 4,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.6941005929992815
+          },
+          {
+            "case": 4,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.8924994468688965
+          },
+          {
+            "case": 4,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 24
+          },
+          {
+            "case": 4,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 6.954167029354721
+          },
+          {
+            "case": 4,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.2563644485203596
+          },
+          {
+            "case": 5,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5526639562795407
+          },
+          {
+            "case": 5,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 1.0696500539779663
+          },
+          {
+            "case": 5,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 53
+          },
+          {
+            "case": 5,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 7.4708337229676545
+          },
+          {
+            "case": 5,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 6,
+            "check": "restart for timeout test",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 6,
+            "check": "three-minute limit initiates controlled landing",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 6,
+            "check": "explicit reset clears active AI and motors",
+            "ok": true,
+            "value": 0
+          }
+        ],
+        "build": {
+          "version": "0.7.7-dev",
+          "source_commit": "2b2bfd445633571f098060864abbb8293afd262f",
+          "source_dirty": true,
+          "source_sha256": "46342d0257471303cb7839237eeac60ead52f49bd292e9f61ff951f9d8f35d82",
+          "build_utc": "2026-10-28T07:09:14Z",
+          "target": "ImperialWingsSimulator"
+        },
+        "min_game_dt_s": 0.004166666883975267,
+        "max_game_dt_s": 0.004166666883975267,
+        "simulated_seconds": 374.1500195134431,
+        "completed_flight_scenarios": 6,
+        "scope": "Native menu API and actual Chaos defensive flights / landings, no USB input or human difficulty rating."
+      }
+    },
+    {
+      "label": "shipping_gpu_60",
+      "path": "Saved/Verification/ai-practice-20261028-071236-ba933012/result.json",
+      "sha256": "2b2088967c8045f3fa0a3516442b0ad43bc6847920138be60f158e501ce6d9ca",
+      "result": {
+        "ok": true,
+        "checks": [
+          {
+            "case": 0,
+            "check": "invalid count difficulty and zero seed rejected",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "official match rejects AI",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "audience view rejects AI",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "armed player blocks AI start",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "practice flight recording starts",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.174748800563727
+          },
+          {
+            "case": 0,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5747866895149217
+          },
+          {
+            "case": 0,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.6072418689727783
+          },
+          {
+            "case": 0,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 12
+          },
+          {
+            "case": 0,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 7.250000378116965
+          },
+          {
+            "case": 0,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          }
+        ],
+        "build": {
+          "version": "0.7.7-dev",
+          "source_commit": "2b2bfd445633571f098060864abbb8293afd262f",
+          "source_dirty": true,
+          "source_sha256": "46342d0257471303cb7839237eeac60ead52f49bd292e9f61ff951f9d8f35d82",
+          "build_utc": "2026-10-28T07:09:14Z",
+          "target": "ImperialWingsSimulator"
+        },
+        "min_game_dt_s": 0.01666666753590107,
+        "max_game_dt_s": 0.01666666753590107,
+        "simulated_seconds": 32.650001702830195,
+        "completed_flight_scenarios": 1,
+        "scope": "Native menu API and actual Chaos defensive flights / landings, no USB input or human difficulty rating."
+      }
+    },
+    {
+      "label": "relocated_60",
+      "path": "Saved/Verification/ai-practice-20261028-071701-6c1afd52/result.json",
+      "sha256": "1e35dcea119339ea73d71a813b19b489e05d366acd0084b73fbcac39baa97b49",
+      "result": {
+        "ok": true,
+        "checks": [
+          {
+            "case": 0,
+            "check": "invalid count difficulty and zero seed rejected",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "official match rejects AI",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "audience view rejects AI",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "armed player blocks AI start",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "practice flight recording starts",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.174748800563727
+          },
+          {
+            "case": 0,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5747866895149217
+          },
+          {
+            "case": 0,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.6072418689727783
+          },
+          {
+            "case": 0,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 12
+          },
+          {
+            "case": 0,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 0,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 7.250000378116965
+          },
+          {
+            "case": 0,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.1169674126551263
+          },
+          {
+            "case": 1,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5802837172258021
+          },
+          {
+            "case": 1,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.8359834551811218
+          },
+          {
+            "case": 1,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 24
+          },
+          {
+            "case": 1,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 1,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 6.733333684504032
+          },
+          {
+            "case": 1,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.2465171255542344
+          },
+          {
+            "case": 2,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5788497564837704
+          },
+          {
+            "case": 2,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 1.0564745664596558
+          },
+          {
+            "case": 2,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 53
+          },
+          {
+            "case": 2,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 2,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 6.950000362470746
+          },
+          {
+            "case": 2,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.028733193713551
+          },
+          {
+            "case": 3,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5537947475905
+          },
+          {
+            "case": 3,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.6061244010925293
+          },
+          {
+            "case": 3,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 12
+          },
+          {
+            "case": 3,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 3,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 7.000000365078449
+          },
+          {
+            "case": 3,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.22115632829156
+          },
+          {
+            "case": 4,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.6907749616468611
+          },
+          {
+            "case": 4,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 0.8465651273727417
+          },
+          {
+            "case": 4,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 24
+          },
+          {
+            "case": 4,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 4,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 6.966667030006647
+          },
+          {
+            "case": 4,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "practice modal blocks underlying flight and match buttons",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "UI starts requested count difficulty and closes modal",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "AI ownership survives conflicting actions; player remains manual",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "exact AI count; all other motors remain disarmed",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "actual bodies remain finite inside arena",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "all defenders airborne after approach",
+            "ok": true,
+            "value": 2.254574146045808
+          },
+          {
+            "case": 5,
+            "check": "defenders approach moving tactical targets",
+            "ok": true,
+            "value": 0.5522892665574352
+          },
+          {
+            "case": 5,
+            "check": "bounded actual flight speed",
+            "ok": true,
+            "value": 1.0299361944198608
+          },
+          {
+            "case": 5,
+            "check": "tactical decisions advance",
+            "ok": true,
+            "value": 53
+          },
+          {
+            "case": 5,
+            "check": "running configuration locked",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "stop begins landing without teleport or instant motor cut",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 5,
+            "check": "all AI landed and disarmed within 30 seconds",
+            "ok": true,
+            "value": 7.466667056083679
+          },
+          {
+            "case": 5,
+            "check": "reset followed by official start leaves all motors off",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 6,
+            "check": "restart for timeout test",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 6,
+            "check": "three-minute limit initiates controlled landing",
+            "ok": true,
+            "value": 0
+          },
+          {
+            "case": 6,
+            "check": "explicit reset clears active AI and motors",
+            "ok": true,
+            "value": 0
+          }
+        ],
+        "build": {
+          "version": "0.7.7-dev",
+          "source_commit": "2b2bfd445633571f098060864abbb8293afd262f",
+          "source_dirty": true,
+          "source_sha256": "46342d0257471303cb7839237eeac60ead52f49bd292e9f61ff951f9d8f35d82",
+          "build_utc": "2026-10-28T07:09:14Z",
+          "target": "ImperialWingsSimulator"
+        },
+        "min_game_dt_s": 0.01666666753590107,
+        "max_game_dt_s": 0.01666666753590107,
+        "simulated_seconds": 374.166686180979,
+        "completed_flight_scenarios": 6,
+        "scope": "Native menu API and actual Chaos defensive flights / landings, no USB input or human difficulty rating."
+      }
+    }
+  ],
+  "regressions": [
+    {
+      "kind": "input",
+      "path": "Saved/Verification/input-safety-20261028-071001-805/result.json",
+      "sha256": "5b399bf65b60e0511bbe80609c0ab1b7a415548a9219151e0dc3dbafd294c748",
+      "result": {
+        "ok": true,
+        "checks": [
+          {
+            "check": "fixture starts with a manual keyboard aircraft",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "explicit low-throttle ARM accepted",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "real engine bindings accumulated keyboard throttle",
+            "ok": true,
+            "actual": 0.1400022655725479
+          },
+          {
+            "check": "engine saw held roll key",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "viewport focus loss immediately disarms manual aircraft",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "viewport focus loss immediately clears stored throttle",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "viewport focus loss immediately clears motor demand",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "native radio remains disabled",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "old repeated keys cannot restore throttle",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "old repeated roll key stays released in engine",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "queued pre-interruption key press is rejected",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "GameAndUI always requests focus-loss key flushing",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "repeat cannot re-arm after focus loss",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "focus regain does not re-arm",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "fresh Space press re-arms at zero throttle",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "observer view preserves manual ARM",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "overview preserves manual ARM",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "opening radio menu disarms selected aircraft",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "menu typing cannot arm or add throttle",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "closing menu rejects old repeated throttle/ARM",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "focus loss preserves explicit practice autonomy",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "autonomous forces still run after focus loss",
+            "ok": true,
+            "actual": 9.832979202270508
+          },
+          {
+            "check": "second throttle setup reached engine bindings",
+            "ok": true,
+            "actual": 0.10500188171863556
+          },
+          {
+            "check": "aircraft selection clears held-input throttle on new aircraft",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "equipment inspection opened disarmed",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "equipment view blocks held flight keys",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "equipment exit rejects stale throttle/ARM repeats",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "reset setup accumulated keyboard throttle",
+            "ok": true,
+            "actual": 0.10500171780586243
+          },
+          {
+            "check": "Backspace reset clears pending throttle repeats",
+            "ok": true,
+            "actual": 0
+          }
+        ],
+        "scope": "explicit Unreal simulated keyboard events and real viewport/controller APIs; not physical keyboard, OS Alt-Tab or USB/HID input",
+        "build": {
+          "version": "0.7.7-dev",
+          "source_commit": "2b2bfd445633571f098060864abbb8293afd262f",
+          "source_dirty": true,
+          "source_sha256": "46342d0257471303cb7839237eeac60ead52f49bd292e9f61ff951f9d8f35d82",
+          "build_utc": "2026-10-28T07:07:11Z",
+          "target": "ImperialWingsSimulatorEditor"
+        }
+      }
+    },
+    {
+      "kind": "input",
+      "path": "Saved/Verification/input-safety-20261028-071331-734/result.json",
+      "sha256": "0ac7ac0162a8bece46c94ca13dec9af7b2a57228860e7b5bd4e94ce295455ff7",
+      "result": {
+        "ok": true,
+        "checks": [
+          {
+            "check": "fixture starts with a manual keyboard aircraft",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "explicit low-throttle ARM accepted",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "real engine bindings accumulated keyboard throttle",
+            "ok": true,
+            "actual": 0.14000238478183746
+          },
+          {
+            "check": "engine saw held roll key",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "viewport focus loss immediately disarms manual aircraft",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "viewport focus loss immediately clears stored throttle",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "viewport focus loss immediately clears motor demand",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "native radio remains disabled",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "old repeated keys cannot restore throttle",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "old repeated roll key stays released in engine",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "queued pre-interruption key press is rejected",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "GameAndUI always requests focus-loss key flushing",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "repeat cannot re-arm after focus loss",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "focus regain does not re-arm",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "fresh Space press re-arms at zero throttle",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "observer view preserves manual ARM",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "overview preserves manual ARM",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "opening radio menu disarms selected aircraft",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "menu typing cannot arm or add throttle",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "closing menu rejects old repeated throttle/ARM",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "focus loss preserves explicit practice autonomy",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "autonomous forces still run after focus loss",
+            "ok": true,
+            "actual": 9.83298110961914
+          },
+          {
+            "check": "second throttle setup reached engine bindings",
+            "ok": true,
+            "actual": 0.105031818151474
+          },
+          {
+            "check": "aircraft selection clears held-input throttle on new aircraft",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "equipment inspection opened disarmed",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "equipment view blocks held flight keys",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "equipment exit rejects stale throttle/ARM repeats",
+            "ok": true,
+            "actual": 0
+          },
+          {
+            "check": "reset setup accumulated keyboard throttle",
+            "ok": true,
+            "actual": 0.10500161349773407
+          },
+          {
+            "check": "Backspace reset clears pending throttle repeats",
+            "ok": true,
+            "actual": 0
+          }
+        ],
+        "scope": "explicit Unreal simulated keyboard events and real viewport/controller APIs; not physical keyboard, OS Alt-Tab or USB/HID input",
+        "build": {
+          "version": "0.7.7-dev",
+          "source_commit": "2b2bfd445633571f098060864abbb8293afd262f",
+          "source_dirty": true,
+          "source_sha256": "46342d0257471303cb7839237eeac60ead52f49bd292e9f61ff951f9d8f35d82",
+          "build_utc": "2026-10-28T07:09:14Z",
+          "target": "ImperialWingsSimulator"
+        }
+      }
+    },
+    {
+      "kind": "radio_modes",
+      "path": "Saved/Verification/radio-modes-20261028-071017-208-5c39b129/result.json",
+      "sha256": "e8b9da01367f45bcd04fd909122bf1c7ec99b76ebd4e1fd76f918a5136a18d4b",
+      "result": {
+        "ok": true,
+        "checks": [
+          {
+            "check": "Mode 1 JSON round trip",
+            "ok": true
+          },
+          {
+            "check": "Mode 2 JSON round trip",
+            "ok": true
+          },
+          {
+            "check": "legacy profile without stick_mode loads as Mode 2",
+            "ok": true
+          },
+          {
+            "check": "reject invalid metadata {\"stick_mode\":0} without changing output",
+            "ok": true
+          },
+          {
+            "check": "reject invalid metadata {\"stick_mode\":3} without changing output",
+            "ok": true
+          },
+          {
+            "check": "reject invalid metadata {\"stick_mode\":1.5} without changing output",
+            "ok": true
+          },
+          {
+            "check": "reject invalid metadata {\"stick_mode\":\"1\"} without changing output",
+            "ok": true
+          },
+          {
+            "check": "reject invalid metadata {\"stick_mode\":null} without changing output",
+            "ok": true
+          },
+          {
+            "check": "reject invalid metadata {\"stick_mode\":true} without changing output",
+            "ok": true
+          },
+          {
+            "check": "new user defaults to Mode 2 and disabled USB",
+            "ok": true
+          },
+          {
+            "check": "fixture starts with low throttle ARM",
+            "ok": true
+          },
+          {
+            "check": "opening settings disarms selected aircraft",
+            "ok": true
+          },
+          {
+            "check": "Mode 1 HUD button selects Mode 1",
+            "ok": true
+          },
+          {
+            "check": "mode choice cannot enable USB or arm",
+            "ok": true
+          },
+          {
+            "check": "unsupported mode rejected",
+            "ok": true
+          },
+          {
+            "check": "mode choice does not invent a profile",
+            "ok": true
+          },
+          {
+            "check": "chosen layout survives panel close and reopen",
+            "ok": true
+          },
+          {
+            "check": "Mode 2 HUD button selects Mode 2",
+            "ok": true
+          },
+          {
+            "check": "switching back leaves USB disabled and aircraft disarmed",
+            "ok": true
+          },
+          {
+            "check": "UI test never writes a calibration file",
+            "ok": true
+          }
+        ],
+        "build": {
+          "version": "0.7.7-dev",
+          "source_commit": "2b2bfd445633571f098060864abbb8293afd262f",
+          "source_dirty": true,
+          "source_sha256": "46342d0257471303cb7839237eeac60ead52f49bd292e9f61ff951f9d8f35d82",
+          "build_utc": "2026-10-28T07:07:11Z",
+          "target": "ImperialWingsSimulatorEditor"
+        },
+        "scope": "explicit HUD button APIs and actual JSON mode codec in isolated user data; no device selected, no HID injection, no physical-controller verification"
+      }
+    },
+    {
+      "kind": "radio_modes",
+      "path": "Saved/Verification/radio-modes-20261028-071338-798-6f5631db/result.json",
+      "sha256": "fc96fdf06fb11e6b0c6944a663b8a9c769a0d662a7998b2e84d65783c79b9199",
+      "result": {
+        "ok": true,
+        "checks": [
+          {
+            "check": "Mode 1 JSON round trip",
+            "ok": true
+          },
+          {
+            "check": "Mode 2 JSON round trip",
+            "ok": true
+          },
+          {
+            "check": "legacy profile without stick_mode loads as Mode 2",
+            "ok": true
+          },
+          {
+            "check": "reject invalid metadata {\"stick_mode\":0} without changing output",
+            "ok": true
+          },
+          {
+            "check": "reject invalid metadata {\"stick_mode\":3} without changing output",
+            "ok": true
+          },
+          {
+            "check": "reject invalid metadata {\"stick_mode\":1.5} without changing output",
+            "ok": true
+          },
+          {
+            "check": "reject invalid metadata {\"stick_mode\":\"1\"} without changing output",
+            "ok": true
+          },
+          {
+            "check": "reject invalid metadata {\"stick_mode\":null} without changing output",
+            "ok": true
+          },
+          {
+            "check": "reject invalid metadata {\"stick_mode\":true} without changing output",
+            "ok": true
+          },
+          {
+            "check": "new user defaults to Mode 2 and disabled USB",
+            "ok": true
+          },
+          {
+            "check": "fixture starts with low throttle ARM",
+            "ok": true
+          },
+          {
+            "check": "opening settings disarms selected aircraft",
+            "ok": true
+          },
+          {
+            "check": "Mode 1 HUD button selects Mode 1",
+            "ok": true
+          },
+          {
+            "check": "mode choice cannot enable USB or arm",
+            "ok": true
+          },
+          {
+            "check": "unsupported mode rejected",
+            "ok": true
+          },
+          {
+            "check": "mode choice does not invent a profile",
+            "ok": true
+          },
+          {
+            "check": "chosen layout survives panel close and reopen",
+            "ok": true
+          },
+          {
+            "check": "Mode 2 HUD button selects Mode 2",
+            "ok": true
+          },
+          {
+            "check": "switching back leaves USB disabled and aircraft disarmed",
+            "ok": true
+          },
+          {
+            "check": "UI test never writes a calibration file",
+            "ok": true
+          }
+        ],
+        "build": {
+          "version": "0.7.7-dev",
+          "source_commit": "2b2bfd445633571f098060864abbb8293afd262f",
+          "source_dirty": true,
+          "source_sha256": "46342d0257471303cb7839237eeac60ead52f49bd292e9f61ff951f9d8f35d82",
+          "build_utc": "2026-10-28T07:09:14Z",
+          "target": "ImperialWingsSimulator"
+        },
+        "scope": "explicit HUD button APIs and actual JSON mode codec in isolated user data; no device selected, no HID injection, no physical-controller verification"
+      }
+    },
+    {
+      "kind": "pilot_response",
+      "path": "Saved/Verification/pilot-response-20261028-071027-52ec5508/results.json",
+      "sha256": "1b94de4b885746a70a50ba75248d0fd69843e491e291ff5c69df6a56177518b5",
+      "result": {
+        "ok": true,
+        "build": {
+          "version": "0.7.7-dev",
+          "source_commit": "2b2bfd445633571f098060864abbb8293afd262f",
+          "source_dirty": true,
+          "source_sha256": "46342d0257471303cb7839237eeac60ead52f49bd292e9f61ff951f9d8f35d82",
+          "input_count": 137
+        },
+        "cases": [
+          {
+            "case": "fresh",
+            "checks": [
+              {
+                "check": "cold start USB disabled and disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "restored or default response",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "ARM unassigned on isolated profile",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "cancel does not change response or save",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "HUD saves response and switch mode",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw calibration never created",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "out of range settings rejected",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "unknown controller binding rejected",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero-throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "armed editing refused",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual yaw target reflects Expo and selected rate",
+                "ok": true,
+                "value": 84.00000000000003
+              },
+              {
+                "check": "actual roll target reaches and obeys selected ANGLE rate throughout flight",
+                "ok": true,
+                "value": 29.999999165173968
+              },
+              {
+                "check": "real motor forces present",
+                "ok": true,
+                "value": 11.550616264343262
+              },
+              {
+                "check": "ANGLE tilt limit retained",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle unmodified",
+                "ok": true,
+                "value": 0
+              }
+            ],
+            "result_path": "Saved/Verification/pilot-response-20261028-071027-52ec5508/fresh/result.json",
+            "result_sha256": "7b73626349252fbf4b4392bf1d56378f97af648eed3c3de37381b925c17349c4"
+          },
+          {
+            "case": "reload",
+            "checks": [
+              {
+                "check": "cold start USB disabled and disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "restored or default response",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "ARM unassigned on isolated profile",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw calibration never created",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "out of range settings rejected",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "unknown controller binding rejected",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero-throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "armed editing refused",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual yaw target reflects Expo and selected rate",
+                "ok": true,
+                "value": 84.00000000000003
+              },
+              {
+                "check": "actual roll target reaches and obeys selected ANGLE rate throughout flight",
+                "ok": true,
+                "value": 29.99999916517396
+              },
+              {
+                "check": "real motor forces present",
+                "ok": true,
+                "value": 11.550633430480957
+              },
+              {
+                "check": "ANGLE tilt limit retained",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle unmodified",
+                "ok": true,
+                "value": 0
+              }
+            ],
+            "result_path": "Saved/Verification/pilot-response-20261028-071027-52ec5508/reload/result.json",
+            "result_sha256": "de31f061b869ff2e3cb0bc9eba86fee586bb66254790efa6b00ac95b2c9513eb"
+          }
+        ],
+        "scope": "Synthetic native menu/settings and actual ANGLE target/motor force checks, no real HID button or calibration."
+      }
+    },
+    {
+      "kind": "pilot_response",
+      "path": "Saved/Verification/pilot-response-20261028-071344-47fd560c/results.json",
+      "sha256": "d173d052ed7828c8c29b88130b0ab63766d8f2bbabc749e4968a1448e8b35f01",
+      "result": {
+        "ok": true,
+        "build": {
+          "version": "0.7.7-dev",
+          "source_commit": "2b2bfd445633571f098060864abbb8293afd262f",
+          "source_dirty": true,
+          "source_sha256": "46342d0257471303cb7839237eeac60ead52f49bd292e9f61ff951f9d8f35d82",
+          "input_count": 137
+        },
+        "cases": [
+          {
+            "case": "fresh",
+            "checks": [
+              {
+                "check": "cold start USB disabled and disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "restored or default response",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "ARM unassigned on isolated profile",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "cancel does not change response or save",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "HUD saves response and switch mode",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw calibration never created",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "out of range settings rejected",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "unknown controller binding rejected",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero-throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "armed editing refused",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual yaw target reflects Expo and selected rate",
+                "ok": true,
+                "value": 84.00000000000001
+              },
+              {
+                "check": "actual roll target reaches and obeys selected ANGLE rate throughout flight",
+                "ok": true,
+                "value": 29.999999165173968
+              },
+              {
+                "check": "real motor forces present",
+                "ok": true,
+                "value": 11.550634384155273
+              },
+              {
+                "check": "ANGLE tilt limit retained",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle unmodified",
+                "ok": true,
+                "value": 0
+              }
+            ],
+            "result_path": "Saved/Verification/pilot-response-20261028-071344-47fd560c/fresh/result.json",
+            "result_sha256": "2deb6796c30692427bb98a3f702ca15f49e5b71b5fc16d960e131e5271ed7088"
+          },
+          {
+            "case": "reload",
+            "checks": [
+              {
+                "check": "cold start USB disabled and disarmed",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "restored or default response",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "ARM unassigned on isolated profile",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw calibration never created",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "out of range settings rejected",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "unknown controller binding rejected",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "explicit zero-throttle ARM",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "armed editing refused",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "actual yaw target reflects Expo and selected rate",
+                "ok": true,
+                "value": 84.00000000000001
+              },
+              {
+                "check": "actual roll target reaches and obeys selected ANGLE rate throughout flight",
+                "ok": true,
+                "value": 29.999999165173968
+              },
+              {
+                "check": "real motor forces present",
+                "ok": true,
+                "value": 11.550633430480957
+              },
+              {
+                "check": "ANGLE tilt limit retained",
+                "ok": true,
+                "value": 0
+              },
+              {
+                "check": "raw throttle unmodified",
+                "ok": true,
+                "value": 0
+              }
+            ],
+            "result_path": "Saved/Verification/pilot-response-20261028-071344-47fd560c/reload/result.json",
+            "result_sha256": "8685c0cd3afed28cc771b6e5e99dc11270454b579b2453b3127c47f57fe4ec1d"
+          }
+        ],
+        "scope": "Synthetic native menu/settings and actual ANGLE target/motor force checks, no real HID button or calibration."
+      }
+    },
+    {
+      "kind": "physics",
+      "path": "Saved/Verification/runtime-20261028-071350-970/results.json",
+      "sha256": "2d37d769ab52ab21d13f48648339c8f274d47913ea3f8e4a9fa95746a6936dfe",
+      "result": {
+        "fixed_game_fps": 60,
+        "exit_code": 0,
+        "result": {
+          "ok": true,
+          "drones": 10,
+          "hover_error_cm": 3.15,
+          "hover_max_z_cm": 231.869,
+          "hover_min_z_cm": 219.915,
+          "floor_wall_contact": true,
+          "net_contact": true,
+          "net_peak_m": 0.06753,
+          "net_visible_peak_m": 0.0646,
+          "net_rebound_mps": 1.0562,
+          "striker_physical_goal": true,
+          "blue_score": 1,
+          "csv_export": true,
+          "build": {
+            "version": "0.7.7-dev",
+            "source_commit": "2b2bfd445633571f098060864abbb8293afd262f",
+            "source_dirty": true,
+            "source_sha256": "46342d0257471303cb7839237eeac60ead52f49bd292e9f61ff951f9d8f35d82",
+            "build_utc": "2026-10-28T07:09:14Z",
+            "target": "ImperialWingsSimulator"
+          },
+          "actual_min_game_dt_s": 0.01666666753590107,
+          "actual_max_game_dt_s": 0.01666666753590107,
+          "physics_defaults": {
+            "model": "STRIKER V3 reference-inspired, experimental coefficients",
+            "measured_airframe_data": false,
+            "motor_pwm_exponent": 2,
+            "motor_response_s": 0.035,
+            "battery_capacity_ah": 1.5,
+            "battery_internal_resistance_ohm": 0.035,
+            "battery_maximum_current_a": 80,
+            "drag_effective_cd_area_m2": 0.015,
+            "sensor_latency_s": 0.005,
+            "gyro_noise_rad_s": 0.0005,
+            "wake_coupling": 0.18,
+            "net_stiffness_n_per_m": 300,
+            "net_damping_ns_per_m": 22,
+            "guard_energy_capacity_j": 80,
+            "guard_damage_threshold_j": 0.6,
+            "goal_mass_kg": 12.5,
+            "goal_suspension_angular_damping": 1.4
+          }
+        },
+        "log": "E:\\Builds\\ImperialWings-R11\\Saved\\Verification\\runtime-20261028-071350-970\\physics-60.log"
+      }
+    }
+  ],
+  "portable": {
+    "path": "Saved/Verification/portable-ai-r1/result.json",
+    "sha256": "6edfc1b13e28fc84134be232bf9d2a9580deb8ae92582a8e8d1496da96c0ff78",
+    "result": {
+      "ok": true,
+      "checks": [
+        {
+          "name": "all released file hashes match",
+          "passed": true
+        },
+        {
+          "name": "standalone feedback form exists, is checksummed and matches reviewed source",
+          "passed": true
+        },
+        {
+          "name": "no pilot settings or generated Saved directory",
+          "passed": true
+        },
+        {
+          "name": "native launcher resolves relocated files without developer tools",
+          "passed": true
+        },
+        {
+          "name": "frozen APF starts with no installed Python or Git on PATH",
+          "passed": true
+        },
+        {
+          "name": "frozen APF provenance matches released upstream",
+          "passed": true
+        },
+        {
+          "name": "actual bundled APF responds to ten-aircraft protocol 2",
+          "passed": true
+        },
+        {
+          "name": "bounded APF test exits cleanly",
+          "passed": true
+        },
+        {
+          "name": "fresh standalone Unreal storage result",
+          "passed": true
+        },
+        {
+          "name": "fresh keyboard startup and profile safety",
+          "passed": true
+        },
+        {
+          "name": "fresh writes only to explicit per-user data path",
+          "passed": true
+        },
+        {
+          "name": "first use never invents a controller profile",
+          "passed": true
+        },
+        {
+          "name": "package remains free of generated pilot data after execution",
+          "passed": true
+        }
+      ]
+    }
+  },
+  "archive": {
+    "name": "ImperialWings-Windows-v0.7.7-dev-ai-r1.zip",
+    "bytes": 374848733,
+    "sha256": "097ee0a77dd557087b344a4bc2b643e290d17dea2d9064c4e8b526c23d250ada",
+    "crc_ok": true,
+    "published": false
+  },
+  "personal_calibration_unchanged": true,
+  "limitations": [
+    "No physical USB or separate physical PC test",
+    "Difficulty tuning against a human player not verified",
+    "Defensive practice only, not AI team match",
+    "Complex collisions, deadlock recovery and sensor-limited tactics pending",
+    "Current public download stays v0.7.4-r2"
+  ]
+}

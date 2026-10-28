@@ -191,6 +191,19 @@ void TestBothTeamRetreatBoundaries()
         Check(m.Score(team)==2&&m.Score(1-team)==0,"The next goal after a valid mirrored retreat did not increment only that team");
     }
 }
+void TestAIPracticeRoles()
+{
+    for(int count:{3,4})
+    {
+        MatchRules m;auto p=Homes();for(int id=0;id<10;++id)m.SetActive(id,id==0||(id>=6&&id<6+count));
+        Forward(m,p,0);Check(m.Score(0)==1&&m.IsOffside(0),"AI practice striker failed to score");
+        Forward(m,p,1);Check(m.Score(1)==0,"Inactive AI striker scored");
+        for(int id=6;id<6+count;++id){At(m,p,id,-6.1);At(m,p,id,-6.9);Check(m.Score(1)==0,"Defender scored without striker role");}
+        p[1].x=3;At(m,p,0,-.5);Check(!m.IsOffside(0),"Inactive blue player blocked practice retreat");
+        Forward(m,p,0);Check(m.Score(0)==2,"Second legal practice goal missing");
+        m.Reset();p=Homes();Forward(m,p,1);Check(m.Score(1)==1,"Reset did not restore red striker");
+    }
+}
 }
 int main()
 {
@@ -198,7 +211,7 @@ int main()
     {
         TestProfileAndPractice();TestFullPassAndBounce();TestRolesAndEdges();TestOffsideAndPenalties();
         TestClockAndSetWins();TestDrawsCarryAndWhistle();TestInvalidInputsAndReset();TestMovingGoalFrames();
-        TestBothTeamsAllRoles();TestTransitIntegrity();TestBothTeamRetreatBoundaries();
+        TestBothTeamsAllRoles();TestTransitIntegrity();TestBothTeamRetreatBoundaries();TestAIPracticeRoles();
         std::cout<<"PASS: "<<checks<<" FIDA rule checks (whole-ball goals, roles, offside, penalties, clock, sets and invalid inputs).\n";
         return 0;
     }

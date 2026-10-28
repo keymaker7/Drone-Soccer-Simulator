@@ -76,11 +76,11 @@ void AImperialHUD::ClickPointer()
     for(int32 I=ButtonTargets.Num()-1;I>=0;--I)
     {
         const auto& Target=ButtonTargets[I];
-        if(bRadioPanelOpen&&Target.Priority<100)continue;
+        if(IsPilotMenuOpen()&&Target.Priority<100)continue;
         if(Target.Bounds.IsInside(Point)){NotifyHitBoxClick(Target.Name);return;}
     }
 }
-bool AImperialHUD::IsPointerOverUI(FVector2D P)const {if(bRadioPanelOpen)return true;for(const auto& B:Bounds)if(B.IsInside(P))return true;return false;}
+bool AImperialHUD::IsPointerOverUI(FVector2D P)const {if(IsPilotMenuOpen())return true;for(const auto& B:Bounds)if(B.IsInside(P))return true;return false;}
 
 UImperialRadioSubsystem* AImperialHUD::GetRadio() const
 {
@@ -90,7 +90,7 @@ UImperialRadioSubsystem* AImperialHUD::GetRadio() const
 
 void AImperialHUD::ToggleRadioPanel()
 {
-    bRadioPanelOpen=!bRadioPanelOpen;
+    bAIPracticePanel=false;bRadioPanelOpen=!bRadioPanelOpen;
     bResponsePanel=false;bLearnArm=false;
     if(bRadioPanelOpen){bRadioAdvanced=false;if(auto* Manager=FindMatch())Manager->ManualSelected();}
     if(!bRadioPanelOpen)if(auto* Radio=GetRadio())Radio->CancelGuidedCalibration();
@@ -131,7 +131,7 @@ void AImperialHUD::DrawHUD()
     if(PlayerOwner&&PlayerOwner->GetMousePosition(MX,MY))Pointer=FVector2D(MX,MY);
     auto* M=FindMatch();if(!M)return;
     const auto& Drones=M->GetDrones();auto* Selected=M->GetSelectedDrone();
-    if(bCompactView&&!bRadioPanelOpen)
+    if(bCompactView&&!IsPilotMenuOpen())
     {
         Panel(470,22,660,76);
         Text(FString::Printf(TEXT("BLUE  %d   :   %d  RED"),M->GetScore(0),M->GetScore(1)),493,38,24,White);
@@ -146,6 +146,7 @@ void AImperialHUD::DrawHUD()
     }
     Panel(24,24,1552,102);Panel(24,142,1172,58);Panel(1220,142,356,452);
     Panel(1220,610,356,316);Panel(24,218,260,190);Panel(24,424,260,123);
+    Button(TEXT("AI_Open"),M->IsAIPracticeActive()?TEXT("AI PRACTICE / SETTINGS & STOP"):TEXT("AI PRACTICE / 3-4 DEFENDERS"),730,736,466,44,M->IsAIPracticeActive());
     Panel(24,736,680,44);Panel(24,798,680,128);Panel(24,944,1552,32);
     Rect(24,24,5,102,Cyan);
     Text(TEXT("IMPERIAL WINGS"),45,42,31,White);
@@ -262,6 +263,7 @@ void AImperialHUD::DrawHUD()
         }
     }
     if(bRadioPanelOpen)DrawRadioPanel(*M);
+    if(bAIPracticePanel)DrawAIPracticePanel(*M);
 }
 
 void AImperialHUD::DrawRadioPanel(AImperialMatchManager& Manager)
@@ -542,6 +544,23 @@ void AImperialHUD::NotifyHitBoxClick(FName BoxName)
        (N==TEXT("Auto")||N==TEXT("Hold")||N==TEXT("Return")||N==TEXT("Manual")||N==TEXT("Reset")||N==TEXT("StartMatch")||N==TEXT("Arm")||N==TEXT("ArmSelected")))return;
     UE_LOG(LogTemp,Display,TEXT("IMPERIAL_UI_CLICK %s"),*N);
     if(N==TEXT("Exit")){M->ResetMatch();UKismetSystemLibrary::QuitGame(this,PlayerOwner,EQuitPreference::Quit,false);return;}
+    if(bAIPracticePanel)
+    {
+        if(N==TEXT("AI_Close")){ToggleAIPracticePanel();return;}
+        if(N==TEXT("AI_Stop")){M->StopAIPractice();return;}
+        if(!M->IsAIPracticeActive())
+        {
+            if(N==TEXT("AI_Count3"))AIDraftCount=3;
+            else if(N==TEXT("AI_Count4"))AIDraftCount=4;
+            else if(N==TEXT("AI_Easy"))AIDraftDifficulty=0;
+            else if(N==TEXT("AI_Medium"))AIDraftDifficulty=1;
+            else if(N==TEXT("AI_Hard"))AIDraftDifficulty=2;
+            else if(N==TEXT("AI_Seed")){AIDraftSeed=FMath::RandHelper(1000000)+1;}
+            else if(N==TEXT("AI_Start")){if(M->StartAIPractice({AIDraftCount,AIDraftDifficulty,AIDraftSeed}))ToggleAIPracticePanel();}
+        }
+        return;
+    }
+    if(N==TEXT("AI_Open")&&!bRadioPanelOpen){ToggleAIPracticePanel();return;}
     if(N==TEXT("Equipment")){if(auto* PC=Cast<AImperialPlayerController>(PlayerOwner))PC->ToggleEquipmentInspection();return;}
     if(N==TEXT("RadioOpen")){ToggleRadioPanel();return;}
     if(bRadioPanelOpen)

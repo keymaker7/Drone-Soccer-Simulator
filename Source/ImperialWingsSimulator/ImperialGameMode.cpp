@@ -13,6 +13,7 @@
 #include "ImperialSolverProbe.h"
 #include "ImperialFlightTrace.h"
 #include "ImperialResponseVerifier.h"
+#include "ImperialAIPracticeVerifier.h"
 #include "ImperialSolverBridgeVerifier.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
@@ -33,6 +34,7 @@ void AImperialGameMode::StartPlay()
     }
     else
     {
+    if(FParse::Param(FCommandLine::Get(),TEXT("ImperialAIPracticeSmoke")))GetWorld()->SpawnActor<AImperialAIPracticeVerifier>();
     if(FParse::Param(FCommandLine::Get(),TEXT("ImperialResponseSmoke")))GetWorld()->SpawnActor<AImperialResponseVerifier>();
     if(FParse::Param(FCommandLine::Get(),TEXT("ImperialInputSmoke")))GetWorld()->SpawnActor<AImperialInputSafetyVerifier>();
     if(FParse::Param(FCommandLine::Get(),TEXT("ImperialTimeSmoke")))GetWorld()->SpawnActor<AImperialTimeVerifier>();

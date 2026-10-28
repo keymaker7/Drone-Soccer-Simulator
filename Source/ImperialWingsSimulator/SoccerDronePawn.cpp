@@ -633,7 +633,7 @@ void ASoccerDronePawn::ToggleArm()
 {
     if(const auto* Pilot=Cast<AImperialPlayerController>(GetController());Pilot&&Pilot->IsInputResetThisFrame())return;
     if (const auto* Pilot=Cast<APlayerController>(GetController()))
-        if (const auto* HUD=Cast<AImperialHUD>(Pilot->GetHUD()); HUD&&HUD->IsRadioPanelOpen()) return;
+        if (const auto* HUD=Cast<AImperialHUD>(Pilot->GetHUD()); HUD&&HUD->IsPilotMenuOpen()) return;
     if (bAutonomousEnabled)
     {
         SetAutonomousEnabled(false);
@@ -814,7 +814,7 @@ void ASoccerDronePawn::ResetDrone()
 void ASoccerDronePawn::ResetFromPilotInput()
 {
     if(const auto* Pilot=Cast<AImperialPlayerController>(GetController());Pilot&&(Pilot->IsReadOnlyView()||Pilot->IsEquipmentInspection()))return;
-    if(const auto* Pilot=Cast<APlayerController>(GetController()))if(const auto* HUD=Cast<AImperialHUD>(Pilot->GetHUD());HUD&&HUD->IsRadioPanelOpen())return;
+    if(const auto* Pilot=Cast<APlayerController>(GetController()))if(const auto* HUD=Cast<AImperialHUD>(Pilot->GetHUD());HUD&&HUD->IsPilotMenuOpen())return;
     ResetDrone();
     if(auto* Pilot=Cast<AImperialPlayerController>(GetController()))Pilot->FlushPilotContextKeys();
 }
@@ -842,7 +842,7 @@ void ASoccerDronePawn::Tick(float Dt)
     {
         bool Modal=false;
         if(const auto* Pilot=Cast<APlayerController>(GetController()))
-            if(const auto* HUD=Cast<AImperialHUD>(Pilot->GetHUD()))Modal=HUD->IsRadioPanelOpen();
+            if(const auto* HUD=Cast<AImperialHUD>(Pilot->GetHUD()))Modal=HUD->IsPilotMenuOpen();
         const auto* RolePilot=Cast<AImperialPlayerController>(GetController());
         // EvaluateInputDelegates may already have cached axes when a reset action
         // flushes keys mid-frame. Discard that frame's cached axis callbacks too.

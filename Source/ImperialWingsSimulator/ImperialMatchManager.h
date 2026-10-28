@@ -6,12 +6,13 @@
 #include "DroneSoccerRules.h"
 #include "GuidanceRequestWindow.h"
 #include "SimulationTime.h"
+#include "AITraining.h"
 #include "ImperialMatchManager.generated.h"
 class ASoccerDronePawn;
 class FJsonValue;
 class FJsonObject;
 class FPhysScene_Chaos;
-enum class EImperialMode { Manual, Mission, Hold, Returning };
+enum class EImperialMode { Manual, Mission, Hold, Returning, AIPractice, AILanding };
 UCLASS()
 class IMPERIALWINGSSIMULATOR_API AImperialMatchManager : public AActor
 {
@@ -33,6 +34,13 @@ public:
     void ManualSelected();
     void ResetMatch();
     void StartMatch();
+    bool StartAIPractice(ImperialAI::Settings Settings);
+    void StopAIPractice();
+    bool IsAIPracticeActive() const { return Mode==EImperialMode::AIPractice||Mode==EImperialMode::AILanding; }
+    bool IsAILanding() const { return Mode==EImperialMode::AILanding; }
+    ImperialAI::Settings GetAISettings() const { return AISettings; }
+    int32 GetAIDecisions() const { return AIPlanner.DecisionCount(); }
+    FString GetAIStatus() const;
     bool IsArmingAllowed() const { return Rules.IsArmingAllowed(); }
     bool IsAutonomyAllowed() const { return Rules.GetPhase()==drone_soccer::Phase::Practice; }
     FString GetMatchStatus() const;
@@ -59,6 +67,12 @@ public:
     FLinearColor GetTeamColor(int32 Id) const;
     const TArray<FString>& GetEvents() const { return Events; }
 private:
+    ImperialAI::Settings AISettings;
+    ImperialAI::Planner AIPlanner;
+    TArray<FVector> AILandingTargets;
+    double AIAge=0,AILandingAge=0;
+    bool bAILandingFault=false;
+    void TickAIPractice(float Dt);
     FImperialSimulationTime SimulationTime;
     void OnPhysicsTime(FPhysScene_Chaos* Scene,float Dt);
     UPROPERTY() TArray<TObjectPtr<ASoccerDronePawn>> Drones;

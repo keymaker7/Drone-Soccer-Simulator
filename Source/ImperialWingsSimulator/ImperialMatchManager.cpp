@@ -77,7 +77,7 @@ void AImperialMatchManager::BeginPlay()
     // Shipping ignores the engine's developer-only -FPS override. Configure only
     // these explicit non-USB verification scenarios, then report actual Tick dt.
     double FixtureFPS=0;
-    if((bSmoke||bAngleSmoke||bContactSmoke||bViewSmoke||FParse::Param(FCommandLine::Get(),TEXT("ImperialPowerSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialThrottleSmoke")))&&FParse::Param(FCommandLine::Get(),TEXT("UseFixedTimeStep"))&&FParse::Value(FCommandLine::Get(),TEXT("FPS="),FixtureFPS)&&FixtureFPS>=20&&FixtureFPS<=240)
+    if((bSmoke||bAngleSmoke||bContactSmoke||bViewSmoke||FParse::Param(FCommandLine::Get(),TEXT("ImperialAIPracticeSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialPowerSmoke"))||FParse::Param(FCommandLine::Get(),TEXT("ImperialThrottleSmoke")))&&FParse::Param(FCommandLine::Get(),TEXT("UseFixedTimeStep"))&&FParse::Value(FCommandLine::Get(),TEXT("FPS="),FixtureFPS)&&FixtureFPS>=20&&FixtureFPS<=240)
     {FApp::SetFixedDeltaTime(1./FixtureFPS);FApp::SetUseFixedTimeStep(true);}
     bDemo=FParse::Param(FCommandLine::Get(),TEXT("ImperialDemo"));
     FParse::Value(FCommandLine::Get(),TEXT("ImperialCapture="),CaptureFile);
@@ -131,18 +131,20 @@ ASoccerDronePawn* AImperialMatchManager::GetDrone(int32 Id)const{return Drones.I
 ASoccerDronePawn* AImperialMatchManager::GetSelectedDrone()const{return GetDrone(Selected);}
 void AImperialMatchManager::SelectDrone(int32 Id)
 {
-    if(!Drones.IsValidIndex(Id))return;Selected=Id;
+    if(!Drones.IsValidIndex(Id))return;
+    if(IsAIPracticeActive()&&Id!=0){Log(TEXT("AI practice uses the blue striker. Stop AI or RESET before changing aircraft."));return;}Selected=Id;
     if(auto* PC=Cast<AImperialPlayerController>(UGameplayStatics::GetPlayerController(this,0))){PC->Possess(Drones[Id]);PC->SetView(CameraView);}
 }
 void AImperialMatchManager::SelectNext(){SelectDrone((Selected+1)%FMath::Max(1,Drones.Num()));}
 FString AImperialMatchManager::GetModeName()const
 {
     if(!IsAutonomyAllowed())return TEXT("LOS MANUAL MATCH");
-    switch(Mode){case EImperialMode::Mission:return TEXT("SDACS AUTONOMOUS");case EImperialMode::Hold:return TEXT("POSITION HOLD");case EImperialMode::Returning:return TEXT("RETURNING");default:return TEXT("MANUAL TRAINING");}
+    switch(Mode){case EImperialMode::AIPractice:return TEXT("AI DEFENCE PRACTICE");case EImperialMode::AILanding:return TEXT("AI LANDING");case EImperialMode::Mission:return TEXT("SDACS AUTONOMOUS");case EImperialMode::Hold:return TEXT("POSITION HOLD");case EImperialMode::Returning:return TEXT("RETURNING");default:return TEXT("MANUAL TRAINING");}
 }
 void AImperialMatchManager::Log(const FString& Message){Notice=Message;Events.Add(Message);if(Events.Num()>40)Events.RemoveAt(0);}
 void AImperialMatchManager::LaunchSwarm()
 {
+    if(IsAIPracticeActive()){Log(TEXT("Stop AI practice or RESET before starting a fleet mission."));return;}
     if(!IsAutonomyAllowed()){Log(TEXT("Autonomous guidance is available in practice mode. Reset to practice first."));return;}
     if(!bConnected){Log(TEXT("SDACS bridge offline. Run ImperialWings.cmd to start the local planner."));return;}
     AdvanceGuidanceCommand();Mode=EImperialMode::Mission;
@@ -151,6 +153,7 @@ void AImperialMatchManager::LaunchSwarm()
 }
 void AImperialMatchManager::HoldFleet()
 {
+    if(IsAIPracticeActive()){Log(TEXT("AI practice owns the defenders. Use STOP AI to land."));return;}
     if(!IsAutonomyAllowed()){Log(TEXT("HOLD is a practice aid. Keep manual control during a match."));return;}
     AdvanceGuidanceCommand();Mode=EImperialMode::Hold;
     for(auto& D:Drones)if(D->IsArmed()){D->SetAutonomousEnabled(true);D->SetAutonomousTarget(D->GetActorLocation());}
@@ -158,6 +161,7 @@ void AImperialMatchManager::HoldFleet()
 }
 void AImperialMatchManager::ReturnFleet()
 {
+    if(IsAIPracticeActive()){StopAIPractice();return;}
     if(!IsAutonomyAllowed()){Log(TEXT("RETURN is a practice aid. Land manually during a match."));return;}
     if(!bConnected){HoldFleet();Log(TEXT("SDACS offline: return unavailable. Holding locally; request RETURN after reconnect."));return;}
     AdvanceGuidanceCommand();Mode=EImperialMode::Returning;
@@ -166,12 +170,12 @@ void AImperialMatchManager::ReturnFleet()
 }
 void AImperialMatchManager::ManualSelected()
 {
-    if(auto* D=GetSelectedDrone()){AdvanceGuidanceCommand();D->SetAutonomousEnabled(false);D->SetArmed(false);Mode=EImperialMode::Manual;Log(TEXT("Selected aircraft disarmed. Current input source retained; low throttle is required to arm."));}
+    if(auto* D=GetSelectedDrone()){AdvanceGuidanceCommand();D->SetAutonomousEnabled(false);D->SetArmed(false);if(!IsAIPracticeActive())Mode=EImperialMode::Manual;Log(TEXT("Selected aircraft disarmed. Current input source retained; low throttle is required to arm."));}
 }
 void AImperialMatchManager::ToggleArmSelected(){if(const auto* Pilot=Cast<AImperialPlayerController>(UGameplayStatics::GetPlayerController(this,0));Pilot&&Pilot->IsInputResetThisFrame())return;if(auto* D=GetSelectedDrone()){if(D->IsAutonomousEnabled())D->SetAutonomousEnabled(false);else D->SetArmed(!D->IsArmed());}}
 void AImperialMatchManager::ResetMatch()
 {
-    AdvanceGuidanceCommand();
+    AdvanceGuidanceCommand();AILandingTargets.Reset();AIAge=AILandingAge=0;bAILandingFault=false;
     for(auto& D:Drones)D->ResetDrone();Mode=EImperialMode::Manual;BlueScore=OrangeScore=0;Elapsed=0;Rules.Reset();
     for(int32 I=0;I<Drones.Num();++I){PreviousPositions[I]=Drones[I]->GetActorLocation();GoalReady[I]=true;}
     // The next generation resets only this session's planner state. An unordered
@@ -182,6 +186,7 @@ void AImperialMatchManager::ResetMatch()
 }
 void AImperialMatchManager::StartMatch()
 {
+    if(IsAIPracticeActive()){Log(TEXT("Stop AI practice and land before starting an official manual match."));return;}
     ResetMatch();Rules.StartMatch();ChangeView(1);Log(TEXT("FIDA Class 40 LOS match: 10-second ready signal, then 3-minute sets. Manual control."));
     if(auto* Arena=Cast<APrototypeArenaBuilder>(UGameplayStatics::GetActorOfClass(GetWorld(),APrototypeArenaBuilder::StaticClass())))for(int32 I=0;I<2;++I)if(auto* Goal=Arena->GetGoal(I))Goal->SetCompetitionStable(true);
 }
@@ -200,7 +205,7 @@ void AImperialMatchManager::ChangeView(int32 View)
 {auto* PC=Cast<AImperialPlayerController>(UGameplayStatics::GetPlayerController(this,0));if(PC&&!PC->CanSetView(View)){Log(TEXT("Disarm manual aircraft before entering an audience/referee view."));return;}CameraView=FMath::Clamp(View,1,6);if(PC)PC->SetView(CameraView);}
 void AImperialMatchManager::Tick(float Dt)
 {
-    Super::Tick(Dt);Elapsed+=Dt;SmoothFPS=FMath::Lerp(SmoothFPS,1.f/FMath::Max(.001f,Dt),.04f);
+    Super::Tick(Dt);TickAIPractice(Dt);Elapsed+=Dt;SmoothFPS=FMath::Lerp(SmoothFPS,1.f/FMath::Max(.001f,Dt),.04f);
     if((bSmoke||bAngleSmoke||bContactSmoke||bViewSmoke)&&Elapsed>.2){SmokeMinDt=FMath::Min(SmokeMinDt,Dt);SmokeMaxDt=FMath::Max(SmokeMaxDt,Dt);}
     for(int32 I=0;I<Drones.Num();++I){TArray<FVector> Sources;TArray<float> Thrusts;for(int32 J=0;J<Drones.Num();++J)if(J!=I&&Drones[J]->IsArmed()){Sources.Add(Drones[J]->GetActorLocation()/100.);Thrusts.Add(Drones[J]->GetTotalThrustNewtons());}Drones[I]->SetWakeSources(Sources,Thrusts);}
     ClosestSeparation=1000;Conflicts=0;
@@ -382,6 +387,9 @@ void AImperialMatchManager::RecordFlightSample(const FString& Event)
     Root->SetNumberField(TEXT("game_s"),Elapsed);Root->SetNumberField(TEXT("selected"),Selected);
     Root->SetStringField(TEXT("source_sha256"),ImperialBuildInfo::SourceHash());
     Root->SetObjectField(TEXT("timing"),SimulationTime.Json());
+    auto AI=MakeShared<FJsonObject>();AI->SetBoolField(TEXT("active"),IsAIPracticeActive());AI->SetBoolField(TEXT("landing"),IsAILanding());
+    AI->SetNumberField(TEXT("defenders"),AISettings.Count);AI->SetNumberField(TEXT("difficulty"),AISettings.Difficulty);AI->SetNumberField(TEXT("seed"),AISettings.Seed);
+    AI->SetNumberField(TEXT("decisions"),AIPlanner.DecisionCount());AI->SetNumberField(TEXT("age_s"),AIAge);Root->SetObjectField(TEXT("ai_practice"),AI);
     auto* Radio=GetWorld()->GetGameInstance()->GetSubsystem<UImperialRadioSubsystem>();
     Root->SetBoolField(TEXT("radio_connected"),Radio&&Radio->IsConnected());Root->SetBoolField(TEXT("radio_enabled"),Radio&&Radio->IsEnabled());
     if(Radio){Root->SetArrayField(TEXT("stick"),{MakeShared<FJsonValueNumber>(Radio->GetNormalizedRoll()),MakeShared<FJsonValueNumber>(Radio->GetNormalizedPitch()),MakeShared<FJsonValueNumber>(Radio->GetNormalizedYaw()),MakeShared<FJsonValueNumber>(Radio->GetThrottle())});}
@@ -392,6 +400,7 @@ void AImperialMatchManager::RecordFlightSample(const FString& Event)
         Row->SetNumberField(TEXT("id"),I);Row->SetBoolField(TEXT("armed"),D->IsArmed());Row->SetBoolField(TEXT("autonomous"),D->IsAutonomousEnabled());
         Row->SetStringField(TEXT("input_source"),D->GetInputSource());Row->SetStringField(TEXT("flight_mode"),D->GetFlightModeName());
         Row->SetArrayField(TEXT("position_m"),JsonVector(D->GetActorLocation()/100.));Row->SetNumberField(TEXT("speed_mps"),D->GetFlightSpeed());
+        Row->SetArrayField(TEXT("autonomous_target_m"),JsonVector(D->GetAutonomousTarget()/100.));
         Row->SetNumberField(TEXT("throttle"),D->GetThrottle());Row->SetNumberField(TEXT("tilt_deg"),D->GetTiltDegrees());
         Row->SetNumberField(TEXT("throttle_command"),D->GetThrottleCommand());Row->SetBoolField(TEXT("precision_throttle"),D->UsesPrecisionThrottle());
         Row->SetNumberField(TEXT("flight_model_s"),D->GetFlightModelSeconds());Row->SetNumberField(TEXT("sensor_model_s"),D->GetSensorModelSeconds());

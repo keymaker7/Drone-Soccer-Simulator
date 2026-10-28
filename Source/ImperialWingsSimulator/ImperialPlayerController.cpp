@@ -106,7 +106,7 @@ void AImperialPlayerController::PlayerTick(float Dt)
         }
     }
     const auto* HUD=Cast<AImperialHUD>(GetHUD());
-    const bool RadioOpen=HUD&&HUD->IsRadioPanelOpen();
+    const bool RadioOpen=HUD&&HUD->IsPilotMenuOpen();
     UpdateRadioArming();
     float X=0,Y=0;
     if((ActiveView==1||ActiveView==2||ActiveView==4||ActiveView==5)&&!RadioOpen&&IsInputKeyDown(EKeys::RightMouseButton)&&GetMousePosition(X,Y))
@@ -216,7 +216,7 @@ void AImperialPlayerController::SetupInputComponent()
 }
 void AImperialPlayerController::ZoomIn(){if(HasRadioModal())return;if(ActiveView==1){PilotFieldOfView=FMath::Clamp(PilotFieldOfView-5.f,40.f,85.f);UpdatePilotCamera();}else if(ActiveView==2)ObserverDistance=FMath::Clamp(ObserverDistance-35.f,100.f,900.f);else if(ActiveView==4)AudienceFov=FMath::Clamp(AudienceFov-5.f,40.f,85.f);else if(ActiveView==5)RefereeFov=FMath::Clamp(RefereeFov-5.f,60.f,110.f);}
 void AImperialPlayerController::ZoomOut(){if(HasRadioModal())return;if(ActiveView==1){PilotFieldOfView=FMath::Clamp(PilotFieldOfView+5.f,40.f,85.f);UpdatePilotCamera();}else if(ActiveView==2)ObserverDistance=FMath::Clamp(ObserverDistance+35.f,100.f,900.f);else if(ActiveView==4)AudienceFov=FMath::Clamp(AudienceFov+5.f,40.f,85.f);else if(ActiveView==5)RefereeFov=FMath::Clamp(RefereeFov+5.f,60.f,110.f);}
-bool AImperialPlayerController::HasRadioModal() const {const auto* H=Cast<AImperialHUD>(GetHUD());return H&&H->IsRadioPanelOpen();}
+bool AImperialPlayerController::HasRadioModal() const {const auto* H=Cast<AImperialHUD>(GetHUD());return H&&H->IsPilotMenuOpen();}
 void AImperialPlayerController::Fpv(){if(Match&&!HasRadioModal())Match->ChangeView(1);}
 void AImperialPlayerController::Chase(){if(Match&&!HasRadioModal())Match->ChangeView(2);}
 void AImperialPlayerController::Arena(){if(Match&&!HasRadioModal())Match->ChangeView(3);}

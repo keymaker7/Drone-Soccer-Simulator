@@ -20,6 +20,9 @@ public:
     void ClickPointer();
     void ToggleCompactView() { bCompactView=!bCompactView; }
     bool IsRadioPanelOpen() const { return bRadioPanelOpen; }
+    bool IsPilotMenuOpen() const { return bRadioPanelOpen||bAIPracticePanel; }
+    bool IsAIPracticePanelOpen() const { return bAIPracticePanel; }
+    void ToggleAIPracticePanel();
 private:
     UPROPERTY() TWeakObjectPtr<AImperialMatchManager> Match;
     float Scale = 1;
@@ -27,6 +30,10 @@ private:
     FVector2D Pointer = FVector2D(-1000, -1000);
     TArray<FBox2D> Bounds;
     bool bRadioPanelOpen = false;
+    bool bAIPracticePanel=false;
+    int32 AIDraftCount=3,AIDraftDifficulty=0;
+    uint32 AIDraftSeed=1;
+    void DrawAIPracticePanel(AImperialMatchManager& Manager);
     bool bRadioAdvanced = false;
     bool bResponsePanel=false,bLearnArm=false,bDraftArmToggle=true;
     ImperialInput::ButtonLearner ArmLearner;
