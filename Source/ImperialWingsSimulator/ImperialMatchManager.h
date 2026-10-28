@@ -6,12 +6,16 @@
 #include "DroneSoccerRules.h"
 #include "GuidanceRequestWindow.h"
 #include "SimulationTime.h"
+#include "AITraining.h"
+#include "AIPracticeResult.h"
+#include "AIRecovery.h"
+#include "AIAttacker.h"
 #include "ImperialMatchManager.generated.h"
 class ASoccerDronePawn;
 class FJsonValue;
 class FJsonObject;
 class FPhysScene_Chaos;
-enum class EImperialMode { Manual, Mission, Hold, Returning };
+enum class EImperialMode { Manual, Mission, Hold, Returning, AIPractice, AILanding };
 UCLASS()
 class IMPERIALWINGSSIMULATOR_API AImperialMatchManager : public AActor
 {
@@ -32,7 +36,23 @@ public:
     void ReturnFleet();
     void ManualSelected();
     void ResetMatch();
+    void PrepareToExit();
     void StartMatch();
+    bool StartAIPractice(ImperialAI::Settings Settings);
+    void StopAIPractice();
+    bool IsAIPracticeActive() const { return Mode==EImperialMode::AIPractice||Mode==EImperialMode::AILanding; }
+    bool IsAILanding() const { return Mode==EImperialMode::AILanding; }
+    ImperialAI::Settings GetAISettings() const { return AISettings; }
+    int32 GetAIDecisions() const { return AIPlanner.DecisionCount(); }
+    int32 GetAIRecoveryAttempts() const;
+    int32 GetAIRecoveringCount() const;
+    FString GetAIStatus() const;
+    int32 GetAIAttackCycles() const { return AIAttacker.GetCycles(); }
+    int32 GetAIAttackPhase() const { return static_cast<int32>(AIAttacker.GetPhase()); }
+    bool IsAIDuelFinished() const { return bAIScoringClosed; }
+    const FImperialAIResult& GetAIResult() const { return LastAIResult; }
+    bool SaveAIResult();
+    void DiscardUnsavedAIResult();
     bool IsArmingAllowed() const { return Rules.IsArmingAllowed(); }
     bool IsAutonomyAllowed() const { return Rules.GetPhase()==drone_soccer::Phase::Practice; }
     FString GetMatchStatus() const;
@@ -50,7 +70,7 @@ public:
     FString GetModeName() const;
     FString GetNotice() const { return Notice; }
     int32 GetScore(int32 Team) const { return Rules.Score(Team); }
-    double GetElapsed() const { return Rules.GetPhase()==drone_soccer::Phase::Practice?Elapsed:Rules.Remaining(); }
+    double GetElapsed() const { return AISettings.Duel&&(IsAIPracticeActive()||bAIScoringClosed)?FMath::Max(0.,180.-AIAge):(Rules.GetPhase()==drone_soccer::Phase::Practice?Elapsed:Rules.Remaining()); }
     float GetFPS() const { return SmoothFPS; }
     const FImperialSimulationTime& GetSimulationTime() const { return SimulationTime; }
     float GetClosestSeparation() const { return ClosestSeparation; }
@@ -59,6 +79,19 @@ public:
     FLinearColor GetTeamColor(int32 Id) const;
     const TArray<FString>& GetEvents() const { return Events; }
 private:
+    ImperialAI::Settings AISettings;
+    ImperialAI::Planner AIPlanner;
+    ImperialAI::Attacker AIAttacker;
+    bool bAIScoringClosed=false;
+    std::array<ImperialAI::Recovery,4> AIRecovery;
+    TArray<FVector> AILandingTargets;
+    double AIAge=0,AILandingAge=0;
+    bool bAILandingFault=false;
+    void TickAIPractice(float Dt);
+    FImperialAIResult CurrentAIResult,LastAIResult;
+    void SnapshotAIResult(const FString& Reason);
+    void FinishAIResult(const FString& Reason);
+    void LoadAIResult();
     FImperialSimulationTime SimulationTime;
     void OnPhysicsTime(FPhysScene_Chaos* Scene,float Dt);
     UPROPERTY() TArray<TObjectPtr<ASoccerDronePawn>> Drones;

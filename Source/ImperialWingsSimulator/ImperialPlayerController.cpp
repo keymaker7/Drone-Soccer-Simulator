@@ -40,6 +40,7 @@ void AImperialPlayerController::FlushPilotContextKeys()
 }
 void AImperialPlayerController::FlushPressedKeys()
 {
+    RadioArmGate.Reset();
     InputResetAtCycles=FPlatformTime::Cycles64();InputResetFrame=GFrameCounter;FreshFlightKeys.Empty();bHeadDragging=false;
     Super::FlushPressedKeys();
     if(auto* Drone=Cast<ASoccerDronePawn>(GetPawn()))Drone->ClearManualPilotInput(TEXT("INPUT RESET / DISARMED. RELEASE KEYS, THEN ARM AGAIN."));
@@ -105,7 +106,8 @@ void AImperialPlayerController::PlayerTick(float Dt)
         }
     }
     const auto* HUD=Cast<AImperialHUD>(GetHUD());
-    const bool RadioOpen=HUD&&HUD->IsRadioPanelOpen();
+    const bool RadioOpen=HUD&&HUD->IsPilotMenuOpen();
+    UpdateRadioArming();
     float X=0,Y=0;
     if((ActiveView==1||ActiveView==2||ActiveView==4||ActiveView==5)&&!RadioOpen&&IsInputKeyDown(EKeys::RightMouseButton)&&GetMousePosition(X,Y))
     {
@@ -134,6 +136,20 @@ void AImperialPlayerController::PlayerTick(float Dt)
     // View 2 is an external training observer, even if legacy pawn camera input is pressed.
     if(ActiveView==2&&Match&&Match->GetSelectedDrone())Match->GetSelectedDrone()->SetChaseView(true);
 }
+void AImperialPlayerController::UpdateRadioArming()
+{
+    auto* R=GetGameInstance()?GetGameInstance()->GetSubsystem<UImperialRadioSubsystem>():nullptr;
+    auto* D=Cast<ASoccerDronePawn>(GetPawn());const auto* Device=R?R->GetSelectedDevice():nullptr;
+    const int32 Button=R?R->GetArmButton():INDEX_NONE;
+    const bool Valid=R&&D&&Device&&R->IsEnabled()&&Button>=0&&Button<FMath::Min(32,Device->ButtonCount)&&
+        R->GetArmDevice()==Device->Identity&&!HasRadioModal()&&!IsReadOnlyView()&&!IsEquipmentInspection()&&
+        !IsInputResetThisFrame()&&!D->IsAutonomousEnabled();
+    const bool Pressed=Valid&&(R->GetButtons()&(uint32(1)<<Button))!=0;
+    const auto Request=RadioArmGate.Step(Valid,Pressed,R?R->IsArmToggle():true,D&&D->IsArmed(),R?R->GetThrottle():1);
+    if(Request==ImperialInput::ArmRequest::Disarm&&D)D->SetArmed(false);
+    else if(Request==ImperialInput::ArmRequest::Arm&&D)D->SetArmed(true); // Existing low-throttle/match/view gates still apply.
+}
+
 void AImperialPlayerController::UpdateRoleCameras()
 {
     if(ObserverCamera&&Match&&Match->GetSelectedDrone())
@@ -200,7 +216,7 @@ void AImperialPlayerController::SetupInputComponent()
 }
 void AImperialPlayerController::ZoomIn(){if(HasRadioModal())return;if(ActiveView==1){PilotFieldOfView=FMath::Clamp(PilotFieldOfView-5.f,40.f,85.f);UpdatePilotCamera();}else if(ActiveView==2)ObserverDistance=FMath::Clamp(ObserverDistance-35.f,100.f,900.f);else if(ActiveView==4)AudienceFov=FMath::Clamp(AudienceFov-5.f,40.f,85.f);else if(ActiveView==5)RefereeFov=FMath::Clamp(RefereeFov-5.f,60.f,110.f);}
 void AImperialPlayerController::ZoomOut(){if(HasRadioModal())return;if(ActiveView==1){PilotFieldOfView=FMath::Clamp(PilotFieldOfView+5.f,40.f,85.f);UpdatePilotCamera();}else if(ActiveView==2)ObserverDistance=FMath::Clamp(ObserverDistance+35.f,100.f,900.f);else if(ActiveView==4)AudienceFov=FMath::Clamp(AudienceFov+5.f,40.f,85.f);else if(ActiveView==5)RefereeFov=FMath::Clamp(RefereeFov+5.f,60.f,110.f);}
-bool AImperialPlayerController::HasRadioModal() const {const auto* H=Cast<AImperialHUD>(GetHUD());return H&&H->IsRadioPanelOpen();}
+bool AImperialPlayerController::HasRadioModal() const {const auto* H=Cast<AImperialHUD>(GetHUD());return H&&H->IsPilotMenuOpen();}
 void AImperialPlayerController::Fpv(){if(Match&&!HasRadioModal())Match->ChangeView(1);}
 void AImperialPlayerController::Chase(){if(Match&&!HasRadioModal())Match->ChangeView(2);}
 void AImperialPlayerController::Arena(){if(Match&&!HasRadioModal())Match->ChangeView(3);}

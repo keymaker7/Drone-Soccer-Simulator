@@ -651,7 +651,7 @@ $SdacsRoot = [IO.Path]::GetFullPath((Join-Path $PWD '..\swarm-drone-atc'))
 - [SHA-256 목록](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/download/v0.7.12-rc1/SHA256SUMS.txt) · [최종 검증 요약](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/download/v0.7.12-rc1/v0.7.12-rc1-summary.json) · [업로드·재다운로드 확인 자료](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/releases/download/v0.7.12-rc1/v0.7.12-rc1-publication.json)
 - [해당 태그의 릴리스 문서](https://github.com/sun475300-sudo/Drone-Soccer-Simulator/blob/v0.7.12-rc1/docs/releases/v0.7.12-rc1.md)에는 공개 전 “준비 중” 표기가 남아 있습니다. 최종 공개 여부·파일 해시·추가 검사 결과는 **릴리스 본문과 첨부 자료**를 우선합니다.
 
-이번 main 변경은 **README에 신버전 안내를 추가하는 문서 변경**입니다. 신버전 코드나 실행 파일을 main으로 병합·교체한 작업은 아니며, 소스가 필요하면 위 공개 태그를 기준으로 확인합니다.
+v0.7.12-rc1 태그의 소스(`df358d8`)는 main에 병합되어 있습니다. 실행 파일은 저장소에 포함하지 않으며, 공개 실행본과 같은 소스가 필요하면 위 공개 태그를 기준으로 확인합니다. 병합 이후 main에 추가된 변경은 이 검증 기록에 포함되지 않습니다. 버전별 개발 기록(v0.7.5-dev~v0.7.10-dev)은 [검증 기록](docs/verification.md)과 [통합 개발 계획서](docs/master-development-plan.md)에 있습니다.
 
 </details>
 

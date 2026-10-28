@@ -1,0 +1,110 @@
+{
+  "version": "0.7.12-rc1",
+  "base_commit": "12150cef7d31c8bf42367db20866d35406993675",
+  "source_sha256": "02dcd472c5c5506aff605d0356145e421914c548c4dee636f56055886b7430b3",
+  "unit_tests": [
+    {
+      "name": "radio_calibration",
+      "checks": 205,
+      "failures": 0
+    },
+    {
+      "name": "pilot_response",
+      "checks": 4881,
+      "failures": 0
+    }
+  ],
+  "runtime": [
+    {
+      "name": "editor_language",
+      "passed": true,
+      "count": 47,
+      "source": "Saved/Verification/radio-ux-20261028-121716-138-0ca732db/summary.json"
+    },
+    {
+      "name": "shipping_language",
+      "passed": true,
+      "count": 47,
+      "source": "Saved/Verification/radio-ux-20261028-121856-440-42a24e32/summary.json"
+    },
+    {
+      "name": "shipping_response",
+      "passed": true,
+      "count": 66,
+      "source": "Saved/Verification/pilot-response-20261028-121734-e62d027f/results.json"
+    },
+    {
+      "name": "ai_duel",
+      "passed": true,
+      "count": 78,
+      "source": "Saved/Verification/ai-duel-20261028-121855-14fe0069/result.json"
+    },
+    {
+      "name": "ai_duel_recovery",
+      "passed": true,
+      "count": 16,
+      "source": "Saved/Verification/ai-duel-20261028-121855-14fe0069/additional.json"
+    },
+    {
+      "name": "angle_flight",
+      "passed": true,
+      "count": 3,
+      "source": "Saved/Verification/angle-radio-946def07/summary.json"
+    },
+    {
+      "name": "portable",
+      "passed": true,
+      "count": 13,
+      "source": "Saved/Verification/portable-precheck/result.json"
+    },
+    {
+      "name": "mode",
+      "passed": true,
+      "count": 20,
+      "source": "Saved/Verification/radio-modes-20261028-121716-343-f943cc37/result.json"
+    },
+    {
+      "name": "mode",
+      "passed": true,
+      "count": 20,
+      "source": "Saved/Verification/radio-modes-20261028-122011-637-57293a5e/result.json"
+    },
+    {
+      "name": "input",
+      "passed": true,
+      "count": 29,
+      "source": "Saved/Verification/input-safety-20261028-121730-172/result.json"
+    },
+    {
+      "name": "input",
+      "passed": true,
+      "count": 29,
+      "source": "Saved/Verification/input-safety-20261028-122017-831/result.json"
+    }
+  ],
+  "render_verified": [
+    {
+      "build": "Editor",
+      "resolution": [
+        1600,
+        1000
+      ],
+      "language": "ko/en"
+    },
+    {
+      "build": "Shipping",
+      "resolution": [
+        1280,
+        720
+      ],
+      "language": "ko/en"
+    }
+  ],
+  "pending": [
+    "physical Boxer continuous flight and ARM button",
+    "physical USB cable loss/reconnect and response direction",
+    "different physical PC",
+    "complete AI/match/result localization"
+  ],
+  "publication": "Candidate passed local and relocated ZIP validation; exact final commit and archive hashes will be attached to GitHub release metadata."
+}

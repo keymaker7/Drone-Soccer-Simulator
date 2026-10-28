@@ -1,12 +1,16 @@
 # Imperial Wings 다른 PC에서 시작하기
 
+**v0.7.12-rc1 — 한국어 조종기 안내·안전 저장 사전 배포.** 처음 조종기 화면은 한국어로 열립니다. 패널의 언어 버튼으로 English/한국어를 바꾸며 이 선택은 Windows 사용자별 `Config/Language.txt`에 보정과 따로 저장됩니다. 한국어 지원은 조종기 설정·주요 입력 상태 안내를 우선 적용했습니다. AI/경기/결과 화면에는 아직 영어가 남을 수 있습니다.
+
+기존 Mode1/2 단계형 보정·레이트/Expo·아밍키와 최신 AI 연습/3분 대전까지 포함합니다. AI PRACTICE → DUEL / 3 MINUTES는 한 명이 파란 공격수를 직접 조종하는 로컬 훈련 변형이며 정식 5대5 멀티플레이가 아닙니다. 진행 중인 Topgun 코스는 포함하지 않았습니다. 실제 Boxer 연속 비행·케이블 손실 복구·다른 PC 확인은 미검증입니다.
+
 1. Windows 배포 ZIP **전체를 압축 해제**합니다. EXE만 따로 복사하지 않습니다.
 2. `ImperialWingsLauncher.exe`를 실행합니다. Unreal Engine·Python·Git 설치는 필요 없습니다.
 3. 필수 Visual C++ 구성요소 설치 창이 나오면 설치를 마친 뒤 다시 실행합니다. 설치 파일은 `Prerequisites`에 포함돼 있습니다.
 4. **조종기 설정:** 사용하는 조종기의 데이터 전송용 USB 포트에 데이터 케이블을 연결합니다. 기종에 따라 전원을 켜고 **USB Joystick / 게임 컨트롤러 모드**를 선택합니다. 충전 전용 케이블·포트로는 입력을 읽을 수 없습니다.
-5. 처음 열린 간소 설정 화면에서 **장치 카드**로 조종기를 직접 선택합니다. **REFRESH / NEXT DEVICE**도 사용할 수 있습니다. 상단 STEP 안내를 따르고 X/Y/Z/R/U/V 막대가 실제 스틱 움직임에 따라 변하는지 확인합니다.
+5. 처음 열린 간소 설정 화면에서 **장치 카드**로 조종기를 직접 선택합니다. **REFRESH / NEXT DEVICE**(새로 검색 / 다음 장치)도 사용할 수 있습니다. 상단 STEP 안내를 따르고 X/Y/Z/R/U/V 막대가 실제 스틱 움직임에 따라 변하는지 확인합니다.
 6. 실제 스틱 배치에 따라 **MODE 1**(오른쪽 세로 스로틀) 또는 **MODE 2**(왼쪽 세로 스로틀)를 선택하고 **STICK SETUP**을 누릅니다. Roll → Pitch → Yaw → Throttle 순서로 화면이 지정한 스틱만 양 끝에서 1초씩 유지합니다. Mode 1의 Pitch는 왼쪽, Throttle은 오른쪽입니다. Mode 2의 Pitch는 오른쪽, Throttle은 왼쪽입니다. 마지막 유지 위치와 중립 수집 안내를 따릅니다.
-7. **CONFIRM & SAVE** 후, 스로틀을 맨 아래로 두고 **ENABLE RADIO**를 누릅니다. 패널을 닫은 뒤 **Space**로 ARM합니다. 다른 스틱은 중앙에서 시작합니다.
+7. **CONFIRM & SAVE**(검토 후 저장) 후, 스로틀을 맨 아래로 두고 **ENABLE RADIO**를 누릅니다. 패널을 닫은 뒤 **Space**로 ARM합니다. 다른 스틱은 중앙에서 시작합니다.
 
 각 PC의 실제 축 순서와 방향을 보정합니다. 개발 PC의 개인 조종기 보정값은 배포본에 들어 있지 않습니다. Mode 1·Mode 2 모두 단계별 보정을 지원합니다. 모드를 변경하면 USB가 해제되며 새 보정을 저장한 뒤 활성화해야 합니다. 수동 설정이 필요하면 **ADVANCED OPTIONS**의 AXIS/NORMAL·INVERTED 버튼과 범위 보정으로 실제 축을 수동 설정합니다. **SIMPLE VIEW**로 기본 화면에 돌아옵니다. 기본 입력 API는 Windows WinMM 조이스틱입니다. 모든 HID·XInput 장치가 호환된다고 보장하지 않으며, 네 개의 서로 다른 아날로그 축이 필요합니다.
 
@@ -16,7 +20,7 @@
 
 v0.7.1에서는 키보드 수동 기체도 창 포커스 상실 시 DISARM하고 누적 스로틀·축 입력을 지웁니다. 키를 놓고 새로 눌러 조종하며 ARM은 별도로 수행합니다. 메뉴·장비 보기·기체 전환·초기화에서 이어진 자동 반복 입력도 차단합니다. 연습 AUTO는 계속되며, 메뉴에서 명시적으로 켠 USB 연결은 메뉴를 닫을 때 보존합니다. 실제 USB 원시 값과 저장 보정값을 임의로 중립으로 바꾸지 않습니다.
 
-설정과 진단은 `%LOCALAPPDATA%\ImperialWingsSimulator\Saved`에 저장됩니다. `Config\RadioProfile.json`은 해당 Windows 사용자의 보정값, `Config\VisualQuality.txt`는 화질입니다. 버전 업데이트는 새 폴더에 압축 해제해도 설정을 유지합니다. 다른 사람에게 이 사용자 데이터 폴더를 복사하지 않습니다.
+설정과 진단은 `%LOCALAPPDATA%\ImperialWingsSimulator\Saved`에 저장됩니다. `Config\RadioProfile.json`은 해당 Windows 사용자의 보정값, `Config\VisualQuality.txt`는 화질, `Config\Language.txt`는 표시 언어입니다. 버전 업데이트는 새 폴더에 압축 해제해도 설정을 유지합니다. 다른 사람에게 이 사용자 데이터 폴더를 복사하지 않습니다.
 
 연결 문제는 설정 화면의 **EXPORT DEVICE REPORT**를 눌러 `Diagnostics`의 JSON을 확인합니다. 장치가 없으면 Windows의 `joy.cpl`에서도 움직이는지 먼저 확인합니다. 진단 파일에는 사용자 저장 경로와 장치 이름이 들어 있으므로 공개 저장소에는 올리지 않습니다.
 
