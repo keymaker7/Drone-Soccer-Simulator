@@ -211,6 +211,7 @@ void AImperialPlayerController::SetupInputComponent()
     InputComponent->BindKey(EKeys::C,IE_Pressed,this,&AImperialPlayerController::Radio);
     InputComponent->BindKey(EKeys::LeftMouseButton,IE_Pressed,this,&AImperialPlayerController::ClickHUD);
     InputComponent->BindKey(EKeys::F10,IE_Pressed,this,&AImperialPlayerController::CompactHUD);
+    InputComponent->BindKey(EKeys::G,IE_Pressed,this,&AImperialPlayerController::ConfirmSuccession);
     InputComponent->BindKey(EKeys::MouseScrollUp,IE_Pressed,this,&AImperialPlayerController::ZoomIn);
     InputComponent->BindKey(EKeys::MouseScrollDown,IE_Pressed,this,&AImperialPlayerController::ZoomOut);
 }
@@ -229,6 +230,9 @@ void AImperialPlayerController::Return(){if(Match&&!HasRadioModal()&&!IsReadOnly
 void AImperialPlayerController::Reset(){if(Match&&!HasRadioModal()&&!IsReadOnlyView())Match->ResetMatch();}
 void AImperialPlayerController::Export(){if(Match)Match->ExportTelemetry();}
 void AImperialPlayerController::RecordFlight(){if(Match)Match->ToggleFlightRecording();}
+// Referee view only, so a pilot's stray key cannot move scoring rights mid-flight.
+// Confirms the Guide succession for the selected aircraft's team.
+void AImperialPlayerController::ConfirmSuccession(){if(Match&&!HasRadioModal()&&ActiveView==5)Match->ConfirmStrikerSuccession(Match->GetSelected()/5);}
 void AImperialPlayerController::ToggleEquipmentInspection()
 {
     if(!Match||HasRadioModal())return;

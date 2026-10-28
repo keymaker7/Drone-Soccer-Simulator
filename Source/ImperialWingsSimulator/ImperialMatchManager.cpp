@@ -180,7 +180,7 @@ void AImperialMatchManager::ResetMatch()
 {
     FinishAIResult(TEXT("reset"));
     AdvanceGuidanceCommand();AILandingTargets.Reset();AIAge=AILandingAge=0;bAILandingFault=false;
-    bAIScoringClosed=false;for(auto& D:Drones)D->ResetDrone();Mode=EImperialMode::Manual;BlueScore=OrangeScore=0;Elapsed=0;Rules.Reset();
+    bAIScoringClosed=false;for(auto& D:Drones)D->ResetDrone();Mode=EImperialMode::Manual;BlueScore=OrangeScore=0;Elapsed=0;Rules.Reset();LoggedRuleEvents=0;
     for(int32 I=0;I<Drones.Num();++I){PreviousPositions[I]=Drones[I]->GetActorLocation();GoalReady[I]=true;}
     // The next generation resets only this session's planner state. An unordered
     // separate /reset request could otherwise clear a newer mission.
@@ -300,8 +300,55 @@ void AImperialMatchManager::UpdateScoring()
         {const FVector C=Goal->GetCentre()/100.;const FQuat Q=Goal->GetRingRotation();const FVector N=Q.GetAxisX(),S=Q.GetAxisY(),U=Q.GetAxisZ();Frames[I].center={C.X,C.Y,C.Z};Frames[I].normal={N.X,N.Y,N.Z};Frames[I].side={S.X,S.Y,S.Z};Frames[I].up={U.X,U.Y,U.Z};}
     Rules.Update(Poses,GetWorld()->GetDeltaSeconds(),Frames);
     if(Rules.Score(0)+Rules.Score(1)>Before)Log(FString::Printf(TEXT("GOAL! Blue %d : %d Red. Scoring team must all retreat."),Rules.Score(0),Rules.Score(1)));
+    LogRuleEvents();
     if(auto* Arena=Cast<APrototypeArenaBuilder>(UGameplayStatics::GetActorOfClass(GetWorld(),APrototypeArenaBuilder::StaticClass()))){Arena->SetGoalSignal(1,Rules.IsOffside(0));Arena->SetGoalSignal(0,Rules.IsOffside(1));}
     HandleMatchPhaseTransition(Phase);
+}
+bool AImperialMatchManager::ConfirmStrikerSuccession(int32 Team)
+{
+    // Referee confirmation only: declaring the Striker unable, stopping it and
+    // the Guide's legal contact happen on the field before this call.
+    if(!Rules.ConfirmStrikerSuccession(Team))
+    {Log(TEXT("Guide succession rejected: only during play, once per set, with an active Guide."));return false;}
+    LogRuleEvents();return true;
+}
+void AImperialMatchManager::LogRuleEvents()
+{
+    const auto& RuleEvents=Rules.Events();
+    const int64 Dropped=Rules.DroppedEvents(),Total=Dropped+static_cast<int64>(RuleEvents.size());
+    if(Total<LoggedRuleEvents)LoggedRuleEvents=0;
+    for(int64 I=FMath::Max(LoggedRuleEvents,Dropped);I<Total;++I)
+    {
+        const drone_soccer::RuleEvent& E=RuleEvents[static_cast<size_t>(I-Dropped)];
+        const TCHAR* Team=E.team==0?TEXT("Blue"):TEXT("Red");
+        switch(E.type)
+        {
+        case drone_soccer::EventType::Goal:break; // UpdateScoring already announces goals.
+        case drone_soccer::EventType::ReversePassage:Log(FString::Printf(TEXT("%s IW-%02d reverse passage: no goal, team offside."),Team,E.id+1));break;
+        case drone_soccer::EventType::OffsideAttackPenalty:Log(FString::Printf(TEXT("%s IW-%02d passed while offside: penalty."),Team,E.id+1));break;
+        case drone_soccer::EventType::ReverseEntryPenalty:Log(FString::Printf(TEXT("%s IW-%02d entered its own goal from behind: penalty."),Team,E.id+1));break;
+        case drone_soccer::EventType::OffsideCleared:Log(FString::Printf(TEXT("%s team retreated: offside cleared."),Team));break;
+        case drone_soccer::EventType::StrikerSuccession:Log(FString::Printf(TEXT("Referee confirmed: %s Guide IW-%02d is now the Striker."),Team,E.id+1));break;
+        case drone_soccer::EventType::SetEnd:
+            Log(E.team<0?FString::Printf(TEXT("Set %d drawn %d : %d."),E.set,E.score[0],E.score[1])
+                :FString::Printf(TEXT("Set %d won by %s, %d : %d."),E.set,Team,E.score[0],E.score[1]));break;
+        }
+        RecordRuleEvent(E);
+    }
+    LoggedRuleEvents=Total;
+}
+void AImperialMatchManager::RecordRuleEvent(const drone_soccer::RuleEvent& E)
+{
+    if(FlightLogPath.IsEmpty())return;
+    auto Root=MakeShared<FJsonObject>();Root->SetStringField(TEXT("event"),TEXT("rule"));
+    Root->SetStringField(TEXT("utc"),FDateTime::UtcNow().ToIso8601());Root->SetNumberField(TEXT("wall_s"),FPlatformTime::Seconds());
+    Root->SetNumberField(TEXT("game_s"),Elapsed);Root->SetStringField(TEXT("type"),ANSI_TO_TCHAR(drone_soccer::EventName(E.type)));
+    Root->SetNumberField(TEXT("team"),E.team);Root->SetNumberField(TEXT("id"),E.id);Root->SetNumberField(TEXT("set"),E.set);
+    Root->SetNumberField(TEXT("rule_time_s"),E.time);Root->SetNumberField(TEXT("clock_s"),E.clock);
+    Root->SetArrayField(TEXT("score"),{MakeShared<FJsonValueNumber>(E.score[0]),MakeShared<FJsonValueNumber>(E.score[1])});
+    FString Text;FJsonSerializer::Serialize(Root,TJsonWriterFactory<TCHAR,TCondensedJsonPrintPolicy<TCHAR>>::Create(&Text));Text+=TEXT("\n");
+    if(!FFileHelper::SaveStringToFile(Text,*FlightLogPath,FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM,&IFileManager::Get(),FILEWRITE_Append))
+    {FlightLogPath.Empty();Log(TEXT("Flight recording stopped: could not write to Saved/FlightLogs."));}
 }
 void AImperialMatchManager::HandleMatchPhaseTransition(drone_soccer::Phase Previous)
 {
