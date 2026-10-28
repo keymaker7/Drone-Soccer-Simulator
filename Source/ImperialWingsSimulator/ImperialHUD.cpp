@@ -169,6 +169,9 @@ void AImperialHUD::DrawHUD()
     Text(TEXT(":"),732,64,35,Muted);Text(FString::FromInt(M->GetScore(1)),864,61,43,M->GetTeamColor(5));
     if(M->IsOffside(0))Text(TEXT("OFFSIDE"),650,85,10,Orange);
     if(M->IsOffside(1))Text(TEXT("OFFSIDE"),915,85,10,Orange);
+    // After a confirmed Guide succession, name the aircraft that now holds scoring rights.
+    for(int32 Team=0;Team<2;++Team)if(M->GetCurrentStriker(Team)!=Team*5)
+        Text(FString::Printf(TEXT("STR IW-%02d"),M->GetCurrentStriker(Team)+1),Team==0?650:915,64,10,Orange);
     Text(Fit(M->GetMatchStatus(),10,415),540,111,10,White);
     Text(TEXT("SESSION / SET CLOCK"),987,43,11,Muted);Text(TimeLabel(M->GetElapsed()),987,66,29,White);
     Text(TEXT("GUIDANCE SOURCE"),1240,43,11,Muted);

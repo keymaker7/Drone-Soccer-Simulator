@@ -62,6 +62,6 @@ private:
     bool HasRadioModal() const;
     void ZoomIn(); void ZoomOut();
     void ClickHUD(); void CompactHUD();
-    void SavedRadio();void RecordFlight();
+    void SavedRadio();void RecordFlight();void ConfirmSuccession();
     void Fpv(); void Chase(); void Arena(); void Next(); void Auto(); void Hold(); void Return(); void Reset(); void Export(); void Radio();
 };

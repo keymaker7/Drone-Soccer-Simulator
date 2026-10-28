@@ -58,6 +58,10 @@ public:
     FString GetMatchStatus() const;
     int32 GetSetWins(int32 Team) const { return Rules.SetWins(Team); }
     bool IsOffside(int32 Team) const { return Rules.IsOffside(Team); }
+    // Referee action; the rules core decides whether the Guide may take over.
+    bool ConfirmStrikerSuccession(int32 Team);
+    int32 GetCurrentStriker(int32 Team) const { return Rules.Striker(Team); }
+    const std::vector<drone_soccer::RuleEvent>& GetRuleEvents() const { return Rules.Events(); }
     void ToggleArmSelected();
     void ChangeView(int32 View);
     bool ExportTelemetry();
@@ -149,6 +153,9 @@ private:
     void CancelPendingGuidance();
     FString GuidanceMode() const;
     void Log(const FString& Message);
+    int64 LoggedRuleEvents=0;
+    void LogRuleEvents();
+    void RecordRuleEvent(const drone_soccer::RuleEvent& Event);
     void UpdateScoring();
     void HandleMatchPhaseTransition(drone_soccer::Phase Previous);
     bool VerifyMatchAutonomyGates();
